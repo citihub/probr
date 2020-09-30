@@ -12,6 +12,7 @@ import (
 	_ "github.com/citihub/probr/probes/kubernetes/podsecuritypolicy"       //needed to run init on TestHandlers
 )
 
+// THIS IS A TEST
 //TODO: revise when interface this bit up ...
 var kube = kubernetes.GetKubeInstance()
 
