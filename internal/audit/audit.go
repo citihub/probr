@@ -9,11 +9,15 @@ import (
 	"github.com/citihub/probr/internal/config"
 )
 
+type Probe struct {
+	Steps map[string]string
+}
+
 type Event struct {
 	Meta          map[string]string
 	PodsCreated   int
 	PodsDestroyed int
-	Probes        map[string]string
+	Probes        map[string]*Probe
 }
 
 type AuditLogStruct struct {
@@ -75,11 +79,19 @@ func (e *Event) CountPodDestroyed() {
 	e.PodsDestroyed = e.PodsDestroyed + 1
 }
 
-func (e *Event) AuditProbe(name string, err error) {
-	if err != nil {
-		e.Probes[name] = "Failed"
+// AuditProbe
+func (e *Event) AuditProbe(name string, key string, err error) {
+	if e.Probes == nil {
+		e.Probes = make(map[string]*Probe)
+	}
+	if e.Probes[name] == nil {
+		e.Probes[name] = new(Probe)
+		e.Probes[name].Steps = make(map[string]string)
+	}
+	if err == nil {
+		e.Probes[name].Steps[key] = "Success"
 	} else {
-		e.Probes[name] = "Passed"
+		e.Probes[name].Steps[key] = "Failure"
 	}
 }
 

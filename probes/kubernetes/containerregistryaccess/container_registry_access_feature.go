@@ -60,6 +60,9 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
 
+	e := audit.AuditLog.GetEventLog(NAME)
+	e.AuditProbe(p.name, "aKubernetesClusterIsDeployed", nil)
+
 	//else we're good ...
 	return nil
 }
@@ -69,11 +72,12 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 // CIS-6.1.3
 // Minimize cluster access to read-only
 func (p *probeState) iAmAuthorisedToPullFromAContainerRegistry() error {
-	e := audit.AuditLog.GetEventLog(NAME)
-
 	pd, err := cra.SetupContainerAccessTestPod(utils.StringPtr("docker.io"))
 
-	return probe.ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
+	e := audit.AuditLog.GetEventLog(NAME)
+	s := probe.ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
+	e.AuditProbe(p.name, "iAmAuthorisedToPullFromAContainerRegistry", s)
+	return s
 }
 
 // PENDING IMPLEMENTATION
@@ -89,15 +93,19 @@ func (p *probeState) thePushRequestIsRejectedDueToAuthorization() error {
 // CIS-6.1.4
 // Ensure only authorised container registries are allowed
 func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry string) error {
-	e := audit.AuditLog.GetEventLog(NAME)
-
 	pd, err := cra.SetupContainerAccessTestPod(&registry)
 
-	return probe.ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
+	e := audit.AuditLog.GetEventLog(NAME)
+	s := probe.ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
+	e.AuditProbe(p.name, "aUserAttemptsToDeployAContainerFrom", s)
+	return s
 }
 
 func (p *probeState) theDeploymentAttemptIs(res string) error {
-	return probe.AssertResult(&p.state, res, "")
+	s := probe.AssertResult(&p.state, res, "")
+	e := audit.AuditLog.GetEventLog(NAME)
+	e.AuditProbe(p.name, "theDeploymentAttemptIs", s)
+	return s
 }
 
 func (p *probeState) setup() {
@@ -131,6 +139,7 @@ func ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
 		ps.setup()
+		ps.name = s.Name
 		probes.LogScenarioStart(s)
 	})
 
