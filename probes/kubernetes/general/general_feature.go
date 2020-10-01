@@ -18,6 +18,7 @@ import (
 )
 
 type probeState struct {
+	name             string
 	state            probe.State
 	hasWildcardRoles bool
 }
@@ -51,48 +52,47 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 	if b == nil || !*b {
 		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
-
-	//else we're good ...
+	e := audit.AuditLog.GetEventLog(NAME)
+	e.AuditProbe(p.name, "aKubernetesClusterIsDeployed", nil)
 	return nil
 }
 
 //@CIS-5.1.3
 func (p *probeState) iInspectTheThatAreConfigured(roleLevel string) error {
-	var e error
-
+	var err error
 	if roleLevel == "Cluster Roles" {
-		l, err := kubernetes.GetKubeInstance().GetClusterRolesByResource("*")
-		e = err
+		l, e := kubernetes.GetKubeInstance().GetClusterRolesByResource("*")
+		err = e
 		p.hasWildcardRoles = len(*l) > 0
 
 	} else if roleLevel == "Roles" {
-		l, err := kubernetes.GetKubeInstance().GetRolesByResource("*")
-		e = err
+		l, e := kubernetes.GetKubeInstance().GetRolesByResource("*")
+		err = e
 		p.hasWildcardRoles = len(*l) > 0
 	}
-
-	if e != nil {
-		return probes.LogAndReturnError("error raised when retrieving roles for rolelevel %v: %v", roleLevel, e)
+	if err != nil {
+		err = probes.LogAndReturnError("error raised when retrieving roles for rolelevel %v: %v", roleLevel, err)
 	}
-
-	return nil
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "iInspectTheThatAreConfigured", err)
+	return err
 }
 
 func (p *probeState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations() error {
 	//we strip out system/known entries in the cluster roles & roles call
-
+	var err error
 	if p.hasWildcardRoles {
-		return probes.LogAndReturnError("roles exist with wildcarded resources")
+		err = probes.LogAndReturnError("roles exist with wildcarded resources")
 	}
+	e := audit.AuditLog.GetEventLog(NAME)
+	e.AuditProbe(p.name, "iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations", err)
 
 	//good if get to here
-	return nil
+	return err
 }
 
 //@CIS-5.6.3
 func (p *probeState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext() error {
-	e := audit.AuditLog.GetEventLog(NAME)
-
 	b := "probr-general"
 	n := kubernetes.GenerateUniquePodName(b)
 	i := config.Vars.Images.Repository + "/" + config.Vars.Images.BusyBox
@@ -100,20 +100,27 @@ func (p *probeState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext
 	//create pod with nil security context
 	pd, err := kubernetes.GetKubeInstance().CreatePod(&n, utils.StringPtr("probr-general-test-ns"), &b, &i, true, nil)
 
-	return probe.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, e, err)
+	e := audit.AuditLog.GetEventLog(NAME)
+	s := probe.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, e, err)
+	e.AuditProbe(p.name, "iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext", s)
+	return s
 }
 
 func (p *probeState) theDeploymentIsRejected() error {
 	//looking for a non-nil creation error
+	var err error
 	if p.state.CreationError == nil {
-		return probes.LogAndReturnError("pod %v was created successfully. Test fail.", p.state.PodName)
+		err = probes.LogAndReturnError("pod %v was created successfully. Test fail.", p.state.PodName)
 	}
+	e := audit.AuditLog.GetEventLog(NAME)
+	e.AuditProbe(p.name, "theDeploymentIsRejected", err)
 
 	//nil creation error so test pass
-	return nil
+	return err
 }
 
 //@CIS-6.10.1
+// PENDING IMPLEMENTATION
 func (p *probeState) iShouldNotBeAbleToAccessTheKubernetesWebUI() error {
 	//TODO: will be difficult to test this.  To access it, a proxy needs to be created:
 	//az aks browse --resource-group rg-probr-all-policies --name ProbrAllPolicies
@@ -129,19 +136,19 @@ func (p *probeState) theKubernetesWebUIIsDisabled() error {
 	pl, err := kubernetes.GetKubeInstance().GetPods("kube-system")
 
 	if err != nil {
-		return probes.LogAndReturnError("error raised when trying to retrieve pods %v", err)
+		err = probes.LogAndReturnError("error raised when trying to retrieve pods %v", err)
 	}
 
 	//a "pass" is the abscence of a "kubernetes-dashboard" pod
-	//if one is found, it's a fail ...
 	for _, p := range pl.Items {
 		if strings.HasPrefix(p.Name, "kubernetes-dashboard") {
-			return probes.LogAndReturnError("kubernetes-dashboard pod found (%v) - test fail", p.Name)
+			err = probes.LogAndReturnError("kubernetes-dashboard pod found (%v) - test fail", p.Name)
+			break
 		}
 	}
-
-	//all good if we get to here
-	return nil
+	e := audit.AuditLog.GetEventLog(NAME)
+	e.AuditProbe(p.name, "theDeploymentIsRejected", err)
+	return err
 }
 
 func (p *probeState) tearDown() {
@@ -166,6 +173,7 @@ func ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ps := probeState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
+		ps.name = s.Name
 		probes.LogScenarioStart(s)
 	})
 
