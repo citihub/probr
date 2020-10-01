@@ -1,5 +1,5 @@
-// Package general provides the implementation required to execute the feature based test cases described in the
-// the 'features' directory.
+// Package general provides the implementation required to execute the feature-based test cases
+// described in the the 'events' directory.
 package general
 
 import (
@@ -10,11 +10,11 @@ import (
 	"github.com/citihub/probr/probes"
 	"github.com/citihub/probr/probes/kubernetes/probe"
 
-	"github.com/cucumber/godog"
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
 	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/utils"
+	"github.com/cucumber/godog"
 )
 
 type probeState struct {
@@ -159,7 +159,7 @@ func TestSuiteInitialize(ctx *godog.TestSuiteContext) {
 }
 
 // ScenarioInitialize initialises the specific test steps.  This is essentially the creation of the test
-// which reflects the tests described in the features directory.  There must be a test step registered for
+// which reflects the tests described in the events directory.  There must be a test step registered for
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
 // a step / function defined.  See: https://github.com/cucumber/godog#example.
 func ScenarioInitialize(ctx *godog.ScenarioContext) {

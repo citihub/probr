@@ -1,5 +1,5 @@
 // Package podsecuritypolicy provides the implementation required to execute the feature based test cases described in the
-// the 'features' directory.  The 'assets' directory holds any assets required for the test cases.   Assets are 'embedded'
+// the 'events' directory.  The 'assets' directory holds any assets required for the test cases.   Assets are 'embedded'
 // via the 'go-bindata.exe' tool which is invoked via the 'go generate' tool.  It is important, therefore, that the
 //'go:generate' comment is present in order to include this package in the scope of the 'go generate' tool.  This can be
 // invoked directly on the command line of via the Makefile (e.g. make clean-build).
@@ -10,13 +10,13 @@ package podsecuritypolicy
 import (
 	"log"
 
-	"github.com/cucumber/godog"
 	"github.com/citihub/probr/internal/audit"
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/probes"
 	podsecuritypolicy "github.com/citihub/probr/probes/kubernetes/podsecuritypolicy/assets"
 	"github.com/citihub/probr/probes/kubernetes/probe"
+	"github.com/cucumber/godog"
 )
 
 type probeState struct {
@@ -497,7 +497,7 @@ func TestSuiteInitialize(ctx *godog.TestSuiteContext) {
 }
 
 // ScenarioInitialize initialises the specific test steps.  This is essentially the creation of the test
-// which reflects the tests described in the features directory.  There must be a test step registered for
+// which reflects the tests described in the events directory.  There must be a test step registered for
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
 // a step / function defined.  See: https://github.com/cucumber/godog#example.
 func ScenarioInitialize(ctx *godog.ScenarioContext) {
