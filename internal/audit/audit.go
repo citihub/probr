@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/citihub/probr/internal/config"
 )
@@ -17,15 +16,17 @@ type Event struct {
 	Meta          map[string]string
 	PodsCreated   int
 	PodsDestroyed int
+	ProbesFailed  int
 	Probes        map[string]*Probe
 }
 
 type AuditLogStruct struct {
-	Status       string
-	EventsPassed int
-	EventsFailed int
-	PodNames     []string
-	Events       map[string]*Event
+	Status        string
+	EventsPassed  int
+	EventsFailed  int
+	EventsSkipped int
+	PodNames      []string
+	Events        map[string]*Event
 }
 
 var AuditLog AuditLogStruct
@@ -40,19 +41,12 @@ func (a *AuditLogStruct) PrintAudit() {
 	}
 }
 
-// SetProbrStatus evaluates the current AuditLogStruct state to set EventsPassed, EventsFailed, and Status
+// SetProbrStatus evaluates the current AuditLogStruct state to set the Status
 func (a *AuditLogStruct) SetProbrStatus() {
-	for _, v := range a.Events {
-		if strings.Contains(v.Meta["status"], "Passed") {
-			a.EventsPassed = a.EventsPassed + 1
-		} else if strings.Contains(v.Meta["status"], "Failed") {
-			a.EventsFailed = a.EventsFailed + 1
-		}
-	}
 	if a.EventsPassed > 0 && a.EventsFailed == 0 {
-		a.Status = "Completed - All Events Completed Successfully"
+		a.Status = "Complete - All Events Completed Successfully"
 	} else {
-		a.Status = fmt.Sprintf("Completed - %v of %v Events Failed", a.EventsFailed, len(a.Events))
+		a.Status = fmt.Sprintf("Complete - %v of %v Events Failed", a.EventsFailed, (len(a.Events) - a.EventsSkipped))
 	}
 }
 
@@ -61,6 +55,21 @@ func (a *AuditLogStruct) AuditMeta(name string, key string, value string) {
 	e := a.GetEventLog(name)
 	e.Meta[key] = value
 	a.Events[name] = e
+}
+
+// AuditComplete takes an event name and status then updates the audit & event meta information
+func (a *AuditLogStruct) AuditComplete(name string, status int) {
+	e := a.GetEventLog(name)
+	if len(e.Probes) < 1 {
+		e.Meta["status"] = "Skipped"
+		a.EventsPassed = a.EventsPassed + 1
+	} else if status == 0 {
+		e.Meta["status"] = "Event Passed"
+		a.EventsFailed = a.EventsFailed + 1
+	} else {
+		e.Meta["status"] = "Event Failed"
+		a.EventsSkipped = a.EventsSkipped + 1
+	}
 }
 
 // GetEventLog initializes or returns existing log event for the provided test name
@@ -89,9 +98,10 @@ func (e *Event) AuditProbe(name string, key string, err error) {
 		e.Probes[name].Steps = make(map[string]string)
 	}
 	if err == nil {
-		e.Probes[name].Steps[key] = "Success"
+		e.Probes[name].Steps[key] = "Passed"
 	} else {
-		e.Probes[name].Steps[key] = "Failure"
+		e.Probes[name].Steps[key] = "Failed"
+		e.ProbesFailed = e.ProbesFailed + 1
 	}
 }
 
