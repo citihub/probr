@@ -19,6 +19,7 @@ type AuditLogStruct struct {
 	Status       string
 	ProbesPassed int
 	ProbesFailed int
+	PodNames     []string
 	Events       map[string]*Event
 }
 
@@ -63,12 +64,18 @@ func (o *AuditLogStruct) GetEventLog(n string) *Event {
 	return o.Events[n]
 }
 
-func (o *Event) LogPodCreated() {
+// CountPodCreated increments PodsCreated for event
+func (o *Event) CountPodCreated() {
 	o.PodsCreated = o.PodsCreated + 1
 }
 
-func (o *Event) LogPodDestroyed() {
+// CountPodDestroyed increments PodsDestroyed for event
+func (o *Event) CountPodDestroyed() {
 	o.PodsDestroyed = o.PodsDestroyed + 1
+}
+
+func (o *AuditLogStruct) AuditPodName(n string) {
+	o.PodNames = append(o.PodNames, n)
 }
 
 // GetEventLog initializes log event if it doesn't already exist
