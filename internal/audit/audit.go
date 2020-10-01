@@ -13,12 +13,13 @@ type Event struct {
 	Meta          map[string]string
 	PodsCreated   int
 	PodsDestroyed int
+	Probes        map[string]string
 }
 
 type AuditLogStruct struct {
 	Status       string
-	ProbesPassed int
-	ProbesFailed int
+	EventsPassed int
+	EventsFailed int
 	PodNames     []string
 	Events       map[string]*Event
 }
@@ -26,66 +27,74 @@ type AuditLogStruct struct {
 var AuditLog AuditLogStruct
 
 // PrintAudit will print the current Events object state, formatted to JSON, if AuditEnabled is not "false"
-func (o *AuditLogStruct) PrintAudit() {
+func (a *AuditLogStruct) PrintAudit() {
 	if config.Vars.AuditEnabled == "false" {
 		log.Printf("[NOTICE] Audit Log suppressed by configuration AuditEnabled=false.")
 	} else {
-		audit, _ := json.MarshalIndent(o, "", "  ")
-		log.Printf("[NOTICE] %s", audit)
+		audit, _ := json.MarshalIndent(a, "", "  ")
+		fmt.Printf("%s", audit) // Audit output should not be handled by log levels
 	}
 }
 
-// SetProbrStatus evaluates the current AuditLogStruct state to set ProbesPassed, ProbesFailed, and Status
-func (o *AuditLogStruct) SetProbrStatus() {
-	for _, v := range o.Events {
+// SetProbrStatus evaluates the current AuditLogStruct state to set EventsPassed, EventsFailed, and Status
+func (a *AuditLogStruct) SetProbrStatus() {
+	for _, v := range a.Events {
 		if strings.Contains(v.Meta["status"], "Passed") {
-			o.ProbesPassed = o.ProbesPassed + 1
+			a.EventsPassed = a.EventsPassed + 1
 		} else if strings.Contains(v.Meta["status"], "Failed") {
-			o.ProbesFailed = o.ProbesFailed + 1
+			a.EventsFailed = a.EventsFailed + 1
 		}
 	}
-	if o.ProbesPassed > 0 && o.ProbesFailed == 0 {
-		o.Status = "Completed - All Tests Passed"
+	if a.EventsPassed > 0 && a.EventsFailed == 0 {
+		a.Status = "Completed - All Events Completed Successfully"
 	} else {
-		o.Status = fmt.Sprintf("Completed - %v of %v Probes Failed", o.ProbesFailed, len(o.Events))
+		a.Status = fmt.Sprintf("Completed - %v of %v Events Failed", a.EventsFailed, len(a.Events))
 	}
 }
 
 // AuditMeta accepts a test name with a key and value to insert to the meta logs for that test. Overwrites key if already present.
-func (o *AuditLogStruct) AuditMeta(name string, key string, value string) {
-	e := o.GetEventLog(name)
+func (a *AuditLogStruct) AuditMeta(name string, key string, value string) {
+	e := a.GetEventLog(name)
 	e.Meta[key] = value
-	o.Events[name] = e
+	a.Events[name] = e
 }
 
 // GetEventLog initializes or returns existing log event for the provided test name
-func (o *AuditLogStruct) GetEventLog(n string) *Event {
-	o.logInit(n)
-	return o.Events[n]
+func (a *AuditLogStruct) GetEventLog(n string) *Event {
+	a.logInit(n)
+	return a.Events[n]
 }
 
 // CountPodCreated increments PodsCreated for event
-func (o *Event) CountPodCreated() {
-	o.PodsCreated = o.PodsCreated + 1
+func (e *Event) CountPodCreated() {
+	e.PodsCreated = e.PodsCreated + 1
 }
 
 // CountPodDestroyed increments PodsDestroyed for event
-func (o *Event) CountPodDestroyed() {
-	o.PodsDestroyed = o.PodsDestroyed + 1
+func (e *Event) CountPodDestroyed() {
+	e.PodsDestroyed = e.PodsDestroyed + 1
 }
 
-func (o *AuditLogStruct) AuditPodName(n string) {
-	o.PodNames = append(o.PodNames, n)
+func (e *Event) AuditProbe(name string, err error) {
+	if err != nil {
+		e.Probes[name] = "Failed"
+	} else {
+		e.Probes[name] = "Passed"
+	}
+}
+
+func (a *AuditLogStruct) AuditPodName(n string) {
+	a.PodNames = append(a.PodNames, n)
 }
 
 // GetEventLog initializes log event if it doesn't already exist
-func (o *AuditLogStruct) logInit(n string) {
-	if o.Events == nil {
-		o.Events = make(map[string]*Event)
-		o.Status = "Running"
+func (a *AuditLogStruct) logInit(n string) {
+	if a.Events == nil {
+		a.Events = make(map[string]*Event)
+		a.Status = "Running"
 	}
-	if o.Events[n] == nil {
-		o.Events[n] = &Event{
+	if a.Events[n] == nil {
+		a.Events[n] = &Event{
 			Meta:          make(map[string]string),
 			PodsCreated:   0,
 			PodsDestroyed: 0,
