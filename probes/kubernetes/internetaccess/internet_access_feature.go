@@ -15,6 +15,7 @@ import (
 
 type probState struct {
 	name           string
+	event          *audit.Event
 	podName        string
 	httpStatusCode int
 }
@@ -52,8 +53,7 @@ func (p *probState) aKubernetesClusterIsDeployed() error {
 		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
 
-	event := audit.AuditLog.GetEventLog(NAME)
-	event.AuditProbe(p.name, "aKubernetesClusterIsDeployed", nil)
+	p.event.AuditProbe(p.name, nil) // If not fatal, success
 	return nil
 }
 
@@ -73,8 +73,7 @@ func (p *probState) aPodIsDeployedInTheCluster() error {
 		//hold on to the pod name
 		p.podName = pod.GetObjectMeta().GetName()
 	}
-	event := audit.AuditLog.GetEventLog(NAME)
-	event.AuditProbe(p.name, "aPodIsDeployedInTheCluster", err)
+	p.event.AuditProbe(p.name, err)
 	return err
 }
 
@@ -88,8 +87,7 @@ func (p *probState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(url 
 
 	//hold on to the code
 	p.httpStatusCode = code
-	event := audit.AuditLog.GetEventLog(NAME)
-	event.AuditProbe(p.name, "aProcessInsideThePodEstablishesADirectHTTPSConnectionTo", err)
+	p.event.AuditProbe(p.name, err)
 	return err
 }
 
@@ -102,8 +100,7 @@ func (p *probState) accessIs(accessResult string) error {
 			err = probes.LogAndReturnError("got HTTP Status Code %v - failed", p.httpStatusCode)
 		}
 	}
-	event := audit.AuditLog.GetEventLog(NAME)
-	event.AuditProbe(p.name, "accessIs", err)
+	p.event.AuditProbe(p.name, err)
 	return err
 }
 
@@ -145,6 +142,8 @@ func TestSuiteInitialize(ctx *godog.TestSuiteContext) {
 func ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.BeforeScenario(func(s *godog.Scenario) {
 		ps.setup()
+		ps.name = s.Name
+		ps.event = audit.AuditLog.GetEventLog(NAME)
 		probes.LogScenarioStart(s)
 	})
 

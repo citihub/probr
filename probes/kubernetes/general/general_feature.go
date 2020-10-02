@@ -19,6 +19,7 @@ import (
 
 type probeState struct {
 	name             string
+	event            *audit.Event
 	state            probe.State
 	hasWildcardRoles bool
 }
@@ -52,8 +53,7 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 	if b == nil || !*b {
 		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
-	e := audit.AuditLog.GetEventLog(NAME)
-	e.AuditProbe(p.name, "aKubernetesClusterIsDeployed", nil)
+	p.event.AuditProbe(p.name, nil) // If not fatal, success
 	return nil
 }
 
@@ -73,8 +73,7 @@ func (p *probeState) iInspectTheThatAreConfigured(roleLevel string) error {
 	if err != nil {
 		err = probes.LogAndReturnError("error raised when retrieving roles for rolelevel %v: %v", roleLevel, err)
 	}
-	event := audit.AuditLog.GetEventLog(NAME)
-	event.AuditProbe(p.name, "iInspectTheThatAreConfigured", err)
+	p.event.AuditProbe(p.name, err)
 	return err
 }
 
@@ -84,10 +83,7 @@ func (p *probeState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations(
 	if p.hasWildcardRoles {
 		err = probes.LogAndReturnError("roles exist with wildcarded resources")
 	}
-	e := audit.AuditLog.GetEventLog(NAME)
-	e.AuditProbe(p.name, "iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations", err)
-
-	//good if get to here
+	p.event.AuditProbe(p.name, err)
 	return err
 }
 
@@ -100,9 +96,9 @@ func (p *probeState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext
 	//create pod with nil security context
 	pd, err := kubernetes.GetKubeInstance().CreatePod(&n, utils.StringPtr("probr-general-test-ns"), &b, &i, true, nil)
 
-	e := audit.AuditLog.GetEventLog(NAME)
+	e := p.event
 	s := probe.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, e, err)
-	e.AuditProbe(p.name, "iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext", s)
+	e.AuditProbe(p.name, s)
 	return s
 }
 
@@ -112,10 +108,7 @@ func (p *probeState) theDeploymentIsRejected() error {
 	if p.state.CreationError == nil {
 		err = probes.LogAndReturnError("pod %v was created successfully. Test fail.", p.state.PodName)
 	}
-	e := audit.AuditLog.GetEventLog(NAME)
-	e.AuditProbe(p.name, "theDeploymentIsRejected", err)
-
-	//nil creation error so test pass
+	p.event.AuditProbe(p.name, err)
 	return err
 }
 
@@ -146,8 +139,7 @@ func (p *probeState) theKubernetesWebUIIsDisabled() error {
 			break
 		}
 	}
-	e := audit.AuditLog.GetEventLog(NAME)
-	e.AuditProbe(p.name, "theDeploymentIsRejected", err)
+	p.event.AuditProbe(p.name, err)
 	return err
 }
 
@@ -174,6 +166,7 @@ func ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
 		ps.name = s.Name
+		ps.event = audit.AuditLog.GetEventLog(NAME)
 		probes.LogScenarioStart(s)
 	})
 

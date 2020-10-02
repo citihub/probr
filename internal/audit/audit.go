@@ -55,7 +55,7 @@ func (a *AuditLogStruct) AuditComplete(name string, status int) {
 		e.Meta["status"] = "Event Passed"
 		a.EventsPassed = a.EventsPassed + 1
 	} else {
-		e.Meta["status"] = "Event Failed"
+		e.Meta["status"] = "Failed"
 		a.EventsFailed = a.EventsFailed + 1
 	}
 }

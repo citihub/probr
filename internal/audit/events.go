@@ -1,5 +1,10 @@
 package audit
 
+import (
+	"runtime"
+	"strings"
+)
+
 type Probe struct {
 	Steps map[string]string
 }
@@ -23,7 +28,15 @@ func (e *Event) CountPodDestroyed() {
 }
 
 // AuditProbe
-func (e *Event) AuditProbe(name string, key string, err error) {
+func (e *Event) AuditProbe(name string, err error) {
+	// get most recent caller function name as probe step
+	f := make([]uintptr, 1)
+	runtime.Callers(2, f)                      // add full caller path to empty object
+	step := runtime.FuncForPC(f[0] - 1).Name() // get full caller path in string form
+	s := strings.Split(step, ".")              // split full caller path
+	step = s[len(s)-1]                         // select last element from caller path
+
+	// Initialize any empty objects
 	if e.Probes == nil {
 		e.Probes = make(map[string]*Probe)
 	}
@@ -31,10 +44,11 @@ func (e *Event) AuditProbe(name string, key string, err error) {
 		e.Probes[name] = new(Probe)
 		e.Probes[name].Steps = make(map[string]string)
 	}
+
+	// Now do the actual probe audit
 	if err == nil {
-		e.Probes[name].Steps[key] = "Passed"
+		e.Probes[name].Steps[step] = "Passed"
 	} else {
-		e.Probes[name].Steps[key] = "Failed"
-		e.ProbesFailed = e.ProbesFailed + 1
+		e.Probes[name].Steps[step] = "Failed"
 	}
 }

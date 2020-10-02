@@ -17,6 +17,7 @@ import (
 
 type probeState struct {
 	name  string
+	event *audit.Event
 	state probe.State
 }
 
@@ -60,10 +61,7 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
 
-	e := audit.AuditLog.GetEventLog(NAME)
-	e.AuditProbe(p.name, "aKubernetesClusterIsDeployed", nil)
-
-	//else we're good ...
+	p.event.AuditProbe(p.name, nil) // If not fatal, success
 	return nil
 }
 
@@ -74,9 +72,9 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 func (p *probeState) iAmAuthorisedToPullFromAContainerRegistry() error {
 	pd, err := cra.SetupContainerAccessTestPod(utils.StringPtr("docker.io"))
 
-	e := audit.AuditLog.GetEventLog(NAME)
+	e := p.event
 	s := probe.ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
-	e.AuditProbe(p.name, "iAmAuthorisedToPullFromAContainerRegistry", s)
+	e.AuditProbe(p.name, s)
 	return s
 }
 
@@ -95,16 +93,15 @@ func (p *probeState) thePushRequestIsRejectedDueToAuthorization() error {
 func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry string) error {
 	pd, err := cra.SetupContainerAccessTestPod(&registry)
 
-	e := audit.AuditLog.GetEventLog(NAME)
+	e := p.event
 	s := probe.ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
-	e.AuditProbe(p.name, "aUserAttemptsToDeployAContainerFrom", s)
+	e.AuditProbe(p.name, s)
 	return s
 }
 
 func (p *probeState) theDeploymentAttemptIs(res string) error {
 	s := probe.AssertResult(&p.state, res, "")
-	e := audit.AuditLog.GetEventLog(NAME)
-	e.AuditProbe(p.name, "theDeploymentAttemptIs", s)
+	p.event.AuditProbe(p.name, s)
 	return s
 }
 
@@ -140,6 +137,7 @@ func ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.BeforeScenario(func(s *godog.Scenario) {
 		ps.setup()
 		ps.name = s.Name
+		ps.event = audit.AuditLog.GetEventLog(NAME)
 		probes.LogScenarioStart(s)
 	})
 
