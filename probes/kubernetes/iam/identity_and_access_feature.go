@@ -21,6 +21,7 @@ import (
 )
 
 type probeState struct {
+	name         string
 	state        probe.State
 	useDefaultNS bool
 }
@@ -81,28 +82,35 @@ func (p *probeState) aKubernetesClusterExistsWhichWeCanDeployInto() error {
 		return probes.LogAndReturnError("kubernetes cluster is NOT deployed")
 	}
 
-	//else we're good ...
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "aKubernetesClusterExistsWhichWeCanDeployInto", nil)
 	return nil
 }
 
 //AZ-AAD-AI-1.0
 func (p *probeState) theDefaultNamespaceHasAnAzureIdentityBinding() error {
-	return p.runAISetupCheck(iam.AzureIdentityBindingExists, true, "AzureIdentityBinding")
+	err := p.runAISetupCheck(iam.AzureIdentityBindingExists, true, "AzureIdentityBinding")
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "theDefaultNamespaceHasAnAzureIdentityBinding", err)
+	return err
+
 }
 func (p *probeState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentityBinding(namespace string) error {
-	e := audit.AuditLog.GetEventLog(NAME)
+	event := audit.AuditLog.GetEventLog(NAME)
 
 	y, err := iamassets.Asset("assets/yaml/iam-azi-test-aib-curl.yaml")
 	if err != nil {
-		return probes.LogAndReturnError("error reading yaml for test: %v", err)
+		err = probes.LogAndReturnError("error reading yaml for test: %v", err)
+	} else {
+		if namespace == "the default" {
+			p.useDefaultNS = true
+		}
+		pd, err := iam.CreateIAMTestPod(y, p.useDefaultNS)
+		err = probe.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, event, err)
 	}
+	event.AuditProbe(p.name, "iCreateASimplePodInNamespaceAssignedWithThatAzureIdentityBinding", err)
+	return err
 
-	if namespace == "the default" {
-		p.useDefaultNS = true
-	}
-
-	pd, err := iam.CreateIAMTestPod(y, p.useDefaultNS)
-	return probe.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, e, err)
 }
 
 //AZ-AAD-AI-1.0, AZ-AAD-AI-1.1
@@ -112,66 +120,84 @@ func (p *probeState) thePodIsDeployedSuccessfully() error {
 	//i.e.:
 	// podName != "" -> successful deploy, potentially non-nil creation error
 	// podName == "" -> unsuccessful deploy, non-nil creation error
+	var err error
 	if p.state.PodName == "" {
-		return probes.LogAndReturnError("pod was not deployed successfully - creation error: %v", p.state.CreationError)
+		err = probes.LogAndReturnError("pod was not deployed successfully - creation error: %v", p.state.CreationError)
 	}
-
-	return nil
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "thePodIsDeployedSuccessfully", err)
+	return err
 }
+
 func (p *probeState) anAttemptToObtainAnAccessTokenFromThatPodShouldFail() error {
 	//reuse the parameterised / scenario outline func
-	return p.anAttemptToObtainAnAccessTokenFromThatPodShould("Fail")
+	err := p.anAttemptToObtainAnAccessTokenFromThatPodShould("Fail")
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "anAttemptToObtainAnAccessTokenFromThatPodShouldFail", err)
+	return err
 }
+
 func (p *probeState) anAttemptToObtainAnAccessTokenFromThatPodShould(expectedresult string) error {
-
+	var err error
 	if p.state.CreationError != nil {
-		return probes.LogAndReturnError("failed to create pod", p.state.CreationError)
-	}
-
-	//curl for the auth token ... need to supply appropiate ns
-	res, err := iam.GetAccessToken(p.state.PodName, p.useDefaultNS)
-
-	if err != nil {
-		//this is an error from trying to execute the command as opposed to
-		//the command itself returning an error
-		return probes.LogAndReturnError("error raised trying to execute auth token command - %v", err)
-	}
-
-	if expectedresult == "Fail" {
-		if res != nil && len(*res) > 0 {
-			//we got a token .. error
-			return probes.LogAndReturnError("token was successfully acquired on pod %v (result: %v)", p.state.PodName, *res)
-		}
-	} else if expectedresult == "Succeed" {
-		if res == nil {
-			//we didn't get a token .. error
-			return probes.LogAndReturnError("failed to acquire token on pod %v", p.state.PodName)
-		}
+		err = probes.LogAndReturnError("failed to create pod", p.state.CreationError)
 	} else {
-		return probes.LogAndReturnError("unrecognised expected result: %v", expectedresult)
-	}
+		//curl for the auth token ... need to supply appropiate ns
+		res, err := iam.GetAccessToken(p.state.PodName, p.useDefaultNS)
 
-	//else we're good
-	return nil
+		if err != nil {
+			//this is an error from trying to execute the command as opposed to
+			//the command itself returning an error
+			err = probes.LogAndReturnError("error raised trying to execute auth token command - %v", err)
+		} else {
+			if expectedresult == "Fail" {
+				if res != nil && len(*res) > 0 {
+					//we got a token .. error
+					err = probes.LogAndReturnError("token was successfully acquired on pod %v (result: %v)", p.state.PodName, *res)
+				}
+			} else if expectedresult == "Succeed" {
+				if res == nil {
+					//we didn't get a token .. error
+					err = probes.LogAndReturnError("failed to acquire token on pod %v", p.state.PodName)
+				}
+			} else {
+				err = probes.LogAndReturnError("unrecognised expected result: %v", expectedresult)
+			}
+		}
+	}
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "anAttemptToObtainAnAccessTokenFromThatPodShould", err)
+	return err
 }
 
 //AZ-AAD-AI-1.1
 func (p *probeState) theDefaultNamespaceHasAnAzureIdentity() error {
-	return p.runAISetupCheck(iam.AzureIdentityExists, true, "AzureIdentity")
+	err := p.runAISetupCheck(iam.AzureIdentityExists, true, "AzureIdentity")
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "theDefaultNamespaceHasAnAzureIdentity", err)
+	return err
+
 }
+
 func (p *probeState) iCreateAnAzureIdentityBindingCalledInANondefaultNamespace(arg1 string) error {
-	return p.runAISetupCheck(iam.AzureIdentityBindingExists, false, "AzureIdentityBinding")
+	err := p.runAISetupCheck(iam.AzureIdentityBindingExists, false, "AzureIdentityBinding")
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "iCreateAnAzureIdentityBindingCalledInANondefaultNamespace", err)
+	return err
 }
+
 func (p *probeState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoTheSameNamespaceAsTheAzureIdentityBinding(arg1, arg2 string) error {
-	e := audit.AuditLog.GetEventLog(NAME)
+	event := audit.AuditLog.GetEventLog(NAME)
 
 	y, err := iamassets.Asset("assets/yaml/iam-azi-test-aib-curl.yaml")
 	if err != nil {
-		return probes.LogAndReturnError("error reading yaml for test: %v", err)
+		err = probes.LogAndReturnError("error reading yaml for test: %v", err)
+	} else {
+		pd, err := iam.CreateIAMTestPod(y, false)
+		err = probe.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, event, err)
 	}
-
-	pd, err := iam.CreateIAMTestPod(y, false)
-	return probe.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, e, err)
+	event.AuditProbe(p.name, "iCreateAnAzureIdentityBindingCalledInANondefaultNamespace", err)
+	return err
 }
 
 //AZ-AAD-AI-1.2
@@ -181,21 +207,25 @@ func (p *probeState) theClusterHasManagedIdentityComponentsDeployed() error {
 
 	if err != nil {
 		return probes.LogAndReturnError("error raised when trying to retrieve pods %v", err)
-	}
-
-	//a "pass" is the prescence of a "mic*" pod(s)
-	//break on the first ...
-	for _, pd := range pl.Items {
-		if strings.HasPrefix(pd.Name, "mic-") {
-			//grab the pod name as we'll execute the cmd against this:
-			p.state.PodName = pd.Name
-			return nil
+	} else {
+		//a "pass" is the prescence of a "mic*" pod(s)
+		//break on the first ...
+		for _, pd := range pl.Items {
+			if strings.HasPrefix(pd.Name, "mic-") {
+				//grab the pod name as we'll execute the cmd against this:
+				p.state.PodName = pd.Name
+				err = nil
+			}
+		}
+		if err != nil {
+			err = probes.LogAndReturnError("no MIC pods found - test fail")
 		}
 	}
-
-	//fail if we get to here
-	return probes.LogAndReturnError("no MIC pods found - test fail")
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "theClusterHasManagedIdentityComponentsDeployed", err)
+	return err
 }
+
 func (p *probeState) iExecuteTheCommandAgainstTheMICPod(arg1 string) error {
 
 	c := kubernetes.CatAzJSON
@@ -204,30 +234,33 @@ func (p *probeState) iExecuteTheCommandAgainstTheMICPod(arg1 string) error {
 	if err != nil {
 		//this is an error from trying to execute the command as opposed to
 		//the command itself returning an error
-		return probes.LogAndReturnError("error raised trying to execute verification command (%v) - %v", c, err)
-	}
-	if res == nil {
-		return probes.LogAndReturnError("<nil> result received when trying to execute verification command (%v)", c)
-	}
-	if res.Err != nil && res.Internal {
+		err = probes.LogAndReturnError("error raised trying to execute verification command (%v) - %v", c, err)
+	} else if res == nil {
+		err = probes.LogAndReturnError("<nil> result received when trying to execute verification command (%v)", c)
+	} else if res.Err != nil && res.Internal {
 		//we have an error which was raised before reaching the cluster (i.e. it's "internal")
 		//this indicates that the command was not successfully executed
-		return probes.LogAndReturnError("error raised trying to execute verification command (%v)", c)
+		err = probes.LogAndReturnError("error raised trying to execute verification command (%v)", c)
+	}
+	if err != nil {
+		// store the result code
+		p.state.CommandExitCode = res.Code
 	}
 
-	//otherwise, store the result code and return
-	p.state.CommandExitCode = res.Code
-
-	return nil
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "iExecuteTheCommandAgainstTheMICPod", err)
+	return err
 }
-func (p *probeState) kubernetesShouldPreventMeFromRunningTheCommand() error {
 
+func (p *probeState) kubernetesShouldPreventMeFromRunningTheCommand() error {
+	var err error
 	if p.state.CommandExitCode == 0 {
 		//bad! don't want the command to succeed
-		return probes.LogAndReturnError("verification command was not blocked - test fail")
+		err = probes.LogAndReturnError("verification command was not blocked - test fail")
 	}
-
-	return nil
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "kubernetesShouldPreventMeFromRunningTheCommand", err)
+	return err
 }
 
 //setup, initialisation, etc.
@@ -272,6 +305,7 @@ func ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
 		ps.setup()
+		ps.name = s.Name
 		probes.LogScenarioStart(s)
 	})
 
