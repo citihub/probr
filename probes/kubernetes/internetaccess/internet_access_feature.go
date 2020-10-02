@@ -7,12 +7,14 @@ import (
 
 	"github.com/citihub/probr/probes"
 
+	"github.com/citihub/probr/internal/audit"
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/cucumber/godog"
 )
 
 type probState struct {
+	name           string
 	podName        string
 	httpStatusCode int
 }
@@ -42,6 +44,7 @@ func SetNetworkAccess(n kubernetes.NetworkAccess) {
 	na = n
 }
 
+// CCO:CHC2-SVD030
 func (p *probState) aKubernetesClusterIsDeployed() error {
 	b := na.ClusterIsDeployed()
 
@@ -49,34 +52,30 @@ func (p *probState) aKubernetesClusterIsDeployed() error {
 		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
 
-	//else we're good ...
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "aKubernetesClusterIsDeployed", nil)
 	return nil
 }
 
 func (p *probState) aPodIsDeployedInTheCluster() error {
-	//only one pod is needed for all scenarios
-	//if we have a pod name, then it's already created so
-	//this step can be skipped and the pod will be reused
+	var err error
 	if p.podName != "" {
+		//only one pod is needed for all probes in this event
 		log.Printf("[INFO] Pod %v has already been created - reusing the pod", p.podName)
-		return nil
+	} else {
+		pod, err := na.SetupNetworkAccessTestPod()
+		if err != nil {
+			return err
+		}
+		if pod == nil {
+			err = probes.LogAndReturnError("POD is nil")
+		}
+		//hold on to the pod name
+		p.podName = pod.GetObjectMeta().GetName()
 	}
-
-	pod, err := na.SetupNetworkAccessTestPod()
-
-	if err != nil {
-		return err
-	}
-
-	if pod == nil {
-		return probes.LogAndReturnError("POD is nil")
-	}
-
-	//hold on to the pod name
-	p.podName = pod.GetObjectMeta().GetName()
-
-	//else we're good ...
-	return nil
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "aPodIsDeployedInTheCluster", err)
+	return err
 }
 
 func (p *probState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(url string) error {
@@ -89,20 +88,23 @@ func (p *probState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(url 
 
 	//hold on to the code
 	p.httpStatusCode = code
-
-	return nil
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "aProcessInsideThePodEstablishesADirectHTTPSConnectionTo", err)
+	return err
 }
 
 func (p *probState) accessIs(accessResult string) error {
+	var err error
 	if accessResult == "blocked" {
 		//then the result should be anything other than 200
 		if p.httpStatusCode == 200 {
 			//it's a fail:
-			return probes.LogAndReturnError("got HTTP Status Code %v - failed", p.httpStatusCode)
+			err = probes.LogAndReturnError("got HTTP Status Code %v - failed", p.httpStatusCode)
 		}
 	}
-	//otherwise good
-	return nil
+	event := audit.AuditLog.GetEventLog(NAME)
+	event.AuditProbe(p.name, "accessIs", err)
+	return err
 }
 
 func (p *probState) setup() {
