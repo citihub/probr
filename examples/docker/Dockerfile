@@ -4,7 +4,7 @@ COPY . .
 RUN go build -o /out/probr cmd/probr-cli/*.go
 
 FROM node:alpine
-COPY integration/clouddriver/kubernetes/assets /probr/integration/clouddriver/kubernetes/asets
+COPY integration/clouddriver/kubernetes/assets /probr/integration/clouddriver/kubernetes/assets
 COPY probes probr/probes
 COPY internal/view /probr/internal/view
 
