@@ -4,8 +4,7 @@ import (
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/probes"
-	_ "github.com/citihub/probr/probes/kubernetes/containerregistryaccess" //needed to run init on TestHandlers
-	_ "github.com/citihub/probr/probes/kubernetes/general"                 //needed to run init on TestHandlers
+	_ "github.com/citihub/probr/probes/kubernetes/general" //needed to run init on TestHandlers
 )
 
 //TODO: revise when interface this bit up ...

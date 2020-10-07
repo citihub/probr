@@ -509,7 +509,7 @@ func pspScenarioInitialize(ctx *godog.ScenarioContext) {
 		BeforeScenario(PSP_NAME, &ps, s)
 	})
 
-	ctx.Step(`^a Kubernetes cluster exists which we can deploy into$`, ps.aKubernetesClusterExistsWhichWeCanDeployInto)
+	ctx.Step(`^a Kubernetes cluster exists which we can deploy into$`, ps.aKubernetesClusterIsDeployed)
 
 	ctx.Step(`^a Kubernetes deployment is applied to an existing Kubernetes cluster$`, ps.aKubernetesDeploymentIsAppliedToAnExistingKubernetesCluster)
 

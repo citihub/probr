@@ -253,13 +253,12 @@ func AssertResult(s *State, res, msg string) error {
 }
 
 //general feature steps:
-func (p *probeState) aKubernetesClusterExistsWhichWeCanDeployInto() error {
-	var err error
+func (p *probeState) aKubernetesClusterIsDeployed() error {
 	b := kubernetes.GetKubeInstance().ClusterIsDeployed()
 
 	if b == nil || !*b {
-		err = LogAndReturnError("kubernetes cluster is NOT deployed")
+		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
-	p.event.LogProbe(p.name, err)
-	return err
+	p.event.LogProbe(p.name, nil) // If not fatal, success
+	return nil
 }

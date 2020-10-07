@@ -36,33 +36,20 @@ func SetNetworkAccess(n kubernetes.NetworkAccess) {
 	na = n
 }
 
-// CCO:CHC2-SVD030
-func (p *probeState) aKubernetesClusterIsDeployed() error {
-	b := na.ClusterIsDeployed()
-
-	if b == nil || !*b {
-		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
-	}
-
-	p.event.LogProbe(p.name, nil) // If not fatal, success
-	return nil
-}
-
 func (p *probeState) aPodIsDeployedInTheCluster() error {
 	var err error
 	if p.podName != "" {
 		//only one pod is needed for all probes in this event
-		log.Printf("[INFO] Pod %v has already been created - reusing the pod", p.podName)
+		log.Printf("[DEBUG] Pod %v has already been created - reusing the pod", p.podName)
 	} else {
-		pod, err := na.SetupNetworkAccessTestPod()
-		if err != nil {
-			return err
+		pod, e := na.SetupNetworkAccessTestPod()
+		if e != nil {
+			err = e
+		} else if pod == nil {
+			err = LogAndReturnError("Failed to setup network access test pod")
+		} else {
+			p.podName = pod.GetObjectMeta().GetName()
 		}
-		if pod == nil {
-			err = LogAndReturnError("POD is nil")
-		}
-		//hold on to the pod name
-		p.podName = pod.GetObjectMeta().GetName()
 	}
 	p.event.LogProbe(p.name, err)
 	return err
@@ -72,8 +59,7 @@ func (p *probeState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(url
 	code, err := na.AccessURL(&p.podName, &url)
 
 	if err != nil {
-		LogAndReturnError("[ERROR] Error raised when attempting to access URL: %v", err)
-		return err
+		err = LogAndReturnError("[ERROR] Error raised when attempting to access URL: %v", err)
 	}
 
 	//hold on to the code
@@ -116,8 +102,9 @@ func iaTestSuiteInitialize(ctx *godog.TestSuiteContext) {
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
 // a step / function defined.  See: https://github.com/cucumber/godog#example.
 func iaScenarioInitialize(ctx *godog.ScenarioContext) {
+
 	ctx.BeforeScenario(func(s *godog.Scenario) {
-		BeforeScenario(PSP_NAME, &IA_PROBE, s)
+		BeforeScenario(IA_NAME, &IA_PROBE, s)
 	})
 
 	ctx.Step(`^a Kubernetes cluster is deployed$`, IA_PROBE.aKubernetesClusterIsDeployed)
