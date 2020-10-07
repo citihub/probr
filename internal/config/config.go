@@ -42,14 +42,14 @@ type ConfigVars struct {
 
 type Event struct {
 	Name          string  `yaml:"name"`
-	Excluded      string  `yaml:"excluded"`
+	Excluded      bool    `yaml:"excluded"`
 	Justification string  `yaml:"justification"`
 	Probes        []Probe `yaml:"probes"`
 }
 
 type Probe struct {
 	Name          string `yaml:"name"`
-	Excluded      string `yaml:"excluded"`
+	Excluded      bool   `yaml:"excluded"`
 	Justification string `yaml:"justification"`
 }
 
@@ -59,7 +59,7 @@ var Vars ConfigVars
 // GetTags parses Tags with TagExclusions
 func (ctx *ConfigVars) GetTags() string {
 	for _, v := range ctx.Events {
-		if v.Excluded == "true" {
+		if v.Excluded {
 			ctx.HandleExclusion(v.Name, v.Justification)
 		} else {
 			ctx.HandleProbeExclusions(&v)
@@ -82,7 +82,9 @@ func (ctx *ConfigVars) HandleExclusion(name, justification string) {
 
 func (ctx *ConfigVars) HandleProbeExclusions(e *Event) {
 	for _, v := range e.Probes {
-		ctx.HandleExclusion(v.Name, v.Justification)
+		if v.Excluded {
+			ctx.HandleExclusion(v.Name, v.Justification)
+		}
 	}
 }
 
