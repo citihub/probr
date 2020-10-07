@@ -136,7 +136,7 @@ func notExcluded(tags []*messages.Pickle_PickleTag) bool {
 	return true
 }
 
-func BeforeScenario(name string, ps *StateStruct, s *godog.Scenario) {
+func BeforeScenario(name string, ps *probeState, s *godog.Scenario) {
 	if notExcluded(s.Tags) {
 		ps.setup()
 		ps.name = s.Name
@@ -145,15 +145,17 @@ func BeforeScenario(name string, ps *StateStruct, s *godog.Scenario) {
 	}
 }
 
-type StateStruct struct {
-	name         string
-	event        *summary.Event
-	state        State
-	useDefaultNS bool
+type probeState struct {
+	name           string
+	event          *summary.Event
+	httpStatusCode int
+	podName        string
+	state          State
+	useDefaultNS   bool
 }
 
 // Setup resets scenario-specific values
-func (p *StateStruct) setup() {
+func (p *probeState) setup() {
 	p.state.PodName = ""
 	p.state.CreationError = nil
 	p.useDefaultNS = false
