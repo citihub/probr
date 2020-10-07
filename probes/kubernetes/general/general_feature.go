@@ -8,7 +8,6 @@ import (
 
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/probes"
-	"github.com/citihub/probr/probes/kubernetes/probe"
 
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
 	"github.com/citihub/probr/internal/config"
@@ -20,7 +19,7 @@ import (
 type probeState struct {
 	name             string
 	event            *summary.Event
-	state            probe.State
+	state            probes.State
 	hasWildcardRoles bool
 }
 
@@ -97,7 +96,7 @@ func (p *probeState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext
 	pd, err := kubernetes.GetKubeInstance().CreatePod(&n, utils.StringPtr("probr-general-test-ns"), &b, &i, true, nil)
 
 	e := p.event
-	s := probe.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, e, err)
+	s := probes.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, e, err)
 	e.LogProbe(p.name, s)
 	return s
 }

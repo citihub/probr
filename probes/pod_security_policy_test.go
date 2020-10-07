@@ -1,10 +1,11 @@
-package podsecuritypolicy
+package probes
 
-import (	
-	"os"
+import (
 	"flag"
 	"log"
-	"testing"	
+	"os"
+	"testing"
+
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 )
@@ -14,34 +15,33 @@ import (
 // for exercising specific test cases directly.
 
 var (
-	opts = godog.Options{Output: colors.Colored(os.Stdout)}
+	opts            = godog.Options{Output: colors.Colored(os.Stdout)}
 	integrationTest = flag.Bool("integrationTest", false, "run integration tests")
 )
-
 
 func init() {
 	godog.BindFlags("godog.", flag.CommandLine, &opts)
 }
 
-func TestMain(m *testing.M) {	
+func TestMain(m *testing.M) {
 	flag.Parse()
-	opts.Paths = flag.Args()	
+	opts.Paths = flag.Args()
 
 	//TODO: for now, skip if integration flag isn't set
-	//need to figure out how to set the kube config in the CI pipeline 
+	//need to figure out how to set the kube config in the CI pipeline
 	//before this can be run in the pipeline
-	if ! *integrationTest {
+	if !*integrationTest {
 		//skip
-		log.Print("[NOTICE] pod_security_test: Integration Test Flag not set. SKIPPING TEST.")		
+		log.Print("[NOTICE] pod_security_test: Integration Test Flag not set. SKIPPING TEST.")
 		return
 	}
 
 	// godog testing (v0.10.0 (latest))
 	status := godog.TestSuite{
-		Name: "pod_security_policy",		
+		Name:                 "pod_security_policy",
 		TestSuiteInitializer: TestSuiteInitialize,
 		ScenarioInitializer:  ScenarioInitialize,
-		Options: &opts,
+		Options:              &opts,
 	}.Run()
 
 	// TestMain may have been invoked as part of a "go test" call

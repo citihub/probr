@@ -14,7 +14,6 @@ import (
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/probes"
-	"github.com/citihub/probr/probes/kubernetes/probe"
 	"github.com/cucumber/godog"
 
 	iamassets "github.com/citihub/probr/probes/kubernetes/iam/assets"
@@ -23,7 +22,7 @@ import (
 type probeState struct {
 	name         string
 	event        *summary.Event
-	state        probe.State
+	state        probes.State
 	useDefaultNS bool
 }
 
@@ -103,7 +102,7 @@ func (p *probeState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentityBi
 			p.useDefaultNS = true
 		}
 		pd, err := iam.CreateIAMTestPod(y, p.useDefaultNS)
-		err = probe.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, p.event, err)
+		err = probes.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, p.event, err)
 	}
 	p.event.LogProbe(p.name, err)
 	return err
@@ -185,7 +184,7 @@ func (p *probeState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoTheSameNa
 		err = probes.LogAndReturnError("error reading yaml for test: %v", err)
 	} else {
 		pd, err := iam.CreateIAMTestPod(y, false)
-		err = probe.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, p.event, err)
+		err = probes.ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, p.event, err)
 	}
 	p.event.LogProbe(p.name, err)
 	return err

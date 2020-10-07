@@ -12,13 +12,12 @@ import (
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/internal/utils"
 	"github.com/citihub/probr/probes"
-	"github.com/citihub/probr/probes/kubernetes/probe"
 )
 
 type probeState struct {
 	name  string
 	event *summary.Event
-	state probe.State
+	state probes.State
 }
 
 const (
@@ -73,7 +72,7 @@ func (p *probeState) iAmAuthorisedToPullFromAContainerRegistry() error {
 	pd, err := cra.SetupContainerAccessTestPod(utils.StringPtr("docker.io"))
 
 	e := p.event
-	s := probe.ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
+	s := probes.ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
 	e.LogProbe(p.name, s)
 	return s
 }
@@ -94,13 +93,13 @@ func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry s
 	pd, err := cra.SetupContainerAccessTestPod(&registry)
 
 	e := p.event
-	s := probe.ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
+	s := probes.ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
 	e.LogProbe(p.name, s)
 	return s
 }
 
 func (p *probeState) theDeploymentAttemptIs(res string) error {
-	s := probe.AssertResult(&p.state, res, "")
+	s := probes.AssertResult(&p.state, res, "")
 	p.event.LogProbe(p.name, s)
 	return s
 }

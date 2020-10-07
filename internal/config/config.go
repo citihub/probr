@@ -59,7 +59,6 @@ var Vars ConfigVars
 // GetTags parses Tags with TagExclusions
 func (ctx *ConfigVars) GetTags() string {
 	for _, v := range ctx.Events {
-		log.Printf("[ERROR] >>> %s", v.Name)
 		if v.Excluded == "true" {
 			ctx.HandleExclusion(v.Name, v.Justification)
 		} else {
