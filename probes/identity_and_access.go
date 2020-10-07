@@ -43,7 +43,7 @@ func init() {
 		Data: &coreengine.GodogTest{
 			TestDescriptor:       &td,
 			TestSuiteInitializer: iamTestSuiteInitialize,
-			ScenarioInitializer:  ScenarioInitialize,
+			ScenarioInitializer:  iamScenarioInitialize,
 		},
 	})
 }
@@ -248,11 +248,11 @@ func iamTestSuiteInitialize(ctx *godog.TestSuiteContext) {
 	})
 }
 
-// ScenarioInitialize initialises the specific test steps.  This is essentially the creation of the test
+// iamScenarioInitialize initialises the specific test steps.  This is essentially the creation of the test
 // which reflects the tests described in the events directory.  There must be a test step registered for
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
 // a step / function defined.  See: https://github.com/cucumber/godog#example.
-func ScenarioInitialize(ctx *godog.ScenarioContext) {
+func iamScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ps := probeState{}
 
