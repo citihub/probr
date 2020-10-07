@@ -146,12 +146,13 @@ func BeforeScenario(name string, ps *probeState, s *godog.Scenario) {
 }
 
 type probeState struct {
-	name           string
-	event          *summary.Event
-	httpStatusCode int
-	podName        string
-	state          State
-	useDefaultNS   bool
+	name             string
+	event            *summary.Event
+	httpStatusCode   int
+	podName          string
+	state            State
+	useDefaultNS     bool
+	hasWildcardRoles bool
 }
 
 // Setup resets scenario-specific values

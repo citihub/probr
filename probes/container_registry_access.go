@@ -83,10 +83,6 @@ func (p *probeState) theDeploymentAttemptIs(res string) error {
 	return s
 }
 
-func (p *probeState) tearDown() {
-	cra.TeardownContainerAccessTestPod(&p.state.PodName, CRA_NAME)
-}
-
 // craTestSuiteInitialize handles any overall Test Suite initialisation steps.  This is registered with the
 // test handler as part of the init() function.
 func craTestSuiteInitialize(ctx *godog.TestSuiteContext) {
@@ -126,7 +122,8 @@ func craScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the deployment attempt is "([^"]*)"$`, ps.theDeploymentAttemptIs)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
-		ps.tearDown()
+		cra.TeardownContainerAccessTestPod(&ps.state.PodName, CRA_NAME)
+
 		LogScenarioEnd(s)
 	})
 }

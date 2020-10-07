@@ -175,7 +175,7 @@ func (p *probeState) theClusterHasManagedIdentityComponentsDeployed() error {
 	pl, err := kubernetes.GetKubeInstance().GetPods("")
 
 	if err != nil {
-		return LogAndReturnError("error raised when trying to retrieve pods %v", err)
+		err = LogAndReturnError("error raised when trying to retrieve pods %v", err)
 	} else {
 		//a "pass" is the prescence of a "mic*" pod(s)
 		//break on the first ...
