@@ -7,7 +7,6 @@ import (
 	_ "github.com/citihub/probr/probes/clouddriver"                        //needed to run init on TestHandlers
 	_ "github.com/citihub/probr/probes/kubernetes/containerregistryaccess" //needed to run init on TestHandlers
 	_ "github.com/citihub/probr/probes/kubernetes/general"                 //needed to run init on TestHandlers
-	_ "github.com/citihub/probr/probes/kubernetes/iam"                     //needed to run init on TestHandlers
 )
 
 //TODO: revise when interface this bit up ...

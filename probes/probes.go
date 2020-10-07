@@ -251,3 +251,15 @@ func AssertResult(s *State, res, msg string) error {
 	return LogAndReturnError("desired result %v is not recognised", res)
 
 }
+
+//general feature steps:
+func (p *probeState) aKubernetesClusterExistsWhichWeCanDeployInto() error {
+	var err error
+	b := kubernetes.GetKubeInstance().ClusterIsDeployed()
+
+	if b == nil || !*b {
+		err = LogAndReturnError("kubernetes cluster is NOT deployed")
+	}
+	p.event.LogProbe(p.name, err)
+	return err
+}

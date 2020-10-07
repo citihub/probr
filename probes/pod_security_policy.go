@@ -3,8 +3,6 @@ package probes
 //go:generate go-bindata.exe -pkg $GOPACKAGE -o assets/assets.go assets/yaml
 
 import (
-	"log"
-
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
 	"github.com/citihub/probr/internal/coreengine"
 	podsecuritypolicy "github.com/citihub/probr/probes/kubernetes/podsecuritypolicy/assets"
@@ -46,18 +44,6 @@ func init() {
 
 func (p *probeState) creationWillWithAMessage(arg1, arg2 string) error {
 	return godog.ErrPending
-}
-
-func (p *probeState) aKubernetesClusterExistsWhichWeCanDeployInto() error {
-
-	b := psp.ClusterIsDeployed()
-
-	if b == nil || !*b {
-		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
-	}
-
-	p.event.LogProbe(p.name, nil) // If not fatal, success
-	return nil
 }
 
 // PENDING IMPLEMENTATION
