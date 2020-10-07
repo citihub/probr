@@ -17,12 +17,16 @@ events: # this entire object can be left out if all tests are to be run
     justification: "demo"
 
   - name: container_registry_access
-    excluded: "false"
+    excluded: "true"
     justification: "demo"
 
   - name: general
     excluded: "false"
     justification: "demo"
+    probes:
+      - name: CIS-5.6.3
+        excluded: true
+        justification: "probe exclusion demo"
 
   - name: iam_control
     excluded: "true"
@@ -33,5 +37,9 @@ events: # this entire object can be left out if all tests are to be run
     justification: "demo"
 
   - name: pod_security_policy
-    excluded: "true"
+    excluded: "false"
     justification: "demo"
+    probes:
+      - name: AZP-0.3
+        excluded: true
+        justification: "probe exclusion demo"

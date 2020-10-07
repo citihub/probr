@@ -548,10 +548,12 @@ func ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ps := probeState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
-		ps.setup()
-		ps.name = s.Name
-		ps.event = summary.State.GetEventLog(NAME)
-		probes.LogScenarioStart(s)
+		if probes.NotExcluded(s.Tags) {
+			ps.setup()
+			ps.name = s.Name
+			ps.event = summary.State.GetEventLog(NAME)
+			probes.LogScenarioStart(s)
+		}
 	})
 
 	ctx.Step(`^a Kubernetes cluster exists which we can deploy into$`, ps.aKubernetesClusterExistsWhichWeCanDeployInto)
