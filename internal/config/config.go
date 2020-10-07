@@ -51,13 +51,11 @@ var Vars ConfigVars
 
 // GetTags parses Tags with TagExclusions
 func (c *ConfigVars) GetTags() string {
-	if c.Tags != "" {
-		for _, v := range c.Events {
-			if v.Excluded == "true" {
-				r := "@" + v.Name + ","
-				c.Tags = strings.Replace(c.Tags, r, "", -1)
-				c.TagExclusions = append(c.TagExclusions, v.Name)
-			}
+	for _, v := range c.Events {
+		if v.Excluded == "true" {
+			r := "@" + v.Name + ","
+			c.Tags = strings.Replace(c.Tags, r, "", -1)       // Remove exclusion from tags
+			c.TagExclusions = append(c.TagExclusions, v.Name) // Add exclusion to list
 		}
 	}
 	return c.Tags
@@ -84,7 +82,7 @@ func NewConfig(c string) (ConfigVars, error) {
 	// Create config structure
 	config := ConfigVars{}
 	if c == "" {
-		return config, nil
+		return config, nil // No file path provided, return empty config
 	}
 	err := ValidateConfigPath(c)
 	if err != nil {
@@ -104,7 +102,6 @@ func NewConfig(c string) (ConfigVars, error) {
 	if err := d.Decode(&config); err != nil {
 		return config, err
 	}
-
 	return config, nil
 }
 

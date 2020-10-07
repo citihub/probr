@@ -49,8 +49,10 @@ func (a *SummaryStateStruct) LogEventMeta(name string, key string, value string)
 func (a *SummaryStateStruct) EventComplete(name string) {
 	e := a.GetEventLog(name)
 	e.CountFailures()
-	if len(e.Probes) < 1 {
-		e.Meta["status"] = "Skipped"
+	if e.Meta["status"] == "Excluded" {
+		a.EventsSkipped = a.EventsSkipped + 1
+	} else if len(e.Probes) < 1 {
+		e.Meta["status"] = "No Probes Executed"
 		a.EventsSkipped = a.EventsSkipped + 1
 	} else if e.ProbesFailed < 1 {
 		e.Meta["status"] = "Success"

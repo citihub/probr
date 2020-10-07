@@ -66,7 +66,6 @@ func runTestSuite(o io.Writer, gd *coreengine.GodogTest) (int, error) {
 	}
 
 	tags := config.Vars.GetTags()
-	log.Printf("[NOTICE] >>> %s", tags)
 	opts := godog.Options{
 		Format: "cucumber",
 		Output: colors.Colored(o),
