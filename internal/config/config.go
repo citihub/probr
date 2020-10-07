@@ -53,6 +53,9 @@ var Vars ConfigVars
 func (c *ConfigVars) GetTags() string {
 	for _, v := range c.Events {
 		if v.Excluded == "true" {
+			if v.Justification == "" {
+				log.Fatalf("[ERROR] A justification must be provided for the tag exclusion '%s'", v.Name)
+			}
 			r := "@" + v.Name + ","
 			c.Tags = strings.Replace(c.Tags, r, "", -1)       // Remove exclusion from tags
 			c.TagExclusions = append(c.TagExclusions, v.Name) // Add exclusion to list

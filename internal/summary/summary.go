@@ -15,6 +15,7 @@ type SummaryStateStruct struct {
 	EventsSkipped int
 	PodNames      []string
 	Events        map[string]*Event
+	EventTags     []config.Event
 }
 
 var State SummaryStateStruct
@@ -35,6 +36,9 @@ func (a *SummaryStateStruct) SetProbrStatus() {
 		a.Status = "Complete - All Events Completed Successfully"
 	} else {
 		a.Status = fmt.Sprintf("Complete - %v of %v Events Failed", a.EventsFailed, (len(a.Events) - a.EventsSkipped))
+	}
+	if config.Vars.Events != nil {
+		a.EventTags = config.Vars.Events
 	}
 }
 
