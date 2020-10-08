@@ -54,7 +54,7 @@ func (c PSPTestCommand) String() string {
 		"ls"}[c]
 }
 
-// PSPVerificationProbe encapsulates the command and expected result to be used in a Pod Security Policy probes.
+// PSPVerificationProbe encapsulates the command and expected result to be used in a Pod Security Policy probe.
 type PSPVerificationProbe struct {
 	Cmd              PSPTestCommand
 	ExpectedExitCode int
