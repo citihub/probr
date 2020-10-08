@@ -26,4 +26,4 @@ Similar to the section above, we believe that the most accurately descriptive te
 
 Because each probe is a _scenario_, it will have a corresponding golang function for each _step_. The primary logic for the steps is found in a `.go` file that is named according to the event. Comments surrounding the logic will help distinguish which function belongs to which probe. Some steps may be used across multiple events, and may be found in `probes/probes.go`
 
-Finally, each step may require more comprehensive logic. Currently, that supplemental logic lives in appropriately named directoriees within `internal/`.
+Finally, each step may require more comprehensive logic. Currently, that supplemental logic lives in appropriately named directories within `internal/`.
