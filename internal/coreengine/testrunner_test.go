@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/citihub/probr/internal/coreengine"
-	_ "github.com/citihub/probr/probes/clouddriver" //needed to run init on TestHandlers
 )
 
 //TODO: this will be removed when it's been properly changed to a unit test

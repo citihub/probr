@@ -11,7 +11,6 @@ import (
 
 	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
-	_ "github.com/citihub/probr/probes/clouddriver" //needed to run init on TestHandlers
 )
 
 // Test runner integration tests, so actually calling out to Kube ...
