@@ -261,6 +261,10 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 	if b == nil || !*b {
 		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
-	p.event.AuditProbeStep(p.name, nil) // If not fatal, success
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, nil)
+
 	return nil
 }

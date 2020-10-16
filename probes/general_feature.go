@@ -50,7 +50,11 @@ func (p *probeState) iInspectTheThatAreConfigured(roleLevel string) error {
 	if err != nil {
 		err = LogAndReturnError("error raised when retrieving roles for rolelevel %v: %v", roleLevel, err)
 	}
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -60,7 +64,11 @@ func (p *probeState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations(
 	if p.hasWildcardRoles {
 		err = LogAndReturnError("roles exist with wildcarded resources")
 	}
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -73,9 +81,12 @@ func (p *probeState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext
 	//create pod with nil security context
 	pd, err := kubernetes.GetKubeInstance().CreatePod(&n, utils.StringPtr("probr-general-test-ns"), &b, &i, true, nil)
 
-	e := p.event
-	s := ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, e, err)
-	e.AuditProbeStep(p.name, s)
+	s := ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, p.event, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return s
 }
 
@@ -85,7 +96,11 @@ func (p *probeState) theDeploymentIsRejected() error {
 	if p.state.CreationError == nil {
 		err = LogAndReturnError("pod %v was created successfully. Test fail.", p.state.PodName)
 	}
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -117,6 +132,11 @@ func (p *probeState) theKubernetesWebUIIsDisabled() error {
 			break
 		}
 	}
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 

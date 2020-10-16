@@ -51,7 +51,11 @@ func (p *probeState) iAmAuthorisedToPullFromAContainerRegistry() error {
 	pd, err := cra.SetupContainerAccessTestPod(utils.StringPtr("docker.io"))
 
 	s := ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, p.event, err)
-	p.event.AuditProbeStep(p.name, s)
+
+	description := "Creates a new pod using an image from a container registry. Passes if image successfully pulls and pod is built."
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, s)
+
 	return s
 }
 
@@ -70,15 +74,22 @@ func (p *probeState) thePushRequestIsRejectedDueToAuthorization() error {
 func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry string) error {
 	pd, err := cra.SetupContainerAccessTestPod(&registry)
 
-	e := p.event
-	s := ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
-	e.AuditProbeStep(p.name, s)
+	s := ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, p.event, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, s)
+
 	return s
 }
 
 func (p *probeState) theDeploymentAttemptIs(res string) error {
 	s := AssertResult(&p.state, res, "")
-	p.event.AuditProbeStep(p.name, s)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, s)
+
 	return s
 }
 

@@ -67,7 +67,11 @@ func (p *probeState) runAISetupCheck(f func(bool) (bool, error), useDefaultNS bo
 //AZ-AAD-AI-1.0
 func (p *probeState) theDefaultNamespaceHasAnAzureIdentityBinding() error {
 	err := p.runAISetupCheck(iam.AzureIdentityBindingExists, true, "AzureIdentityBinding")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 
 }
@@ -83,7 +87,11 @@ func (p *probeState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentityBi
 		pd, err := iam.CreateIAMTestPod(y, p.useDefaultNS)
 		err = ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, p.event, err)
 	}
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 
 }
@@ -99,14 +107,22 @@ func (p *probeState) thePodIsDeployedSuccessfully() error {
 	if p.state.PodName == "" {
 		err = LogAndReturnError("pod was not deployed successfully - creation error: %v", p.state.CreationError)
 	}
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) anAttemptToObtainAnAccessTokenFromThatPodShouldFail() error {
 	//reuse the parameterised / scenario outline func
 	err := p.anAttemptToObtainAnAccessTokenFromThatPodShould("Fail")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -138,21 +154,33 @@ func (p *probeState) anAttemptToObtainAnAccessTokenFromThatPodShould(expectedres
 			}
 		}
 	}
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 //AZ-AAD-AI-1.1
 func (p *probeState) theDefaultNamespaceHasAnAzureIdentity() error {
 	err := p.runAISetupCheck(iam.AzureIdentityExists, true, "AzureIdentity")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 
 }
 
 func (p *probeState) iCreateAnAzureIdentityBindingCalledInANondefaultNamespace(arg1 string) error {
 	err := p.runAISetupCheck(iam.AzureIdentityBindingExists, false, "AzureIdentityBinding")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -165,7 +193,11 @@ func (p *probeState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoTheSameNa
 		pd, err := iam.CreateIAMTestPod(y, false)
 		err = ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, p.event, err)
 	}
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -190,7 +222,11 @@ func (p *probeState) theClusterHasManagedIdentityComponentsDeployed() error {
 			err = LogAndReturnError("no MIC pods found - test fail")
 		}
 	}
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -215,7 +251,10 @@ func (p *probeState) iExecuteTheCommandAgainstTheMICPod(arg1 string) error {
 		p.state.CommandExitCode = res.Code
 	}
 
-	p.event.AuditProbeStep(p.name, err)
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -225,7 +264,11 @@ func (p *probeState) kubernetesShouldPreventMeFromRunningTheCommand() error {
 		//bad! don't want the command to succeed
 		err = LogAndReturnError("verification command was not blocked - test fail")
 	}
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 

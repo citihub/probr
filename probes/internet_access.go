@@ -51,7 +51,11 @@ func (p *probeState) aPodIsDeployedInTheCluster() error {
 			p.podName = pod.GetObjectMeta().GetName()
 		}
 	}
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -64,7 +68,11 @@ func (p *probeState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(url
 
 	//hold on to the code
 	p.httpStatusCode = code
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -77,7 +85,11 @@ func (p *probeState) accessIs(accessResult string) error {
 			err = LogAndReturnError("got HTTP Status Code %v - failed", p.httpStatusCode)
 		}
 	}
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 

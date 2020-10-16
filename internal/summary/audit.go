@@ -52,7 +52,7 @@ func (e *EventAudit) Write() {
 // auditProbeStep sets description, payload, and pass/fail based on err parameter
 func (e *EventAudit) auditProbeStep(probeName string, description string, payload interface{}, err error) {
 	// Initialize any empty objects
-	probe := *e.Probes[probeName]
+	probe := e.Probes[probeName]
 	// Now do the actual probe summary
 	stepName := getCallerName()
 	probe.Steps[stepName] = &StepAudit{
@@ -65,6 +65,7 @@ func (e *EventAudit) auditProbeStep(probeName string, description string, payloa
 		probe.Steps[stepName].Result = "Failed"
 		probe.Result = "Failed" // Track this in both summary and audit
 	}
+	e.Probes[probeName] = probe
 }
 
 // getCallerName retrieves the name of the function prior to the location it is called

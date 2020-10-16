@@ -55,13 +55,21 @@ func (p *probeState) aKubernetesDeploymentIsAppliedToAnExistingKubernetesCluster
 
 func (p *probeState) theOperationWillWithAnError(res, msg string) error {
 	err := AssertResult(&p.state, res, msg)
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) performAllowedCommand() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.Ls, ExpectedExitCode: 0}) //'0' exit code as we expect this to succeed
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -137,19 +145,31 @@ func (p *probeState) privilegedAccessRequestIsMarkedForTheKubernetesDeployment(p
 	pd, err := psp.CreatePODSettingSecurityContext(&pa, nil, nil)
 
 	err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPNoPrivilege, p.event, err)
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) someControlExistsToPreventPrivilegedAccessForKubernetesDeploymentsToAnActiveKubernetesCluster() error {
 	err := p.runControlTest(psp.PrivilegedAccessIsRestricted, "PrivilegedAccessIsRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresPrivilegedAccess() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.Chroot, ExpectedExitCode: 1})
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -167,19 +187,31 @@ func (p *probeState) hostPIDRequestIsMarkedForTheKubernetesDeployment(hostPIDReq
 	pd, err := psp.CreatePODSettingAttributes(&hostPID, nil, nil)
 
 	err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPHostNamespace, p.event, err)
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) someSystemExistsToPreventAKubernetesContainerFromRunningUsingTheHostPIDOnTheActiveKubernetesCluster() error {
 	err := p.runControlTest(psp.HostPIDIsRestricted, "HostPIDIsRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHostPIDNamespace() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.EnterHostPIDNS, ExpectedExitCode: 1})
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -196,20 +228,32 @@ func (p *probeState) hostIPCRequestIsMarkedForTheKubernetesDeployment(hostIPCReq
 	pd, err := psp.CreatePODSettingAttributes(nil, &hostIPC, nil)
 
 	err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPHostNamespace, p.event, err)
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 
 }
 
 func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUsingTheHostIPCInAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.HostIPCIsRestricted, "HostIPCIsRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHostIPCNamespace() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.EnterHostIPCNS, ExpectedExitCode: 1})
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -226,19 +270,31 @@ func (p *probeState) hostNetworkRequestIsMarkedForTheKubernetesDeployment(hostNe
 	pd, err := psp.CreatePODSettingAttributes(nil, nil, &hostNetwork)
 
 	err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPHostNetwork, p.event, err)
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUsingTheHostNetworkInAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.HostNetworkIsRestricted, "HostNetworkIsRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 
 }
 func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHostNetworkNamespace() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.EnterHostNetworkNS, ExpectedExitCode: 1})
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -255,13 +311,21 @@ func (p *probeState) privilegedEscalationIsMarkedForTheKubernetesDeployment(priv
 	pd, err := psp.CreatePODSettingSecurityContext(nil, &pa, nil)
 
 	err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPNoPrivilegeEscalation, p.event, err)
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 
 }
 func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUsingTheAllowPrivilegeEscalationInAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.PrivilegedEscalationIsRestricted, "PrivilegedEscalationIsRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -279,19 +343,31 @@ func (p *probeState) theUserRequestedIsForTheKubernetesDeployment(requestedUser 
 
 	pd, err := psp.CreatePODSettingSecurityContext(nil, nil, &runAsUser)
 	err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPAllowedUsersGroups, p.event, err)
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningAsTheRootUserInAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.RootUserIsRestricted, "RootUserIsRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) theKubernetesDeploymentShouldRunWithANonrootUID() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.VerifyNonRootUID, ExpectedExitCode: 1})
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -306,19 +382,31 @@ func (p *probeState) nETRAWIsMarkedForTheKubernetesDeployment(netRawRequested st
 
 	pd, err := psp.CreatePODSettingCapabilities(&c)
 	err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPAllowedCapabilities, p.event, err)
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningWithNETRAWCapabilityInAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.NETRawIsRestricted, "NETRAWIsRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresNETRAWCapability() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.NetRawTest, ExpectedExitCode: 1})
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -334,19 +422,31 @@ func (p *probeState) additionalCapabilitiesForTheKubernetesDeployment(addCapabil
 
 	pd, err := psp.CreatePODSettingCapabilities(&c)
 	err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPAllowedCapabilities, p.event, err)
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithCapabilitiesBeyondTheDefaultSetFromBeingDeployedToAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.AllowedCapabilitiesAreRestricted, "AllowedCapabilitiesAreRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresCapabilitiesOutsideOfTheDefaultSet() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.SpecialCapTest, ExpectedExitCode: 2})
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -363,19 +463,31 @@ func (p *probeState) assignedCapabilitiesForTheKubernetesDeployment(assignCapabi
 
 	pd, err := psp.CreatePODSettingCapabilities(&c)
 	err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPAllowedCapabilities, p.event, err)
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 
 }
 func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithAssignedCapabilitiesFromBeingDeployedToAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.AssignedCapabilitiesAreRestricted, "AssignedCapabilitiesAreRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresAnyCapabilities() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.SpecialCapTest, ExpectedExitCode: 2})
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -396,20 +508,31 @@ func (p *probeState) anPortRangeIsRequestedForTheKubernetesDeployment(portRange 
 		err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPAllowedPortRange, p.event, err)
 	}
 
-	p.event.AuditProbeStep(p.name, err)
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 
 }
 
 func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithUnapprovedPortRangeFromBeingDeployedToAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.HostPortsAreRestricted, "HostPortsAreRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) iShouldNotBeAbleToPerformACommandThatAccessAnUnapprovedPortRange() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.NetCat, ExpectedExitCode: 1})
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -430,13 +553,20 @@ func (p *probeState) anVolumeTypeIsRequestedForTheKubernetesDeployment(volumeTyp
 		err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPAllowedVolumeTypes, p.event, err)
 	}
 
-	p.event.AuditProbeStep(p.name, err)
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithUnapprovedVolumeTypesFromBeingDeployedToAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.VolumeTypesAreRestricted, "VolumeTypesAreRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
@@ -466,18 +596,29 @@ func (p *probeState) anSeccompProfileIsRequestedForTheKubernetesDeployment(secco
 		err = ProcessPodCreationResult(&p.state, pd, kubernetes.PSPSeccompProfile, p.event, err)
 	}
 
-	p.event.AuditProbeStep(p.name, err)
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
 func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithoutApprovedSeccompProfilesFromBeingDeployedToAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.SeccompProfilesAreRestricted, "SeccompProfilesAreRestricted")
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 func (p *probeState) iShouldNotBeAbleToPerformASystemCallThatIsBlockedByTheSeccompProfile() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.Unshare, ExpectedExitCode: 1})
-	p.event.AuditProbeStep(p.name, err)
+
+	description := ""
+	var payload interface{}
+	p.event.AuditProbeStep(p.name, description, payload, err)
+
 	return err
 }
 
