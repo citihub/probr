@@ -74,7 +74,7 @@ func getOutputDirectory() (*string, error) {
 			return nil, fmt.Errorf("output directory not set - attempt to default resulted in error: %v", err)
 		}
 
-		f := filepath.Join(r, "testoutput")
+		f := filepath.Join(r, "cucumber_output")
 		outputDir = &f
 	}
 
@@ -260,6 +260,6 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 	if b == nil || !*b {
 		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
-	p.event.LogProbeStep(p.name, nil) // If not fatal, success
+	p.event.AuditProbeStep(p.name, nil) // If not fatal, success
 	return nil
 }

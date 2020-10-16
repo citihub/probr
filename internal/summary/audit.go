@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"os"
 	"runtime"
 	"strings"
 
@@ -33,12 +34,18 @@ type StepAudit struct {
 
 func (e *EventAudit) Write() {
 	if config.Vars.AuditEnabled == "true" && e.probeRan() {
+		_, err := os.Stat(e.path)
+		if err == nil && config.Vars.OverwriteHistoricalAudits == "false" {
+			// Historical audits are preserved by default
+			log.Fatalf("[ERROR] AuditEnabled is set to true, but audit file already exists or Probr could not open: '%s'", e.path)
+		}
+
 		json, _ := json.MarshalIndent(e, "", "  ")
 		data := []byte(json)
-		err := ioutil.WriteFile(e.path, data, 0755)
+		err = ioutil.WriteFile(e.path, data, 0755)
 
 		if err != nil {
-			log.Printf("[ERROR] Could not write to audit file: %s", e.path)
+			log.Fatalf("[ERROR] AuditEnabled is set to true, but Probr could not write audit to file: '%s'", e.path)
 		}
 	}
 }

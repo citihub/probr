@@ -1,6 +1,6 @@
 kubeConfig: .kube/config
 outputType: IO
-outputDir: testoutput
+outputDir: cucumber_output
 auditDir: audit_output
 summaryEnabled: true
 images:

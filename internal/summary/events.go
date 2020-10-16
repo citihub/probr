@@ -35,7 +35,7 @@ func (e *Event) countResults() {
 	}
 }
 
-func (e *Event) LogProbeStep(name string, err error) {
+func (e *Event) AuditProbeStep(name string, err error) {
 	e.audit.logProbeStep(name, err)
 }
 
