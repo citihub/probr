@@ -6,15 +6,16 @@ import (
 	"strings"
 )
 
-// setEnvOrDefaults will set value from os.Getenv and default to the specified value
-func setEnvOrDefaults(e *ConfigVars) {
-	e.setKubeConfigPath(getDefaultKubeConfigPath()) // KUBE_CONFIG
-	e.setKubeContext()                              // KUBE_CONTEXT
-	e.setOutputType("IO")                           // PROBR_OUTPUT_TYPE
-	e.setOutputDir("testoutput")                    // PROBR_OUTPUT_DIR
-	e.setSummaryEnabled("true")                     // PROBR_SUMMARY_ENABLED
-	e.setAuditEnabled("true")                       // PROBR_AUDIT_ENABLED
-	e.setProbrTags()                                // PROBR_TAGS
+// setFromEnvOrDefaults will set value from os.Getenv and default to the specified value
+func setFromEnvOrDefaults(e *ConfigVars) {
+	e.setKubeConfigPath(filepath.Join(homeDir(), ".kube", "config")) // KUBE_CONFIG
+	e.setKubeContext()                                               // KUBE_CONTEXT
+	e.setOutputType("IO")                                            // PROBR_OUTPUT_TYPE
+	e.setOutputDir("cucumber_output")                                // PROBR_OUTPUT_DIR
+	e.setAuditDir("audit_output")                                    // PROBR_AUDIT_DIR
+	e.setSummaryEnabled("true")                                      // PROBR_SUMMARY_ENABLED
+	e.setAuditEnabled("true")                                        // PROBR_AUDIT_ENABLED
+	e.setProbrTags()                                                 // PROBR_TAGS
 
 	e.setImageRepository("docker.io") // IMAGE_REPOSITORY
 	e.setCurlImage("curl")            // CURL_IMAGE
@@ -31,14 +32,6 @@ func setEnvOrDefaults(e *ConfigVars) {
 	e.setSystemClusterRoles([]string{"system:", "aks", "cluster-admin", "policy-agent"})
 }
 
-func getDefaultKubeConfigPath() string {
-	return filepath.Join(homeDir(), ".kube", "config")
-}
-
-func getDefaultOutputDir() string {
-	return filepath.Join(homeDir(), "testoutput")
-}
-
 func homeDir() string {
 	if h := os.Getenv("HOME"); h != "" {
 		return h
@@ -46,7 +39,6 @@ func homeDir() string {
 	return os.Getenv("USERPROFILE") // windows
 }
 
-// setKubeConfigPath ...
 func (e *ConfigVars) setKubeConfigPath(d string) {
 	if e.KubeConfigPath == "" {
 		e.KubeConfigPath = os.Getenv("KUBE_CONFIG")
@@ -56,14 +48,12 @@ func (e *ConfigVars) setKubeConfigPath(d string) {
 	}
 }
 
-// setKubeContext ...
 func (e *ConfigVars) setKubeContext() {
 	if e.KubeContext == "" {
 		e.KubeContext = os.Getenv("KUBE_CONTEXT")
 	}
 }
 
-// setSummaryEnabled
 func (e *ConfigVars) setSummaryEnabled(d string) {
 	if e.SummaryEnabled == "" {
 		e.SummaryEnabled = os.Getenv("PROBR_SUMMARY_ENABLED")
@@ -88,41 +78,45 @@ func (e *ConfigVars) setProbrTags() {
 	}
 }
 
-// setOutputType ...
-func (e *ConfigVars) setOutputType(default_value string) {
+func (e *ConfigVars) setOutputType(s string) {
 	if e.OutputType == "" {
 		e.OutputType = os.Getenv("PROBR_OUTPUT_TYPE")
 	}
 	if e.OutputType == "" {
-		e.OutputType = default_value
+		e.OutputType = s
 	}
 }
 
-// setOutputDir ...
-func (e *ConfigVars) setOutputDir(default_value string) {
+func (e *ConfigVars) setOutputDir(s string) {
 	if e.OutputDir == "" {
 		e.OutputDir = os.Getenv("PROBR_OUTPUT_DIR")
 	}
 	if e.OutputDir == "" {
-		e.OutputDir = default_value
+		e.OutputDir = s
 	}
 }
 
-// setAzureSubscriptionID ...
+func (e *ConfigVars) setAuditDir(s string) {
+	if e.AuditDir == "" {
+		e.AuditDir = os.Getenv("PROBR_AUDIT_DIR")
+	}
+	if e.AuditDir == "" {
+		e.AuditDir = s
+	}
+}
+
 func (e *ConfigVars) setAzureSubscriptionID() {
 	if e.Azure.SubscriptionID == "" {
 		e.Azure.SubscriptionID = os.Getenv("AZURE_SUBSCRIPTION_ID")
 	}
 }
 
-// setAzureClientID ...
 func (e *ConfigVars) setAzureClientID() {
 	if e.Azure.ClientID == "" {
 		e.Azure.ClientID = os.Getenv("AZURE_CLIENT_ID")
 	}
 }
 
-// setAzureClientSecret ...
 func (e *ConfigVars) setAzureClientSecret() {
 	if e.Azure.ClientSecret == "" {
 		e.Azure.ClientSecret = os.Getenv("AZURE_CLIENT_SECRET")
@@ -130,78 +124,68 @@ func (e *ConfigVars) setAzureClientSecret() {
 
 }
 
-// setAzureTenantID ...
 func (e *ConfigVars) setAzureTenantID() {
 	if e.Azure.TenantID == "" {
 		e.Azure.TenantID = os.Getenv("AZURE_TENANT_ID")
 	}
 }
 
-// setAzureLocationDefault ...
 func (e *ConfigVars) setAzureLocationDefault() {
 	if e.Azure.LocationDefault == "" {
 		e.Azure.LocationDefault = os.Getenv("AZURE_LOCATION_DEFAULT")
 	}
 }
 
-// setDefaultNamespaceAI ...
-func (e *ConfigVars) setDefaultNamespaceAI(default_value string) {
+func (e *ConfigVars) setDefaultNamespaceAI(s string) {
 	if e.Azure.AzureIdentity.DefaultNamespaceAI == "" {
 		e.Azure.AzureIdentity.DefaultNamespaceAI = os.Getenv("DEFAULT_NS_AZURE_IDENTITY")
 	}
 	if e.Azure.AzureIdentity.DefaultNamespaceAI == "" {
-		e.Azure.AzureIdentity.DefaultNamespaceAI = default_value
+		e.Azure.AzureIdentity.DefaultNamespaceAI = s
 	}
 }
 
-// setDefaultNamespaceAIB ...
-func (e *ConfigVars) setDefaultNamespaceAIB(default_value string) {
+func (e *ConfigVars) setDefaultNamespaceAIB(s string) {
 	if e.Azure.AzureIdentity.DefaultNamespaceAIB == "" {
 		e.Azure.AzureIdentity.DefaultNamespaceAIB = os.Getenv("DEFAULT_NS_AZURE_IDENTITY_BINDING")
 	}
 	if e.Azure.AzureIdentity.DefaultNamespaceAIB == "" {
-		e.Azure.AzureIdentity.DefaultNamespaceAIB = default_value
+		e.Azure.AzureIdentity.DefaultNamespaceAIB = s
 	}
 
 }
 
-// setImageRepository ...
-func (e *ConfigVars) setImageRepository(default_value string) {
+func (e *ConfigVars) setImageRepository(s string) {
 	if e.Images.Repository == "" {
 		e.Images.Repository = os.Getenv("IMAGE_REPOSITORY")
 	}
 	if e.Images.Repository == "" {
-		e.Images.Repository = default_value
+		e.Images.Repository = s
 	}
 }
 
-// setCurlImage ...
-func (e *ConfigVars) setCurlImage(default_value string) {
+func (e *ConfigVars) setCurlImage(s string) {
 	if e.Images.Curl == "" {
 		e.Images.Curl = os.Getenv("CURL_IMAGE")
 	}
 	if e.Images.Curl == "" {
-		e.Images.Curl = default_value
+		e.Images.Curl = s
 	}
 }
 
-// setBusyBoxImage ...
-func (e *ConfigVars) setBusyBoxImage(default_value string) {
+func (e *ConfigVars) setBusyBoxImage(s string) {
 	if e.Images.BusyBox == "" {
 		e.Images.BusyBox = os.Getenv("BUSYBOX_IMAGE")
 	}
 	if e.Images.BusyBox == "" {
-		e.Images.BusyBox = default_value
+		e.Images.BusyBox = s
 	}
 }
 
-// setSystemClusterRoles ...
-func (e *ConfigVars) setSystemClusterRoles(default_value []string) {
-	//in this case we always want to take the defaults
-	//then append anything from the env
-	e.SystemClusterRoles = default_value
+func (e *ConfigVars) setSystemClusterRoles(s []string) {
+	e.SystemClusterRoles = s
 
-	t := os.Getenv("SYSTEM_CLUSTER_ROLES") //comma separated
+	t := os.Getenv("SYSTEM_CLUSTER_ROLES") // Accepts comma separated value
 	if len(t) > 0 {
 		e.SystemClusterRoles = append(e.SystemClusterRoles, strings.Split(t, ",")...)
 	}

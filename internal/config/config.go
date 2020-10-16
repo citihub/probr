@@ -17,6 +17,7 @@ type ConfigVars struct {
 	KubeContext    string `yaml:"kubeContext"`
 	OutputType     string `yaml:"outputType"`
 	OutputDir      string `yaml:"outputDir"`
+	AuditDir       string `yaml:"auditDir"`
 	SummaryEnabled string `yaml:"summaryEnabled"`
 	AuditEnabled   string `yaml:"auditEnabled"`
 	Images         struct {
@@ -101,7 +102,7 @@ func Init(configPath string) error {
 		return err
 	}
 	Vars = config
-	setEnvOrDefaults(&Vars) // Set any values not retrieved from file
+	setFromEnvOrDefaults(&Vars) // Set any values not retrieved from file
 	return nil
 }
 

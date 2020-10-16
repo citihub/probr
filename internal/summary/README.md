@@ -90,10 +90,10 @@ if wait {
 summary.State.GetEventLog(event).CountPodDestroyed()
 ```
 
-**Event.LogProbeStep**
+**Event.AuditProbeStep**
 
 This function should be used every time a step in a probe completes. `LogProbeStep` will automatically form the name of the step from the name of the function that called it. The name value provided will establish which probe the step is a part of. The error (or nil) provided will dictate whether the test passes or fails.
 
 ```
-p.event.LogProbeStep(p.name, nil) // Success
+p.event.AuditProbeStep(p.name, nil) // Success
 ```

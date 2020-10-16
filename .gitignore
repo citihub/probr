@@ -248,6 +248,7 @@ __debug_bin
 
 # probr misc ('probr' is Linux exe)
 testoutput
+audit_output
 probr
 static-content/
 .kube/
