@@ -62,7 +62,7 @@ func (e *EventAudit) logProbeStep(name string, err error) {
 		probe.Steps[stepName] = &StepAudit{Result: "Passed"}
 	} else {
 		probe.Steps[stepName] = &StepAudit{Result: "Failed"}
-		probe.Result = "Failed"
+		probe.Result = "Failed" // Track this in both summary and audit
 	}
 	e.Probes[name] = probe
 }
