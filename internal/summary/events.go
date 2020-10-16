@@ -35,8 +35,8 @@ func (e *Event) countResults() {
 	}
 }
 
-func (e *Event) AuditProbeStep(name string, err error) {
-	e.audit.logProbeStep(name, err)
+func (e *Event) AuditProbeStep(probeName string, description string, payload interface{}, err error) {
+	e.audit.auditProbeStep(probeName, description, payload, err)
 }
 
 func (e *Event) AuditProbeMeta(name string, tags []*messages.Pickle_PickleTag) {

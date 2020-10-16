@@ -27,8 +27,8 @@ type ProbeAudit struct {
 
 type StepAudit struct {
 	Result      string
-	Description string
-	Payload     string
+	Description string      // Long-form exlanation of anything happening in the step
+	Payload     interface{} // Handles any values that are sent across the network
 }
 
 func (e *EventAudit) Write() {
@@ -49,19 +49,22 @@ func (e *EventAudit) Write() {
 	}
 }
 
-// logProbeStep sets pass/fail on probe based on err parameter
-func (e *EventAudit) logProbeStep(name string, err error) {
+// auditProbeStep sets description, payload, and pass/fail based on err parameter
+func (e *EventAudit) auditProbeStep(probeName string, description string, payload interface{}, err error) {
 	// Initialize any empty objects
-	probe := e.Probes[name]
+	probe := *e.Probes[probeName]
 	// Now do the actual probe summary
 	stepName := getCallerName()
+	probe.Steps[stepName] = &StepAudit{
+		Description: description,
+		Payload:     payload,
+	}
 	if err == nil {
-		probe.Steps[stepName] = &StepAudit{Result: "Passed"}
+		probe.Steps[stepName].Result = "Passed"
 	} else {
-		probe.Steps[stepName] = &StepAudit{Result: "Failed"}
+		probe.Steps[stepName].Result = "Failed"
 		probe.Result = "Failed" // Track this in both summary and audit
 	}
-	e.Probes[name] = probe
 }
 
 // getCallerName retrieves the name of the function prior to the location it is called
