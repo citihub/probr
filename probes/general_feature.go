@@ -138,7 +138,7 @@ func genScenarioInitialize(ctx *godog.ScenarioContext) {
 	ps := probeState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
-		BeforeScenario(GEN_NAME, &ps, s)
+		ps.BeforeScenario(GEN_NAME, s)
 	})
 
 	//general

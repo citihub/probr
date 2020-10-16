@@ -104,7 +104,7 @@ func iaTestSuiteInitialize(ctx *godog.TestSuiteContext) {
 func iaScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
-		BeforeScenario(IA_NAME, &IA_PROBE, s)
+		IA_PROBE.BeforeScenario(IA_NAME, s)
 	})
 
 	ctx.Step(`^a Kubernetes cluster is deployed$`, IA_PROBE.aKubernetesClusterIsDeployed)

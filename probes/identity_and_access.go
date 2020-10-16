@@ -257,7 +257,7 @@ func iamScenarioInitialize(ctx *godog.ScenarioContext) {
 	ps := probeState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
-		BeforeScenario(IAM_NAME, &ps, s)
+		ps.BeforeScenario(IAM_NAME, s)
 	})
 
 	//general/all

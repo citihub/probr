@@ -7,7 +7,6 @@ import (
 
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
 	"github.com/citihub/probr/internal/coreengine"
-	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/internal/utils"
 )
 
@@ -103,10 +102,7 @@ func craScenarioInitialize(ctx *godog.ScenarioContext) {
 	ps := probeState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
-		ps.setup()
-		ps.name = s.Name
-		ps.event = summary.State.GetEventLog(CRA_NAME)
-		LogScenarioStart(s)
+		ps.BeforeScenario(CRA_NAME, s)
 	})
 
 	//common
