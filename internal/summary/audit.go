@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/citihub/probr/internal/config"
-	"github.com/cucumber/messages-go/v10"
 )
 
 type EventAudit struct {
@@ -22,8 +21,8 @@ type EventAudit struct {
 type ProbeAudit struct {
 	Description string
 	Result      string
+	Tags        []string
 	Steps       map[string]*StepAudit
-	Tags        []*messages.Pickle_PickleTag
 }
 
 type StepAudit struct {
@@ -53,16 +52,7 @@ func (e *EventAudit) Write() {
 // logProbeStep sets pass/fail on probe based on err parameter
 func (e *EventAudit) logProbeStep(name string, err error) {
 	// Initialize any empty objects
-	if e.Probes == nil {
-		e.Probes = make(map[string]*ProbeAudit)
-	}
 	probe := e.Probes[name]
-	if probe == nil {
-		probe = &ProbeAudit{
-			Steps: make(map[string]*StepAudit),
-		}
-	}
-
 	// Now do the actual probe summary
 	stepName := getCallerName()
 	if err == nil {
@@ -77,7 +67,7 @@ func (e *EventAudit) logProbeStep(name string, err error) {
 // getCallerName retrieves the name of the function prior to the location it is called
 func getCallerName() string {
 	f := make([]uintptr, 1)
-	runtime.Callers(3, f)                      // add full caller path to empty object
+	runtime.Callers(4, f)                      // add full caller path to empty object
 	step := runtime.FuncForPC(f[0] - 1).Name() // get full caller path in string form
 	s := strings.Split(step, ".")              // split full caller path
 	return s[len(s)-1]                         // select last element from caller path

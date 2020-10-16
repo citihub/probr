@@ -39,15 +39,16 @@ func (e *Event) AuditProbeStep(name string, err error) {
 	e.audit.logProbeStep(name, err)
 }
 
-func (e *Event) AuditProbe(name string, err error, tags []*messages.Pickle_PickleTag) {
-	probe := e.audit.Probes[name]
-	if probe != nil {
-		probe.Tags = tags
-
-		if err != nil {
-			probe.Result = err.Error()
-		} else {
-			probe.Result = "Success"
-		}
+func (e *Event) AuditProbeMeta(name string, tags []*messages.Pickle_PickleTag) {
+	if e.audit.Probes == nil {
+		e.audit.Probes = make(map[string]*ProbeAudit)
+	}
+	var t []string
+	for _, v := range tags {
+		t = append(t, v.Name)
+	}
+	e.audit.Probes[name] = &ProbeAudit{
+		Steps: make(map[string]*StepAudit),
+		Tags:  t,
 	}
 }

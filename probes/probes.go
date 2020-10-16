@@ -136,11 +136,12 @@ func notExcluded(tags []*messages.Pickle_PickleTag) bool {
 	return true
 }
 
-func BeforeScenario(name string, ps *probeState, s *godog.Scenario) {
+func BeforeScenario(eventName string, ps *probeState, s *godog.Scenario) {
 	if notExcluded(s.Tags) {
 		ps.setup()
 		ps.name = s.Name
-		ps.event = summary.State.GetEventLog(name)
+		ps.event = summary.State.GetEventLog(eventName)
+		ps.event.AuditProbeMeta(s.Name, s.Tags)
 		LogScenarioStart(s)
 	}
 }

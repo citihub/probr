@@ -2,6 +2,7 @@ kubeConfig: .kube/config
 outputType: IO
 outputDir: cucumber_output
 auditDir: audit_output
+overwriteHistoricalAudits: true
 summaryEnabled: true
 images:
     repository:
