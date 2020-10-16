@@ -1,5 +1,6 @@
 kubeConfig: .kube/config
-outputType: INMEM
+outputType: IO
+outputDir: testoutput
 summaryEnabled: true
 images:
     repository:

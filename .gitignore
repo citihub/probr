@@ -243,6 +243,9 @@ neo4j/server-vm/neo4j.pub
 
 node_modules
 
+# VS Code debugger
+__debug_bin
+
 # probr misc ('probr' is Linux exe)
 testoutput
 probr

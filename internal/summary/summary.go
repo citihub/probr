@@ -47,12 +47,12 @@ func (a *SummaryStateStruct) LogEventMeta(name string, key string, value string)
 	e := a.GetEventLog(name)
 	e.Meta[key] = value
 	a.Events[name] = e
+	a.Events[name].name = name // Event must be able to access its own name, but it is not publicly printed
 }
 
 // EventComplete takes an event name and status then updates the summary & event meta information
 func (a *SummaryStateStruct) EventComplete(name string) {
 	e := a.GetEventLog(name)
-	e.CountFailures()
 	if e.Meta["status"] == "Excluded" {
 		a.EventsSkipped = a.EventsSkipped + 1
 	} else if len(e.Probes) < 1 {
@@ -65,6 +65,8 @@ func (a *SummaryStateStruct) EventComplete(name string) {
 		e.Meta["status"] = "Failed"
 		a.EventsFailed = a.EventsFailed + 1
 	}
+	e.countFailures()
+	e.audit.Write()
 }
 
 // GetEventLog initializes or returns existing log event for the provided test name

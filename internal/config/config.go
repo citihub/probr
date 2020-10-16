@@ -18,6 +18,7 @@ type ConfigVars struct {
 	OutputType     string `yaml:"outputType"`
 	OutputDir      string `yaml:"outputDir"`
 	SummaryEnabled string `yaml:"summaryEnabled"`
+	AuditEnabled   string `yaml:"auditEnabled"`
 	Images         struct {
 		Repository string `yaml:"repository"`
 		Curl       string `yaml:"curl"`

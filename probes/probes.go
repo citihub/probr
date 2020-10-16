@@ -260,6 +260,6 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 	if b == nil || !*b {
 		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
-	p.event.LogProbe(p.name, nil) // If not fatal, success
+	p.event.LogProbeStep(p.name, nil) // If not fatal, success
 	return nil
 }

@@ -52,7 +52,7 @@ func (p *probeState) iAmAuthorisedToPullFromAContainerRegistry() error {
 	pd, err := cra.SetupContainerAccessTestPod(utils.StringPtr("docker.io"))
 
 	s := ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, p.event, err)
-	p.event.LogProbe(p.name, s)
+	p.event.LogProbeStep(p.name, s)
 	return s
 }
 
@@ -73,13 +73,13 @@ func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry s
 
 	e := p.event
 	s := ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, e, err)
-	e.LogProbe(p.name, s)
+	e.LogProbeStep(p.name, s)
 	return s
 }
 
 func (p *probeState) theDeploymentAttemptIs(res string) error {
 	s := AssertResult(&p.state, res, "")
-	p.event.LogProbe(p.name, s)
+	p.event.LogProbeStep(p.name, s)
 	return s
 }
 
