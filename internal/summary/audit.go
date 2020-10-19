@@ -15,14 +15,14 @@ type EventAudit struct {
 	path   string
 	Name   string
 	Result string
-	Probes map[string]*ProbeAudit
+	Probes map[int]*ProbeAudit
 }
 
 type ProbeAudit struct {
-	Description string
-	Result      string
-	Tags        []string
-	Steps       map[int]*StepAudit
+	Name   string
+	Result string
+	Tags   []string
+	Steps  map[int]*StepAudit
 }
 
 type StepAudit struct {
@@ -52,31 +52,29 @@ func (e *EventAudit) Write() {
 }
 
 // auditProbeStep sets description, payload, and pass/fail based on err parameter
-func (e *EventAudit) auditProbeStep(probeName string, description string, payload interface{}, err error) {
+func (p *ProbeAudit) AuditProbeStep(probeName string, description string, payload interface{}, err error) {
 	// Initialize any empty objects
-	probe := e.Probes[probeName]
 	// Now do the actual probe summary
-	stepName := getCallerName()
-	stepNumber := len(probe.Steps)
-	probe.Steps[stepNumber] = &StepAudit{
+	stepName := getCallerName(3)
+	stepNumber := len(p.Steps)
+	p.Steps[stepNumber] = &StepAudit{
 		Name:        stepName,
 		Description: description,
 		Payload:     payload,
 	}
 	if err == nil {
-		probe.Steps[stepNumber].Result = "Passed"
+		p.Steps[stepNumber].Result = "Passed"
 	} else {
-		probe.Steps[stepNumber].Result = "Failed"
-		probe.Steps[stepNumber].Error = strings.Replace(err.Error(), "[ERROR] ", "", -1)
-		probe.Result = "Failed" // Track this in both summary and audit
+		p.Steps[stepNumber].Result = "Failed"
+		p.Steps[stepNumber].Error = strings.Replace(err.Error(), "[ERROR] ", "", -1)
+		p.Result = "Failed" // Track this in both summary and audit
 	}
-	e.Probes[probeName] = probe
 }
 
 // getCallerName retrieves the name of the function prior to the location it is called
-func getCallerName() string {
+func getCallerName(up int) string {
 	f := make([]uintptr, 1)
-	runtime.Callers(4, f)                      // add full caller path to empty object
+	runtime.Callers(up, f)                     // add full caller path to empty object
 	step := runtime.FuncForPC(f[0] - 1).Name() // get full caller path in string form
 	s := strings.Split(step, ".")              // split full caller path
 	return s[len(s)-1]                         // select last element from caller path

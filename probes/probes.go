@@ -25,6 +25,7 @@ type State struct {
 
 type probeState struct {
 	name           string
+	audit          *summary.ProbeAudit
 	event          *summary.Event
 	httpStatusCode int
 	podName        string
@@ -154,14 +155,11 @@ func notExcluded(tags []*messages.Pickle_PickleTag) bool {
 	return true
 }
 
-func (ps *probeState) BeforeScenario(eventName string, s *godog.Scenario) {
+func (p *probeState) BeforeScenario(eventName string, s *godog.Scenario) {
 	if notExcluded(s.Tags) {
-		ps.setup()
-		ps.event = summary.State.GetEventLog(eventName)
-
-		// If a step within a scenario contains multiple parameters, we need a custom scenario name for subsequent runs
-		// Otherwise, this will simply use the scenario name that is provided by godog
-		ps.name = ps.event.AuditProbeMeta(s.Name, s.Tags)
+		p.setup()
+		p.name = s.Name
+		p.audit = summary.State.GetEventLog(eventName).InitializeAuditor(s.Name, s.Tags)
 		LogScenarioStart(s)
 	}
 }
@@ -175,8 +173,8 @@ func (p *probeState) setup() {
 
 // ProcessPodCreationResult is a convenince function to process the result of a pod creation attempt.
 // It records state information on the supplied state structure.
-func ProcessPodCreationResult(s *State, pd *apiv1.Pod, expected kubernetes.PodCreationErrorReason, e *summary.Event, err error) error {
-
+func ProcessPodCreationResult(probeName string, s *State, pd *apiv1.Pod, expected kubernetes.PodCreationErrorReason, err error) error {
+	event := summary.State.GetEventLog(probeName)
 	//first check for errors:
 	if err != nil {
 		//check if we've got a partial pod creation
@@ -184,7 +182,7 @@ func ProcessPodCreationResult(s *State, pd *apiv1.Pod, expected kubernetes.PodCr
 		//in this case we need to hold onto the name so it can be deleted
 		if pd != nil {
 			s.PodName = pd.GetObjectMeta().GetName()
-			e.CountPodCreated()
+			event.CountPodCreated()
 			summary.State.LogPodName(s.PodName)
 		}
 
@@ -211,7 +209,7 @@ func ProcessPodCreationResult(s *State, pd *apiv1.Pod, expected kubernetes.PodCr
 	//if we've got this far, a pod was successfully created which could be
 	//valid for some tests
 	s.PodName = pd.GetObjectMeta().GetName()
-	e.CountPodCreated()
+	event.CountPodCreated()
 	summary.State.LogPodName(s.PodName)
 
 	//we're good
@@ -269,7 +267,7 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 		KubeConfigPath string
 		KubeContext    string
 	}{config.Vars.KubeConfigPath, config.Vars.KubeContext}
-	p.event.AuditProbeStep(p.name, description, payload, nil)
+	p.audit.AuditProbeStep(p.name, description, payload, nil)
 
 	return nil
 }

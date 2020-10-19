@@ -1,8 +1,6 @@
 package summary
 
 import (
-	"strconv"
-
 	"github.com/cucumber/messages-go/v10"
 )
 
@@ -37,38 +35,35 @@ func (e *Event) countResults() {
 	}
 }
 
-func (e *Event) AuditProbeStep(probeName string, description string, payload interface{}, err error) {
-	e.audit.auditProbeStep(probeName, description, payload, err)
-}
-
-func (e *Event) AuditProbeMeta(name string, tags []*messages.Pickle_PickleTag) string {
+func (e *Event) InitializeAuditor(name string, tags []*messages.Pickle_PickleTag) *ProbeAudit {
 	if e.audit.Probes == nil {
-		e.audit.Probes = make(map[string]*ProbeAudit)
+		e.audit.Probes = make(map[int]*ProbeAudit)
 	}
-	name = e.validateProbeName(name)
+	probeCounter := len(e.audit.Probes) + 1
 	var t []string
 	for _, tag := range tags {
 		t = append(t, tag.Name)
 	}
-	e.audit.Probes[name] = &ProbeAudit{
+	e.audit.Probes[probeCounter] = &ProbeAudit{
+		Name:  name,
 		Steps: make(map[int]*StepAudit),
 		Tags:  t,
 	}
-	return name
+	return e.audit.Probes[probeCounter]
 }
 
-// validateProbeName adds a counter to the end if a probe is run twice under the same name
-func (e *Event) validateProbeName(name string) string {
-	if e.audit.Probes[name] == nil {
-		return name
-	}
-	var newName string
-	lastChar := name[len(name)-1]
-	count, err := strconv.Atoi(string(lastChar))
-	if err == nil {
-		newName = name[:len(name)-2] + " " + strconv.Itoa(count+1)
-	} else {
-		newName = name + " 2"
-	}
-	return e.validateProbeName(newName)
-}
+// // validateProbeName adds a counter to the end if a probe is run twice under the same name
+// func (e *Event) validateProbeName(name string) string {
+// 	if e.audit.Probes[name] == nil {
+// 		return name
+// 	}
+// 	var newName string
+// 	lastChar := name[len(name)-1]
+// 	count, err := strconv.Atoi(string(lastChar))
+// 	if err == nil {
+// 		newName = name[:len(name)-2] + " " + strconv.Itoa(count+1)
+// 	} else {
+// 		newName = name + " 2"
+// 	}
+// 	return e.validateProbeName(newName)
+// }

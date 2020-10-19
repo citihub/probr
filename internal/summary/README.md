@@ -97,5 +97,5 @@ This function should be used every time a step in a probe completes. `AuditProbe
 The description and payload values are arbitrary and are used only to assist auditors in their evaluation. A `nil` error will be recorded as a successful step.
 
 ```
-p.event.AuditProbeStep(p.name, "description string", payloadObject, err) 
+p.audit.AuditProbeStep(p.name, "description string", payloadObject, err) 
 ```
