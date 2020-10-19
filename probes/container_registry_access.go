@@ -3,11 +3,13 @@
 package probes
 
 import (
+	"fmt"
+
 	"github.com/cucumber/godog"
 
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
+	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
-	"github.com/citihub/probr/internal/utils"
 )
 
 const (
@@ -48,13 +50,12 @@ func SetContainerRegistryAccess(c kubernetes.ContainerRegistryAccess) {
 // CIS-6.1.3
 // Minimize cluster access to read-only
 func (p *probeState) iAmAuthorisedToPullFromAContainerRegistry() error {
-	pd, err := cra.SetupContainerAccessTestPod(utils.StringPtr("docker.io"))
+	pd, err := cra.SetupContainerAccessTestPod(config.Vars.Images.Repository)
 
 	s := ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, p.event, err)
 
-	description := "Creates a new pod using an image from a container registry. Passes if image successfully pulls and pod is built."
-	var payload interface{}
-	p.event.AuditProbeStep(p.name, description, payload, s)
+	description := fmt.Sprintf("Creates a new pod using an image from %s. Passes if image successfully pulls and pod is built.", config.Vars.Images.Repository)
+	p.event.AuditProbeStep(p.name, description, nil, s)
 
 	return s
 }
@@ -72,13 +73,12 @@ func (p *probeState) thePushRequestIsRejectedDueToAuthorization() error {
 // CIS-6.1.4
 // Ensure only authorised container registries are allowed
 func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry string) error {
-	pd, err := cra.SetupContainerAccessTestPod(&registry)
+	pd, err := cra.SetupContainerAccessTestPod(registry)
 
 	s := ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, p.event, err)
 
 	description := ""
-	var payload interface{}
-	p.event.AuditProbeStep(p.name, description, payload, s)
+	p.event.AuditProbeStep(p.name, description, pd, s)
 
 	return s
 }
@@ -86,9 +86,8 @@ func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry s
 func (p *probeState) theDeploymentAttemptIs(res string) error {
 	s := AssertResult(&p.state, res, "")
 
-	description := ""
-	var payload interface{}
-	p.event.AuditProbeStep(p.name, description, payload, s)
+	description := fmt.Sprintf("Asserts deployment status is %s", res)
+	p.event.AuditProbeStep(p.name, description, nil, s)
 
 	return s
 }

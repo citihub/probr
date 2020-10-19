@@ -262,9 +262,8 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
 
-	description := ""
-	var payload interface{}
-	p.event.AuditProbeStep(p.name, description, payload, nil)
+	description := fmt.Sprintf("Passes if it connects to the cluster. kubeconfig: '%s' context: '%s'", config.Vars.KubeConfigPath, config.Vars.KubeContext)
+	p.event.AuditProbeStep(p.name, description, config.Vars.KubeConfigPath, nil)
 
 	return nil
 }

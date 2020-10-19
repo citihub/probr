@@ -3,7 +3,10 @@
 package probes
 
 import (
+	"fmt"
 	"strings"
+
+	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
 	"github.com/citihub/probr/internal/config"
@@ -34,26 +37,25 @@ func init() {
 	})
 }
 
+// BUG - This step doesn't run
 //@CIS-5.1.3
 func (p *probeState) iInspectTheThatAreConfigured(roleLevel string) error {
 	var err error
+	var l interface{}
 	if roleLevel == "Cluster Roles" {
-		l, e := kubernetes.GetKubeInstance().GetClusterRolesByResource("*")
-		err = e
-		p.hasWildcardRoles = len(*l) > 0
+		l, err = kubernetes.GetKubeInstance().GetClusterRolesByResource("*")
+		p.hasWildcardRoles = len(l.([]rbacv1.ClusterRole)) > 0
 
 	} else if roleLevel == "Roles" {
-		l, e := kubernetes.GetKubeInstance().GetRolesByResource("*")
-		err = e
-		p.hasWildcardRoles = len(*l) > 0
+		l, err = kubernetes.GetKubeInstance().GetRolesByResource("*")
+		p.hasWildcardRoles = len(l.([]rbacv1.Role)) > 0
 	}
 	if err != nil {
 		err = LogAndReturnError("error raised when retrieving roles for rolelevel %v: %v", roleLevel, err)
 	}
 
-	description := ""
-	var payload interface{}
-	p.event.AuditProbeStep(p.name, description, payload, err)
+	description := fmt.Sprintf("Ensures that %s are configured", roleLevel)
+	p.event.AuditProbeStep(p.name, description, l, err)
 
 	return err
 }
