@@ -48,7 +48,7 @@ func (e *Event) AuditProbeMeta(name string, tags []*messages.Pickle_PickleTag) {
 		t = append(t, v.Name)
 	}
 	e.audit.Probes[name] = &ProbeAudit{
-		Steps: make(map[string]*StepAudit),
+		Steps: make(map[int]*StepAudit),
 		Tags:  t,
 	}
 }

@@ -22,10 +22,11 @@ type ProbeAudit struct {
 	Description string
 	Result      string
 	Tags        []string
-	Steps       map[string]*StepAudit
+	Steps       map[int]*StepAudit
 }
 
 type StepAudit struct {
+	Name        string
 	Result      string
 	Description string      // Long-form exlanation of anything happening in the step
 	Payload     interface{} // Handles any values that are sent across the network
@@ -56,15 +57,17 @@ func (e *EventAudit) auditProbeStep(probeName string, description string, payloa
 	probe := e.Probes[probeName]
 	// Now do the actual probe summary
 	stepName := getCallerName()
-	probe.Steps[stepName] = &StepAudit{
+	stepNumber := len(probe.Steps)
+	probe.Steps[stepNumber] = &StepAudit{
+		Name:        stepName,
 		Description: description,
 		Payload:     payload,
 	}
 	if err == nil {
-		probe.Steps[stepName].Result = "Passed"
+		probe.Steps[stepNumber].Result = "Passed"
 	} else {
-		probe.Steps[stepName].Result = "Failed"
-		probe.Steps[stepName].Error = strings.Replace(err.Error(), "[ERROR] ", "", -1)
+		probe.Steps[stepNumber].Result = "Failed"
+		probe.Steps[stepNumber].Error = strings.Replace(err.Error(), "[ERROR] ", "", -1)
 		probe.Result = "Failed" // Track this in both summary and audit
 	}
 	e.Probes[probeName] = probe
