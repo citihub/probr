@@ -82,7 +82,7 @@ func (p *probeState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext
 
 	err = ProcessPodCreationResult(&p.state, pod, kubernetes.UndefinedPodCreationErrorReason, p.event, err)
 
-	description := "Attempts to create a deployment without a security context. Retains the status of the deployment in pod state for following steps. Passes if created, or if an expected error is encountered."
+	description := "Attempts to create a deployment without a security context. Retains the status of the deployment in probe state for following steps. Passes if created, or if an expected error is encountered."
 
 	payload := podPayload(pod, podAudit)
 	p.event.AuditProbeStep(p.name, description, payload, err)
@@ -96,7 +96,7 @@ func (p *probeState) theDeploymentIsRejected() error {
 		err = LogAndReturnError("pod %v was created successfully. Test fail.", p.state.PodName)
 	}
 
-	description := "Looks for a creation error on the current pod state. Passes if error is found, because it should have been rejected."
+	description := "Looks for a creation error on the current probe state. Passes if error is found, because it should have been rejected."
 	var payload interface{}
 	p.event.AuditProbeStep(p.name, description, payload, err)
 

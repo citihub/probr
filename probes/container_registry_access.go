@@ -78,7 +78,7 @@ func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry s
 
 	s := ProcessPodCreationResult(&p.state, pod, kubernetes.PSPContainerAllowedImages, p.event, err)
 
-	description := ""
+	description := fmt.Sprintf("Attempts to deploy a container from %s. Retains pod creation result in probe state. Passes so long as user is authorized to deploy containers.", registry)
 	payload := podPayload(pod, podAudit)
 	p.event.AuditProbeStep(p.name, description, payload, s)
 
@@ -88,7 +88,7 @@ func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry s
 func (p *probeState) theDeploymentAttemptIs(res string) error {
 	s := AssertResult(&p.state, res, "")
 
-	description := fmt.Sprintf("Asserts deployment status is %s", res)
+	description := fmt.Sprintf("Asserts pod creation result in probe state is %s.", res)
 	p.event.AuditProbeStep(p.name, description, nil, s)
 
 	return s
