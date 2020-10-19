@@ -56,7 +56,7 @@ func (p *probeState) iAmAuthorisedToPullFromAContainerRegistry() error {
 
 	description := fmt.Sprintf("Creates a new pod using an image from %s. Passes if image successfully pulls and pod is built.", config.Vars.Images.Repository)
 	payload := podPayload(pod, podAudit)
-	p.audit.AuditProbeStep(p.name, description, payload, s)
+	p.audit.AuditProbeStep( description, payload, s)
 
 	return s
 }
@@ -80,7 +80,7 @@ func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry s
 
 	description := fmt.Sprintf("Attempts to deploy a container from %s. Retains pod creation result in probe state. Passes so long as user is authorized to deploy containers.", registry)
 	payload := podPayload(pod, podAudit)
-	p.audit.AuditProbeStep(p.name, description, payload, s)
+	p.audit.AuditProbeStep( description, payload, s)
 
 	return s
 }
@@ -89,7 +89,7 @@ func (p *probeState) theDeploymentAttemptIs(res string) error {
 	s := AssertResult(&p.state, res, "")
 
 	description := fmt.Sprintf("Asserts pod creation result in probe state is %s.", res)
-	p.audit.AuditProbeStep(p.name, description, nil, s)
+	p.audit.AuditProbeStep( description, nil, s)
 
 	return s
 }

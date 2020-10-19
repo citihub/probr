@@ -267,7 +267,7 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 		KubeConfigPath string
 		KubeContext    string
 	}{config.Vars.KubeConfigPath, config.Vars.KubeContext}
-	p.audit.AuditProbeStep(p.name, description, payload, nil)
+	p.audit.AuditProbeStep( description, payload, nil)
 
 	return nil
 }

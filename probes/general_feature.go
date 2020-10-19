@@ -53,7 +53,7 @@ func (p *probeState) iInspectTheThatAreConfigured(roleLevel string) error {
 	}
 
 	description := fmt.Sprintf("Ensures that %s are configured. Retains wildcard roles in state for following steps. Passes if retrieval command does not have error.", roleLevel)
-	p.audit.AuditProbeStep(p.name, description, p, err)
+	p.audit.AuditProbeStep( description, p, err)
 	return err
 }
 
@@ -66,7 +66,7 @@ func (p *probeState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations(
 	}
 
 	description := "Examines probe state's wildcard roles. Passes if no wildcard roles are found."
-	p.audit.AuditProbeStep(p.name, description, p, err)
+	p.audit.AuditProbeStep( description, p, err)
 
 	return err
 }
@@ -83,9 +83,8 @@ func (p *probeState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext
 	err = ProcessPodCreationResult(p.name, &p.state, pod, kubernetes.UndefinedPodCreationErrorReason, err)
 
 	description := "Attempts to create a deployment without a security context. Retains the status of the deployment in probe state for following steps. Passes if created, or if an expected error is encountered."
-
 	payload := podPayload(pod, podAudit)
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 	return err
 }
 
@@ -97,7 +96,7 @@ func (p *probeState) theDeploymentIsRejected() error {
 	}
 
 	description := "Looks for a creation error on the current probe state. Passes if error is found, because it should have been rejected."
-	p.audit.AuditProbeStep(p.name, description, nil, err)
+	p.audit.AuditProbeStep( description, nil, err)
 
 	return err
 }
@@ -130,7 +129,7 @@ func (p *probeState) theKubernetesWebUIIsDisabled() error {
 	}
 
 	description := "Attempts to find a pod in the 'kube-system' namespace with the prefix 'kubernetes-dashboard'. Passes if no pod is found."
-	p.audit.AuditProbeStep(p.name, description, nil, err)
+	p.audit.AuditProbeStep( description, nil, err)
 
 	return err
 }

@@ -59,7 +59,7 @@ func (p *probeState) aPodIsDeployedInTheCluster() error {
 
 	description := ""
 	payload := podPayload(pod, podAudit)
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -76,7 +76,7 @@ func (p *probeState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(url
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -93,7 +93,7 @@ func (p *probeState) accessIs(accessResult string) error {
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }

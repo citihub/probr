@@ -9,9 +9,10 @@ type Event struct {
 	audit           *EventAudit
 	Meta            map[string]interface{}
 	PodsDestroyed   int
-	ProbesFailed    int
+	ProbesAttempted int
 	ProbesSucceeded int
-	Status          string
+	ProbesFailed    int
+	Result          string
 }
 
 // CountPodCreated increments pods_created for event
@@ -26,10 +27,11 @@ func (e *Event) CountPodDestroyed() {
 
 // countResults stores the current total number of failures as e.ProbesFailed. Run at event end
 func (e *Event) countResults() {
+	e.ProbesAttempted = len(e.audit.Probes)
 	for _, v := range e.audit.Probes {
 		if v.Result == "Failed" {
 			e.ProbesFailed = e.ProbesFailed + 1
-		} else {
+		} else if v.Result == "Passed" {
 			e.ProbesSucceeded = e.ProbesSucceeded + 1
 		}
 	}
@@ -51,19 +53,3 @@ func (e *Event) InitializeAuditor(name string, tags []*messages.Pickle_PickleTag
 	}
 	return e.audit.Probes[probeCounter]
 }
-
-// // validateProbeName adds a counter to the end if a probe is run twice under the same name
-// func (e *Event) validateProbeName(name string) string {
-// 	if e.audit.Probes[name] == nil {
-// 		return name
-// 	}
-// 	var newName string
-// 	lastChar := name[len(name)-1]
-// 	count, err := strconv.Atoi(string(lastChar))
-// 	if err == nil {
-// 		newName = name[:len(name)-2] + " " + strconv.Itoa(count+1)
-// 	} else {
-// 		newName = name + " 2"
-// 	}
-// 	return e.validateProbeName(newName)
-// }

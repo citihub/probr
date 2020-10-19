@@ -58,7 +58,7 @@ func (p *probeState) theOperationWillWithAnError(res, msg string) error {
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -68,7 +68,7 @@ func (p *probeState) performAllowedCommand() error {
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -148,7 +148,7 @@ func (p *probeState) privilegedAccessRequestIsMarkedForTheKubernetesDeployment(p
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -158,7 +158,7 @@ func (p *probeState) someControlExistsToPreventPrivilegedAccessForKubernetesDepl
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -168,7 +168,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresPrivilegedAcce
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -190,7 +190,7 @@ func (p *probeState) hostPIDRequestIsMarkedForTheKubernetesDeployment(hostPIDReq
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -200,7 +200,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesContainerFromRunningUsi
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -210,7 +210,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHos
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -231,7 +231,7 @@ func (p *probeState) hostIPCRequestIsMarkedForTheKubernetesDeployment(hostIPCReq
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 
@@ -242,7 +242,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUs
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -252,7 +252,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHos
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -273,7 +273,7 @@ func (p *probeState) hostNetworkRequestIsMarkedForTheKubernetesDeployment(hostNe
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -283,7 +283,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUs
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 
@@ -293,7 +293,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHos
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -314,7 +314,7 @@ func (p *probeState) privilegedEscalationIsMarkedForTheKubernetesDeployment(priv
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 
@@ -324,7 +324,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUs
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -346,7 +346,7 @@ func (p *probeState) theUserRequestedIsForTheKubernetesDeployment(requestedUser 
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -356,7 +356,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningAs
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -366,7 +366,7 @@ func (p *probeState) theKubernetesDeploymentShouldRunWithANonrootUID() error {
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -385,7 +385,7 @@ func (p *probeState) nETRAWIsMarkedForTheKubernetesDeployment(netRawRequested st
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -395,7 +395,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningWi
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -405,7 +405,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresNETRAWCapabili
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -425,7 +425,7 @@ func (p *probeState) additionalCapabilitiesForTheKubernetesDeployment(addCapabil
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -435,7 +435,7 @@ func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithCapabilit
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -445,7 +445,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresCapabilitiesOu
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -466,7 +466,7 @@ func (p *probeState) assignedCapabilitiesForTheKubernetesDeployment(assignCapabi
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 
@@ -476,7 +476,7 @@ func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithAssignedC
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -486,7 +486,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresAnyCapabilitie
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -510,7 +510,7 @@ func (p *probeState) anPortRangeIsRequestedForTheKubernetesDeployment(portRange 
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 
@@ -521,7 +521,7 @@ func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithUnapprove
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -531,7 +531,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatAccessAnUnapprovedPort
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -555,7 +555,7 @@ func (p *probeState) anVolumeTypeIsRequestedForTheKubernetesDeployment(volumeTyp
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -565,7 +565,7 @@ func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithUnapprove
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -598,7 +598,7 @@ func (p *probeState) anSeccompProfileIsRequestedForTheKubernetesDeployment(secco
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -608,7 +608,7 @@ func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithoutApprov
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -617,7 +617,7 @@ func (p *probeState) iShouldNotBeAbleToPerformASystemCallThatIsBlockedByTheSecco
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }

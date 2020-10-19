@@ -12,25 +12,29 @@ import (
 )
 
 type EventAudit struct {
-	path   string
-	Name   string
-	Result string
-	Probes map[int]*ProbeAudit
+	path            string
+	Name            string
+	PodsDestroyed   *int
+	ProbesAttempted *int
+	ProbesSucceeded *int
+	ProbesFailed    *int
+	Result          *string
+	Probes          map[int]*ProbeAudit
 }
 
 type ProbeAudit struct {
 	Name   string
-	Result string
+	Result string // Passed / Failed / Given Not Met
 	Tags   []string
 	Steps  map[int]*StepAudit
 }
 
 type StepAudit struct {
 	Name        string
-	Result      string
 	Description string      // Long-form exlanation of anything happening in the step
-	Payload     interface{} // Handles any values that are sent across the network
+	Result      string      // Passed / Failed
 	Error       string      // Log the error text
+	Payload     interface{} // Handles any values that are sent across the network
 }
 
 func (e *EventAudit) Write() {
@@ -52,11 +56,11 @@ func (e *EventAudit) Write() {
 }
 
 // auditProbeStep sets description, payload, and pass/fail based on err parameter
-func (p *ProbeAudit) AuditProbeStep(probeName string, description string, payload interface{}, err error) {
+func (p *ProbeAudit) AuditProbeStep(description string, payload interface{}, err error) {
 	// Initialize any empty objects
 	// Now do the actual probe summary
 	stepName := getCallerName(3)
-	stepNumber := len(p.Steps)
+	stepNumber := len(p.Steps) + 1
 	p.Steps[stepNumber] = &StepAudit{
 		Name:        stepName,
 		Description: description,
@@ -67,7 +71,11 @@ func (p *ProbeAudit) AuditProbeStep(probeName string, description string, payloa
 	} else {
 		p.Steps[stepNumber].Result = "Failed"
 		p.Steps[stepNumber].Error = strings.Replace(err.Error(), "[ERROR] ", "", -1)
-		p.Result = "Failed" // Track this in both summary and audit
+		if stepNumber == 1 {
+			p.Result = "Given Not Met" // First entry is always a 'given'; failures should be ignored
+		} else {
+			p.Result = "Failed" // First 'given' was met, but a subsequent step failed
+		}
 	}
 }
 

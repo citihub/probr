@@ -70,7 +70,7 @@ func (p *probeState) theDefaultNamespaceHasAnAzureIdentityBinding() error {
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 
@@ -90,7 +90,7 @@ func (p *probeState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentityBi
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 
@@ -110,7 +110,7 @@ func (p *probeState) thePodIsDeployedSuccessfully() error {
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -121,7 +121,7 @@ func (p *probeState) anAttemptToObtainAnAccessTokenFromThatPodShouldFail() error
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -157,7 +157,7 @@ func (p *probeState) anAttemptToObtainAnAccessTokenFromThatPodShould(expectedres
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -168,7 +168,7 @@ func (p *probeState) theDefaultNamespaceHasAnAzureIdentity() error {
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 
@@ -179,7 +179,7 @@ func (p *probeState) iCreateAnAzureIdentityBindingCalledInANondefaultNamespace(a
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -196,7 +196,7 @@ func (p *probeState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoTheSameNa
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -225,7 +225,7 @@ func (p *probeState) theClusterHasManagedIdentityComponentsDeployed() error {
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -253,7 +253,7 @@ func (p *probeState) iExecuteTheCommandAgainstTheMICPod(arg1 string) error {
 
 	description := ""
 	var payload interface{}
-	p.audit.AuditProbeStep(p.name, description, payload, err)
+	p.audit.AuditProbeStep( description, payload, err)
 
 	return err
 }
@@ -266,7 +266,7 @@ func (p *probeState) kubernetesShouldPreventMeFromRunningTheCommand() error {
 	}
 
 	description := "Examines probe state to ensure that verification command was blocked."
-	p.audit.AuditProbeStep(p.name, description, nil, err)
+	p.audit.AuditProbeStep( description, nil, err)
 
 	return err
 }
