@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	rbacv1 "k8s.io/api/rbac/v1"
-
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
 	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
@@ -41,55 +39,54 @@ func init() {
 //@CIS-5.1.3
 func (p *probeState) iInspectTheThatAreConfigured(roleLevel string) error {
 	var err error
-	var l interface{}
 	if roleLevel == "Cluster Roles" {
-		l, err = kubernetes.GetKubeInstance().GetClusterRolesByResource("*")
-		p.hasWildcardRoles = len(l.([]rbacv1.ClusterRole)) > 0
-
+		l, e := kubernetes.GetKubeInstance().GetClusterRolesByResource("*")
+		err = e
+		p.wildcardRoles = l
 	} else if roleLevel == "Roles" {
-		l, err = kubernetes.GetKubeInstance().GetRolesByResource("*")
-		p.hasWildcardRoles = len(l.([]rbacv1.Role)) > 0
+		l, e := kubernetes.GetKubeInstance().GetRolesByResource("*")
+		err = e
+		p.wildcardRoles = l
 	}
 	if err != nil {
-		err = LogAndReturnError("error raised when retrieving roles for rolelevel %v: %v", roleLevel, err)
+		err = LogAndReturnError("error raised when retrieving '%v': %v", roleLevel, err)
 	}
 
-	description := fmt.Sprintf("Ensures that %s are configured", roleLevel)
-	p.event.AuditProbeStep(p.name, description, l, err)
-
+	description := fmt.Sprintf("Ensures that %s are configured. Retains wildcards in state for following steps. Passes if retrieval command does not have error.", roleLevel)
+	p.event.AuditProbeStep(p.name, description, p, err)
 	return err
 }
 
 func (p *probeState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations() error {
 	//we strip out system/known entries in the cluster roles & roles call
 	var err error
-	if p.hasWildcardRoles {
+	wildcardCount := len(p.wildcardRoles.([]interface{}))
+	if wildcardCount > 0 {
 		err = LogAndReturnError("roles exist with wildcarded resources")
 	}
 
 	description := ""
-	var payload interface{}
-	p.event.AuditProbeStep(p.name, description, payload, err)
+	p.event.AuditProbeStep(p.name, description, p, err)
 
 	return err
 }
 
 //@CIS-5.6.3
 func (p *probeState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext() error {
-	b := "probr-general"
-	n := kubernetes.GenerateUniquePodName(b)
-	i := config.Vars.Images.Repository + "/" + config.Vars.Images.BusyBox
+	cname := "probr-general"
+	pod_name := kubernetes.GenerateUniquePodName(cname)
+	image := config.Vars.Images.Repository + "/" + config.Vars.Images.BusyBox
 
 	//create pod with nil security context
-	pd, err := kubernetes.GetKubeInstance().CreatePod(&n, utils.StringPtr("probr-general-test-ns"), &b, &i, true, nil)
+	pod, podAudit, err := kubernetes.GetKubeInstance().CreatePod(pod_name, "probr-general-test-ns", cname, image, true, nil)
 
-	s := ProcessPodCreationResult(&p.state, pd, kubernetes.UndefinedPodCreationErrorReason, p.event, err)
+	err = ProcessPodCreationResult(&p.state, pod, kubernetes.UndefinedPodCreationErrorReason, p.event, err)
 
-	description := ""
-	var payload interface{}
+	description := "Attempts to create a deployment without a security context. Retains the status of the deployment in pod state for following steps. Passes if created, or if an expected error is encountered."
+
+	payload := podPayload(pod, podAudit)
 	p.event.AuditProbeStep(p.name, description, payload, err)
-
-	return s
+	return err
 }
 
 func (p *probeState) theDeploymentIsRejected() error {
@@ -99,7 +96,7 @@ func (p *probeState) theDeploymentIsRejected() error {
 		err = LogAndReturnError("pod %v was created successfully. Test fail.", p.state.PodName)
 	}
 
-	description := ""
+	description := "Looks for a creation error on the current pod state. Passes if error is found, because it should have been rejected."
 	var payload interface{}
 	p.event.AuditProbeStep(p.name, description, payload, err)
 
@@ -118,24 +115,22 @@ func (p *probeState) iShouldNotBeAbleToAccessTheKubernetesWebUI() error {
 	return nil
 }
 
-// BUG - This step never gets run
 func (p *probeState) theKubernetesWebUIIsDisabled() error {
 	//look for the dashboard pod in the kube-system ns
 	pl, err := kubernetes.GetKubeInstance().GetPods("kube-system")
 
 	if err != nil {
-		err = LogAndReturnError("error raised when trying to retrieve pods %v", err)
-	}
-
-	//a "pass" is the abscence of a "kubernetes-dashboard" pod
-	for _, v := range pl.Items {
-		if strings.HasPrefix(v.Name, "kubernetes-dashboard") {
-			err = LogAndReturnError("kubernetes-dashboard pod found (%v) - test fail", v.Name)
-			break
+		err = LogAndReturnError("error raised when trying to retrieve pods: %v", err)
+	} else {
+		//a "pass" is the abscence of a "kubernetes-dashboard" pod
+		for _, v := range pl.Items {
+			if strings.HasPrefix(v.Name, "kubernetes-dashboard") {
+				err = LogAndReturnError("kubernetes-dashboard pod found (%v) - test fail", v.Name)
+			}
 		}
 	}
 
-	description := ""
+	description := "Attempts to find a pod in the 'kube-system' namespace with the prefix 'kubernetes-dashboard' and passes if one is not found."
 	var payload interface{}
 	p.event.AuditProbeStep(p.name, description, payload, err)
 

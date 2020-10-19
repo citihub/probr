@@ -50,12 +50,13 @@ func SetContainerRegistryAccess(c kubernetes.ContainerRegistryAccess) {
 // CIS-6.1.3
 // Minimize cluster access to read-only
 func (p *probeState) iAmAuthorisedToPullFromAContainerRegistry() error {
-	pd, err := cra.SetupContainerAccessTestPod(config.Vars.Images.Repository)
+	pod, podAudit, err := cra.SetupContainerAccessTestPod(config.Vars.Images.Repository)
 
-	s := ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, p.event, err)
+	s := ProcessPodCreationResult(&p.state, pod, kubernetes.PSPContainerAllowedImages, p.event, err)
 
 	description := fmt.Sprintf("Creates a new pod using an image from %s. Passes if image successfully pulls and pod is built.", config.Vars.Images.Repository)
-	p.event.AuditProbeStep(p.name, description, nil, s)
+	payload := podPayload(pod, podAudit)
+	p.event.AuditProbeStep(p.name, description, payload, s)
 
 	return s
 }
@@ -73,12 +74,13 @@ func (p *probeState) thePushRequestIsRejectedDueToAuthorization() error {
 // CIS-6.1.4
 // Ensure only authorised container registries are allowed
 func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry string) error {
-	pd, err := cra.SetupContainerAccessTestPod(registry)
+	pod, podAudit, err := cra.SetupContainerAccessTestPod(registry)
 
-	s := ProcessPodCreationResult(&p.state, pd, kubernetes.PSPContainerAllowedImages, p.event, err)
+	s := ProcessPodCreationResult(&p.state, pod, kubernetes.PSPContainerAllowedImages, p.event, err)
 
 	description := ""
-	p.event.AuditProbeStep(p.name, description, pd, s)
+	payload := podPayload(pod, podAudit)
+	p.event.AuditProbeStep(p.name, description, payload, s)
 
 	return s
 }

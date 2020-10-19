@@ -29,6 +29,7 @@ type StepAudit struct {
 	Result      string
 	Description string      // Long-form exlanation of anything happening in the step
 	Payload     interface{} // Handles any values that are sent across the network
+	Error       string      // Log the error text
 }
 
 func (e *EventAudit) Write() {
@@ -63,6 +64,7 @@ func (e *EventAudit) auditProbeStep(probeName string, description string, payloa
 		probe.Steps[stepName].Result = "Passed"
 	} else {
 		probe.Steps[stepName].Result = "Failed"
+		probe.Steps[stepName].Error = strings.Replace(err.Error(), "[ERROR] ", "", -1)
 		probe.Result = "Failed" // Track this in both summary and audit
 	}
 	e.Probes[probeName] = probe

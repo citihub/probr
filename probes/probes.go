@@ -24,13 +24,13 @@ type State struct {
 }
 
 type probeState struct {
-	name             string
-	event            *summary.Event
-	httpStatusCode   int
-	podName          string
-	state            State
-	useDefaultNS     bool
-	hasWildcardRoles bool
+	name           string
+	event          *summary.Event
+	httpStatusCode int
+	podName        string
+	state          State
+	useDefaultNS   bool
+	wildcardRoles  interface{}
 }
 
 const rootDirName = "probr"
@@ -266,4 +266,14 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 	p.event.AuditProbeStep(p.name, description, config.Vars.KubeConfigPath, nil)
 
 	return nil
+}
+
+func podPayload(pod *apiv1.Pod, podAudit *kubernetes.PodAudit) interface{} {
+	return struct {
+		Pod      *apiv1.Pod
+		PodAudit *kubernetes.PodAudit
+	}{
+		Pod:      pod,
+		PodAudit: podAudit,
+	}
 }

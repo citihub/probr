@@ -35,7 +35,7 @@ func TestGetPods(t *testing.T) {
 }
 
 func TestCreatePod(t *testing.T) {
-	_, err := kubernetes.GetKubeInstance().CreatePod(&testPod, &testNS, &testContainer, &testImage, true, nil)
+	_, err := kubernetes.GetKubeInstance().CreatePod(testPod, testNS, testContainer, testImage, true, nil)
 
 	handleResult(nil, err)
 }
