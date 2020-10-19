@@ -1,6 +1,8 @@
 package summary
 
 import (
+	"strconv"
+
 	"github.com/cucumber/messages-go/v10"
 )
 
@@ -39,16 +41,34 @@ func (e *Event) AuditProbeStep(probeName string, description string, payload int
 	e.audit.auditProbeStep(probeName, description, payload, err)
 }
 
-func (e *Event) AuditProbeMeta(name string, tags []*messages.Pickle_PickleTag) {
+func (e *Event) AuditProbeMeta(name string, tags []*messages.Pickle_PickleTag) string {
 	if e.audit.Probes == nil {
 		e.audit.Probes = make(map[string]*ProbeAudit)
 	}
+	name = e.validateProbeName(name)
 	var t []string
-	for _, v := range tags {
-		t = append(t, v.Name)
+	for _, tag := range tags {
+		t = append(t, tag.Name)
 	}
 	e.audit.Probes[name] = &ProbeAudit{
 		Steps: make(map[int]*StepAudit),
 		Tags:  t,
 	}
+	return name
+}
+
+// validateProbeName adds a counter to the end if a probe is run twice under the same name
+func (e *Event) validateProbeName(name string) string {
+	if e.audit.Probes[name] == nil {
+		return name
+	}
+	var newName string
+	lastChar := name[len(name)-1]
+	count, err := strconv.Atoi(string(lastChar))
+	if err == nil {
+		newName = name[:len(name)-2] + " " + strconv.Itoa(count+1)
+	} else {
+		newName = name + " 2"
+	}
+	return e.validateProbeName(newName)
 }

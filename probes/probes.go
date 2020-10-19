@@ -157,9 +157,11 @@ func notExcluded(tags []*messages.Pickle_PickleTag) bool {
 func (ps *probeState) BeforeScenario(eventName string, s *godog.Scenario) {
 	if notExcluded(s.Tags) {
 		ps.setup()
-		ps.name = s.Name
 		ps.event = summary.State.GetEventLog(eventName)
-		ps.event.AuditProbeMeta(s.Name, s.Tags)
+
+		// If a step within a scenario contains multiple parameters, we need a custom scenario name for subsequent runs
+		// Otherwise, this will simply use the scenario name that is provided by godog
+		ps.name = ps.event.AuditProbeMeta(s.Name, s.Tags)
 		LogScenarioStart(s)
 	}
 }
