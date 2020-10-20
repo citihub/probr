@@ -32,13 +32,13 @@ func (m *kubeMock) GetPods(ns string) (*apiv1.PodList, error) {
 	e := a.Error(1)
 	return pl, e
 }
-func (m *kubeMock) CreatePod(pname string, ns string, cname string, image string, w bool, sc *apiv1.SecurityContext) (*apiv1.Pod, error) {
+func (m *kubeMock) CreatePod(pname string, ns string, cname string, image string, w bool, sc *apiv1.SecurityContext) (*apiv1.Pod, *PodAudit, error) {
 	//The below will check the args are as expected, ie. the security context has the correct attributes
 	a := m.Called(pname, ns, cname, image, w, sc)
 
-	return a.Get(0).(*apiv1.Pod), a.Error(1)
+	return a.Get(0).(*apiv1.Pod), &PodAudit{}, a.Error(1)
 }
-func (m *kubeMock) CreatePodFromObject(p *apiv1.Pod, pname *string, ns *string, w bool) (*apiv1.Pod, error) {
+func (m *kubeMock) CreatePodFromObject(p *apiv1.Pod, pname string, ns string, w bool) (*apiv1.Pod, error) {
 	//The below will check the args are as expected, ie. the Pod has the correct attributes
 	a := m.Called(p, pname, ns, w)
 
