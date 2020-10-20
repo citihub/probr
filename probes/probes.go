@@ -173,8 +173,7 @@ func (p *probeState) setup() {
 
 // ProcessPodCreationResult is a convenince function to process the result of a pod creation attempt.
 // It records state information on the supplied state structure.
-func ProcessPodCreationResult(probeName string, s *State, pd *apiv1.Pod, expected kubernetes.PodCreationErrorReason, err error) error {
-	event := summary.State.GetEventLog(probeName)
+func ProcessPodCreationResult(event *summary.Event, s *State, pd *apiv1.Pod, expected kubernetes.PodCreationErrorReason, err error) error {
 	//first check for errors:
 	if err != nil {
 		//check if we've got a partial pod creation
@@ -267,7 +266,7 @@ func (p *probeState) aKubernetesClusterIsDeployed() error {
 		KubeConfigPath string
 		KubeContext    string
 	}{config.Vars.KubeConfigPath, config.Vars.KubeContext}
-	p.audit.AuditProbeStep( description, payload, nil)
+	p.audit.AuditProbeStep(description, payload, nil)
 
 	return nil
 }

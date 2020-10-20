@@ -53,7 +53,7 @@ func (p *probeState) iInspectTheThatAreConfigured(roleLevel string) error {
 	}
 
 	description := fmt.Sprintf("Ensures that %s are configured. Retains wildcard roles in state for following steps. Passes if retrieval command does not have error.", roleLevel)
-	p.audit.AuditProbeStep( description, p, err)
+	p.audit.AuditProbeStep(description, p, err)
 	return err
 }
 
@@ -66,7 +66,7 @@ func (p *probeState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations(
 	}
 
 	description := "Examines probe state's wildcard roles. Passes if no wildcard roles are found."
-	p.audit.AuditProbeStep( description, p, err)
+	p.audit.AuditProbeStep(description, p, err)
 
 	return err
 }
@@ -80,11 +80,11 @@ func (p *probeState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext
 	//create pod with nil security context
 	pod, podAudit, err := kubernetes.GetKubeInstance().CreatePod(pod_name, "probr-general-test-ns", cname, image, true, nil)
 
-	err = ProcessPodCreationResult(p.name, &p.state, pod, kubernetes.UndefinedPodCreationErrorReason, err)
+	err = ProcessPodCreationResult(p.event, &p.state, pod, kubernetes.UndefinedPodCreationErrorReason, err)
 
 	description := "Attempts to create a deployment without a security context. Retains the status of the deployment in probe state for following steps. Passes if created, or if an expected error is encountered."
 	payload := podPayload(pod, podAudit)
-	p.audit.AuditProbeStep( description, payload, err)
+	p.audit.AuditProbeStep(description, payload, err)
 	return err
 }
 
@@ -96,7 +96,7 @@ func (p *probeState) theDeploymentIsRejected() error {
 	}
 
 	description := "Looks for a creation error on the current probe state. Passes if error is found, because it should have been rejected."
-	p.audit.AuditProbeStep( description, nil, err)
+	p.audit.AuditProbeStep(description, nil, err)
 
 	return err
 }
@@ -128,8 +128,8 @@ func (p *probeState) theKubernetesWebUIIsDisabled() error {
 		}
 	}
 
-	description := "Attempts to find a pod in the 'kube-system' namespace with the prefix 'kubernetes-dashboard'. Passes if no pod is found."
-	p.audit.AuditProbeStep( description, nil, err)
+	description := "Attempts to find a pod in the 'kube-system' namespace with the prefix 'kubernetes-dashboard'. Passes if no pod is returned."
+	p.audit.AuditProbeStep(description, nil, err)
 
 	return err
 }
