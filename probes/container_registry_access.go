@@ -52,9 +52,8 @@ func SetContainerRegistryAccess(c kubernetes.ContainerRegistryAccess) {
 func (s *scenarioState) iAmAuthorisedToPullFromAContainerRegistry() error {
 	pod, podAudit, err := cra.SetupContainerAccessTestPod(config.Vars.Images.Repository)
 
-	if err == nil {
-		err = ProcessPodCreationResult(s.event, &s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
-	}
+	err = ProcessPodCreationResult(s.event, &s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
+
 	description := fmt.Sprintf("Creates a new pod using an image from %s. Passes if image successfully pulls and pod is built.", config.Vars.Images.Repository)
 	payload := podPayload(pod, podAudit)
 	s.audit.AuditProbeStep(description, payload, err)
@@ -77,9 +76,8 @@ func (s *scenarioState) thePushRequestIsRejectedDueToAuthorization() error {
 func (s *scenarioState) aUserAttemptsToDeployAContainerFrom(auth string, registry string) error {
 	pod, podAudit, err := cra.SetupContainerAccessTestPod(registry)
 
-	if err == nil {
-		err = ProcessPodCreationResult(s.event, &s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
-	}
+	err = ProcessPodCreationResult(s.event, &s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
+
 	description := fmt.Sprintf("Attempts to deploy a container from %s. Retains pod creation result in probe state. Passes so long as user is authorized to deploy containers.", registry)
 	payload := podPayload(pod, podAudit)
 	s.audit.AuditProbeStep(description, payload, err)
