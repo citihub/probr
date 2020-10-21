@@ -49,7 +49,7 @@ func SetContainerRegistryAccess(c kubernetes.ContainerRegistryAccess) {
 
 // CIS-6.1.3
 // Minimize cluster access to read-only
-func (p *probeState) iAmAuthorisedToPullFromAContainerRegistry() error {
+func (p *scenarioState) iAmAuthorisedToPullFromAContainerRegistry() error {
 	pod, podAudit, err := cra.SetupContainerAccessTestPod(config.Vars.Images.Repository)
 
 	s := ProcessPodCreationResult(p.event, &p.state, pod, kubernetes.PSPContainerAllowedImages, err)
@@ -62,18 +62,18 @@ func (p *probeState) iAmAuthorisedToPullFromAContainerRegistry() error {
 }
 
 // PENDING IMPLEMENTATION
-func (p *probeState) iAttemptToPushToTheContainerRegistryUsingTheClusterIdentity() error {
+func (p *scenarioState) iAttemptToPushToTheContainerRegistryUsingTheClusterIdentity() error {
 	return godog.ErrPending
 }
 
 // PENDING IMPLEMENTATION
-func (p *probeState) thePushRequestIsRejectedDueToAuthorization() error {
+func (p *scenarioState) thePushRequestIsRejectedDueToAuthorization() error {
 	return godog.ErrPending
 }
 
 // CIS-6.1.4
 // Ensure only authorised container registries are allowed
-func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry string) error {
+func (p *scenarioState) aUserAttemptsToDeployAContainerFrom(auth string, registry string) error {
 	pod, podAudit, err := cra.SetupContainerAccessTestPod(registry)
 
 	s := ProcessPodCreationResult(p.event, &p.state, pod, kubernetes.PSPContainerAllowedImages, err)
@@ -85,7 +85,7 @@ func (p *probeState) aUserAttemptsToDeployAContainerFrom(auth string, registry s
 	return s
 }
 
-func (p *probeState) theDeploymentAttemptIs(res string) error {
+func (p *scenarioState) theDeploymentAttemptIs(res string) error {
 	s := AssertResult(&p.state, res, "")
 
 	description := fmt.Sprintf("Asserts pod creation result in probe state is %s.", res)
@@ -111,7 +111,7 @@ func craTestSuiteInitialize(ctx *godog.TestSuiteContext) {
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
 // a step / function defined.  See: https://github.com/cucumber/godog#example.
 func craScenarioInitialize(ctx *godog.ScenarioContext) {
-	ps := probeState{}
+	ps := scenarioState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
 		ps.BeforeScenario(cra_name, s)

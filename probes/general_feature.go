@@ -37,7 +37,7 @@ func init() {
 
 // BUG - This step doesn't run
 //@CIS-5.1.3
-func (p *probeState) iInspectTheThatAreConfigured(roleLevel string) error {
+func (p *scenarioState) iInspectTheThatAreConfigured(roleLevel string) error {
 	var err error
 	if roleLevel == "Cluster Roles" {
 		l, e := kubernetes.GetKubeInstance().GetClusterRolesByResource("*")
@@ -57,7 +57,7 @@ func (p *probeState) iInspectTheThatAreConfigured(roleLevel string) error {
 	return err
 }
 
-func (p *probeState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations() error {
+func (p *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations() error {
 	//we strip out system/known entries in the cluster roles & roles call
 	var err error
 	wildcardCount := len(p.wildcardRoles.([]interface{}))
@@ -72,7 +72,7 @@ func (p *probeState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations(
 }
 
 //@CIS-5.6.3
-func (p *probeState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext() error {
+func (p *scenarioState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext() error {
 	cname := "probr-general"
 	pod_name := kubernetes.GenerateUniquePodName(cname)
 	image := config.Vars.Images.Repository + "/" + config.Vars.Images.BusyBox
@@ -88,7 +88,7 @@ func (p *probeState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext
 	return err
 }
 
-func (p *probeState) theDeploymentIsRejected() error {
+func (p *scenarioState) theDeploymentIsRejected() error {
 	//looking for a non-nil creation error
 	var err error
 	if p.state.CreationError == nil {
@@ -103,7 +103,7 @@ func (p *probeState) theDeploymentIsRejected() error {
 
 //@CIS-6.10.1
 // PENDING IMPLEMENTATION
-func (p *probeState) iShouldNotBeAbleToAccessTheKubernetesWebUI() error {
+func (p *scenarioState) iShouldNotBeAbleToAccessTheKubernetesWebUI() error {
 	//TODO: will be difficult to test this.  To access it, a proxy needs to be created:
 	//az aks browse --resource-group rg-probr-all-policies --name ProbrAllPolicies
 	//which will then open a browser at:
@@ -113,7 +113,7 @@ func (p *probeState) iShouldNotBeAbleToAccessTheKubernetesWebUI() error {
 	return nil
 }
 
-func (p *probeState) theKubernetesWebUIIsDisabled() error {
+func (p *scenarioState) theKubernetesWebUIIsDisabled() error {
 	//look for the dashboard pod in the kube-system ns
 	pl, err := kubernetes.GetKubeInstance().GetPods("kube-system")
 
@@ -149,7 +149,7 @@ func genTestSuiteInitialize(ctx *godog.TestSuiteContext) {
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
 // a step / function defined.  See: https://github.com/cucumber/godog#example.
 func genScenarioInitialize(ctx *godog.ScenarioContext) {
-	ps := probeState{}
+	ps := scenarioState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
 		ps.BeforeScenario(gen_name, s)

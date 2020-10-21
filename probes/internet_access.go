@@ -11,10 +11,10 @@ import (
 
 const ia_name = "internet_access"
 
-var ia_ps probeState
+var ia_ps scenarioState
 
 func init() {
-	ia_ps = probeState{}
+	ia_ps = scenarioState{}
 	td := coreengine.TestDescriptor{Group: coreengine.Kubernetes,
 		Category: coreengine.InternetAccess, Name: ia_name}
 
@@ -37,7 +37,7 @@ func SetNetworkAccess(n kubernetes.NetworkAccess) {
 	na = n
 }
 
-func (p *probeState) aPodIsDeployedInTheCluster() error {
+func (p *scenarioState) aPodIsDeployedInTheCluster() error {
 	var err error
 	var podAudit *kubernetes.PodAudit
 	var pod *apiv1.Pod
@@ -64,7 +64,7 @@ func (p *probeState) aPodIsDeployedInTheCluster() error {
 	return err
 }
 
-func (p *probeState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(url string) error {
+func (p *scenarioState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(url string) error {
 	code, err := na.AccessURL(&p.podName, &url)
 
 	if err != nil {
@@ -81,7 +81,7 @@ func (p *probeState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(url
 	return err
 }
 
-func (p *probeState) accessIs(accessResult string) error {
+func (p *scenarioState) accessIs(accessResult string) error {
 	var err error
 	if accessResult == "blocked" {
 		//then the result should be anything other than 200

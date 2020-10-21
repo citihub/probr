@@ -42,18 +42,18 @@ func init() {
 
 // general statements.  Cluster exists, etc. Also result/outcome
 
-func (p *probeState) creationWillWithAMessage(arg1, arg2 string) error {
+func (p *scenarioState) creationWillWithAMessage(arg1, arg2 string) error {
 	return godog.ErrPending
 }
 
 // PENDING IMPLEMENTATION
-func (p *probeState) aKubernetesDeploymentIsAppliedToAnExistingKubernetesCluster() error {
+func (p *scenarioState) aKubernetesDeploymentIsAppliedToAnExistingKubernetesCluster() error {
 
 	//TODO: not sure this step is adding value ... return "pass" for now ...
 	return nil
 }
 
-func (p *probeState) theOperationWillWithAnError(res, msg string) error {
+func (p *scenarioState) theOperationWillWithAnError(res, msg string) error {
 	err := AssertResult(&p.state, res, msg)
 
 	description := ""
@@ -63,7 +63,7 @@ func (p *probeState) theOperationWillWithAnError(res, msg string) error {
 	return err
 }
 
-func (p *probeState) performAllowedCommand() error {
+func (p *scenarioState) performAllowedCommand() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.Ls, ExpectedExitCode: 0}) //'0' exit code as we expect this to succeed
 
 	description := ""
@@ -74,7 +74,7 @@ func (p *probeState) performAllowedCommand() error {
 }
 
 // common helper funcs
-func (p *probeState) runControlTest(cf func() (*bool, error), c string) error {
+func (p *scenarioState) runControlTest(cf func() (*bool, error), c string) error {
 
 	yesNo, err := cf()
 
@@ -92,7 +92,7 @@ func (p *probeState) runControlTest(cf func() (*bool, error), c string) error {
 	return nil
 }
 
-func (p *probeState) runVerificationTest(c kubernetes.PSPVerificationProbe) error {
+func (p *scenarioState) runVerificationTest(c kubernetes.PSPVerificationProbe) error {
 
 	//check for lack of creation error, i.e. pod was created successfully
 	if p.state.CreationError == nil {
@@ -134,7 +134,7 @@ func (p *probeState) runVerificationTest(c kubernetes.PSPVerificationProbe) erro
 
 // CIS-5.2.1
 // privileged access
-func (p *probeState) privilegedAccessRequestIsMarkedForTheKubernetesDeployment(privilegedAccessRequested string) error {
+func (p *scenarioState) privilegedAccessRequestIsMarkedForTheKubernetesDeployment(privilegedAccessRequested string) error {
 	var pa bool
 	if privilegedAccessRequested == "True" {
 		pa = true
@@ -153,7 +153,7 @@ func (p *probeState) privilegedAccessRequestIsMarkedForTheKubernetesDeployment(p
 	return err
 }
 
-func (p *probeState) someControlExistsToPreventPrivilegedAccessForKubernetesDeploymentsToAnActiveKubernetesCluster() error {
+func (p *scenarioState) someControlExistsToPreventPrivilegedAccessForKubernetesDeploymentsToAnActiveKubernetesCluster() error {
 	err := p.runControlTest(psp.PrivilegedAccessIsRestricted, "PrivilegedAccessIsRestricted")
 
 	description := ""
@@ -163,7 +163,7 @@ func (p *probeState) someControlExistsToPreventPrivilegedAccessForKubernetesDepl
 	return err
 }
 
-func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresPrivilegedAccess() error {
+func (p *scenarioState) iShouldNotBeAbleToPerformACommandThatRequiresPrivilegedAccess() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.Chroot, ExpectedExitCode: 1})
 
 	description := ""
@@ -175,7 +175,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresPrivilegedAcce
 
 // CIS-5.2.2
 // hostPID
-func (p *probeState) hostPIDRequestIsMarkedForTheKubernetesDeployment(hostPIDRequested string) error {
+func (p *scenarioState) hostPIDRequestIsMarkedForTheKubernetesDeployment(hostPIDRequested string) error {
 
 	var hostPID bool
 	if hostPIDRequested == "True" {
@@ -195,7 +195,7 @@ func (p *probeState) hostPIDRequestIsMarkedForTheKubernetesDeployment(hostPIDReq
 	return err
 }
 
-func (p *probeState) someSystemExistsToPreventAKubernetesContainerFromRunningUsingTheHostPIDOnTheActiveKubernetesCluster() error {
+func (p *scenarioState) someSystemExistsToPreventAKubernetesContainerFromRunningUsingTheHostPIDOnTheActiveKubernetesCluster() error {
 	err := p.runControlTest(psp.HostPIDIsRestricted, "HostPIDIsRestricted")
 
 	description := ""
@@ -205,7 +205,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesContainerFromRunningUsi
 	return err
 }
 
-func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHostPIDNamespace() error {
+func (p *scenarioState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHostPIDNamespace() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.EnterHostPIDNS, ExpectedExitCode: 1})
 
 	description := ""
@@ -216,7 +216,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHos
 }
 
 //CIS-5.2.3
-func (p *probeState) hostIPCRequestIsMarkedForTheKubernetesDeployment(hostIPCRequested string) error {
+func (p *scenarioState) hostIPCRequestIsMarkedForTheKubernetesDeployment(hostIPCRequested string) error {
 
 	var hostIPC bool
 	if hostIPCRequested == "True" {
@@ -237,7 +237,7 @@ func (p *probeState) hostIPCRequestIsMarkedForTheKubernetesDeployment(hostIPCReq
 
 }
 
-func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUsingTheHostIPCInAnExistingKubernetesCluster() error {
+func (p *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUsingTheHostIPCInAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.HostIPCIsRestricted, "HostIPCIsRestricted")
 
 	description := ""
@@ -247,7 +247,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUs
 	return err
 }
 
-func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHostIPCNamespace() error {
+func (p *scenarioState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHostIPCNamespace() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.EnterHostIPCNS, ExpectedExitCode: 1})
 
 	description := ""
@@ -258,7 +258,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHos
 }
 
 //CIS-5.2.4
-func (p *probeState) hostNetworkRequestIsMarkedForTheKubernetesDeployment(hostNetworkRequested string) error {
+func (p *scenarioState) hostNetworkRequestIsMarkedForTheKubernetesDeployment(hostNetworkRequested string) error {
 
 	var hostNetwork bool
 	if hostNetworkRequested == "True" {
@@ -278,7 +278,7 @@ func (p *probeState) hostNetworkRequestIsMarkedForTheKubernetesDeployment(hostNe
 	return err
 }
 
-func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUsingTheHostNetworkInAnExistingKubernetesCluster() error {
+func (p *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUsingTheHostNetworkInAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.HostNetworkIsRestricted, "HostNetworkIsRestricted")
 
 	description := ""
@@ -288,7 +288,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUs
 	return err
 
 }
-func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHostNetworkNamespace() error {
+func (p *scenarioState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHostNetworkNamespace() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.EnterHostNetworkNS, ExpectedExitCode: 1})
 
 	description := ""
@@ -299,7 +299,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHos
 }
 
 //CIS-5.2.5
-func (p *probeState) privilegedEscalationIsMarkedForTheKubernetesDeployment(privilegedEscalationRequested string) error {
+func (p *scenarioState) privilegedEscalationIsMarkedForTheKubernetesDeployment(privilegedEscalationRequested string) error {
 
 	var pa bool
 	if privilegedEscalationRequested == "True" {
@@ -319,7 +319,7 @@ func (p *probeState) privilegedEscalationIsMarkedForTheKubernetesDeployment(priv
 	return err
 
 }
-func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUsingTheAllowPrivilegeEscalationInAnExistingKubernetesCluster() error {
+func (p *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUsingTheAllowPrivilegeEscalationInAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.PrivilegedEscalationIsRestricted, "PrivilegedEscalationIsRestricted")
 
 	description := ""
@@ -332,7 +332,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUs
 //"but" same as 5.2.1
 
 //CIS-5.2.6
-func (p *probeState) theUserRequestedIsForTheKubernetesDeployment(requestedUser string) error {
+func (p *scenarioState) theUserRequestedIsForTheKubernetesDeployment(requestedUser string) error {
 
 	var runAsUser int64
 	if requestedUser == "Root" {
@@ -351,7 +351,7 @@ func (p *probeState) theUserRequestedIsForTheKubernetesDeployment(requestedUser 
 	return err
 }
 
-func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningAsTheRootUserInAnExistingKubernetesCluster() error {
+func (p *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunningAsTheRootUserInAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.RootUserIsRestricted, "RootUserIsRestricted")
 
 	description := ""
@@ -361,7 +361,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningAs
 	return err
 }
 
-func (p *probeState) theKubernetesDeploymentShouldRunWithANonrootUID() error {
+func (p *scenarioState) theKubernetesDeploymentShouldRunWithANonrootUID() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.VerifyNonRootUID, ExpectedExitCode: 1})
 
 	description := ""
@@ -372,7 +372,7 @@ func (p *probeState) theKubernetesDeploymentShouldRunWithANonrootUID() error {
 }
 
 //CIS-5.2.7
-func (p *probeState) nETRAWIsMarkedForTheKubernetesDeployment(netRawRequested string) error {
+func (p *scenarioState) nETRAWIsMarkedForTheKubernetesDeployment(netRawRequested string) error {
 
 	var c []string
 	if netRawRequested == "True" {
@@ -390,7 +390,7 @@ func (p *probeState) nETRAWIsMarkedForTheKubernetesDeployment(netRawRequested st
 	return err
 }
 
-func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningWithNETRAWCapabilityInAnExistingKubernetesCluster() error {
+func (p *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunningWithNETRAWCapabilityInAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.NETRawIsRestricted, "NETRAWIsRestricted")
 
 	description := ""
@@ -400,7 +400,7 @@ func (p *probeState) someSystemExistsToPreventAKubernetesDeploymentFromRunningWi
 	return err
 }
 
-func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresNETRAWCapability() error {
+func (p *scenarioState) iShouldNotBeAbleToPerformACommandThatRequiresNETRAWCapability() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.NetRawTest, ExpectedExitCode: 1})
 
 	description := ""
@@ -411,7 +411,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresNETRAWCapabili
 }
 
 //CIS-5.2.8
-func (p *probeState) additionalCapabilitiesForTheKubernetesDeployment(addCapabilities string) error {
+func (p *scenarioState) additionalCapabilitiesForTheKubernetesDeployment(addCapabilities string) error {
 
 	var c []string
 	if addCapabilities == "ARE" {
@@ -430,7 +430,7 @@ func (p *probeState) additionalCapabilitiesForTheKubernetesDeployment(addCapabil
 	return err
 }
 
-func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithCapabilitiesBeyondTheDefaultSetFromBeingDeployedToAnExistingKubernetesCluster() error {
+func (p *scenarioState) someSystemExistsToPreventKubernetesDeploymentsWithCapabilitiesBeyondTheDefaultSetFromBeingDeployedToAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.AllowedCapabilitiesAreRestricted, "AllowedCapabilitiesAreRestricted")
 
 	description := ""
@@ -440,7 +440,7 @@ func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithCapabilit
 	return err
 }
 
-func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresCapabilitiesOutsideOfTheDefaultSet() error {
+func (p *scenarioState) iShouldNotBeAbleToPerformACommandThatRequiresCapabilitiesOutsideOfTheDefaultSet() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.SpecialCapTest, ExpectedExitCode: 2})
 
 	description := ""
@@ -451,7 +451,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresCapabilitiesOu
 }
 
 //CIS-5.2.9
-func (p *probeState) assignedCapabilitiesForTheKubernetesDeployment(assignCapabilities string) error {
+func (p *scenarioState) assignedCapabilitiesForTheKubernetesDeployment(assignCapabilities string) error {
 
 	var c []string
 	if assignCapabilities == "ARE" {
@@ -471,7 +471,7 @@ func (p *probeState) assignedCapabilitiesForTheKubernetesDeployment(assignCapabi
 	return err
 
 }
-func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithAssignedCapabilitiesFromBeingDeployedToAnExistingKubernetesCluster() error {
+func (p *scenarioState) someSystemExistsToPreventKubernetesDeploymentsWithAssignedCapabilitiesFromBeingDeployedToAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.AssignedCapabilitiesAreRestricted, "AssignedCapabilitiesAreRestricted")
 
 	description := ""
@@ -481,7 +481,7 @@ func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithAssignedC
 	return err
 }
 
-func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresAnyCapabilities() error {
+func (p *scenarioState) iShouldNotBeAbleToPerformACommandThatRequiresAnyCapabilities() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.SpecialCapTest, ExpectedExitCode: 2})
 
 	description := ""
@@ -492,7 +492,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatRequiresAnyCapabilitie
 }
 
 //AZ Policy - port range
-func (p *probeState) anPortRangeIsRequestedForTheKubernetesDeployment(portRange string) error {
+func (p *scenarioState) anPortRangeIsRequestedForTheKubernetesDeployment(portRange string) error {
 
 	var y []byte
 	var err error
@@ -516,7 +516,7 @@ func (p *probeState) anPortRangeIsRequestedForTheKubernetesDeployment(portRange 
 
 }
 
-func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithUnapprovedPortRangeFromBeingDeployedToAnExistingKubernetesCluster() error {
+func (p *scenarioState) someSystemExistsToPreventKubernetesDeploymentsWithUnapprovedPortRangeFromBeingDeployedToAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.HostPortsAreRestricted, "HostPortsAreRestricted")
 
 	description := ""
@@ -526,7 +526,7 @@ func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithUnapprove
 	return err
 }
 
-func (p *probeState) iShouldNotBeAbleToPerformACommandThatAccessAnUnapprovedPortRange() error {
+func (p *scenarioState) iShouldNotBeAbleToPerformACommandThatAccessAnUnapprovedPortRange() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.NetCat, ExpectedExitCode: 1})
 
 	description := ""
@@ -537,7 +537,7 @@ func (p *probeState) iShouldNotBeAbleToPerformACommandThatAccessAnUnapprovedPort
 }
 
 //AZ Policy - volume type
-func (p *probeState) anVolumeTypeIsRequestedForTheKubernetesDeployment(volumeType string) error {
+func (p *scenarioState) anVolumeTypeIsRequestedForTheKubernetesDeployment(volumeType string) error {
 
 	var y []byte
 	var err error
@@ -560,7 +560,7 @@ func (p *probeState) anVolumeTypeIsRequestedForTheKubernetesDeployment(volumeTyp
 	return err
 }
 
-func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithUnapprovedVolumeTypesFromBeingDeployedToAnExistingKubernetesCluster() error {
+func (p *scenarioState) someSystemExistsToPreventKubernetesDeploymentsWithUnapprovedVolumeTypesFromBeingDeployedToAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.VolumeTypesAreRestricted, "VolumeTypesAreRestricted")
 
 	description := ""
@@ -571,14 +571,14 @@ func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithUnapprove
 }
 
 // PENDING IMPLEMENTATION
-func (p *probeState) iShouldNotBeAbleToPerformACommandThatAccessesAnUnapprovedVolumeType() error {
+func (p *scenarioState) iShouldNotBeAbleToPerformACommandThatAccessesAnUnapprovedVolumeType() error {
 
 	//TODO: Not sure what the test is here - if any
 	return nil
 }
 
 //AZ Policy - seccomp profile
-func (p *probeState) anSeccompProfileIsRequestedForTheKubernetesDeployment(seccompProfile string) error {
+func (p *scenarioState) anSeccompProfileIsRequestedForTheKubernetesDeployment(seccompProfile string) error {
 
 	var y []byte
 	var err error
@@ -603,7 +603,7 @@ func (p *probeState) anSeccompProfileIsRequestedForTheKubernetesDeployment(secco
 	return err
 }
 
-func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithoutApprovedSeccompProfilesFromBeingDeployedToAnExistingKubernetesCluster() error {
+func (p *scenarioState) someSystemExistsToPreventKubernetesDeploymentsWithoutApprovedSeccompProfilesFromBeingDeployedToAnExistingKubernetesCluster() error {
 	err := p.runControlTest(psp.SeccompProfilesAreRestricted, "SeccompProfilesAreRestricted")
 
 	description := ""
@@ -612,7 +612,7 @@ func (p *probeState) someSystemExistsToPreventKubernetesDeploymentsWithoutApprov
 
 	return err
 }
-func (p *probeState) iShouldNotBeAbleToPerformASystemCallThatIsBlockedByTheSeccompProfile() error {
+func (p *scenarioState) iShouldNotBeAbleToPerformASystemCallThatIsBlockedByTheSeccompProfile() error {
 	err := p.runVerificationTest(kubernetes.PSPVerificationProbe{Cmd: kubernetes.Unshare, ExpectedExitCode: 1})
 
 	description := ""
@@ -644,7 +644,7 @@ func pspTestSuiteInitialize(ctx *godog.TestSuiteContext) {
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
 // a step / function defined.  See: https://github.com/cucumber/godog#example.
 func pspScenarioInitialize(ctx *godog.ScenarioContext) {
-	ps := probeState{}
+	ps := scenarioState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
 		ps.BeforeScenario(psp_name, s)

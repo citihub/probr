@@ -23,7 +23,7 @@ type State struct {
 	CommandExitCode int
 }
 
-type probeState struct {
+type scenarioState struct {
 	name           string
 	audit          *summary.ProbeAudit
 	event          *summary.Event
@@ -155,7 +155,7 @@ func notExcluded(tags []*messages.Pickle_PickleTag) bool {
 	return true
 }
 
-func (p *probeState) BeforeScenario(eventName string, s *godog.Scenario) {
+func (p *scenarioState) BeforeScenario(eventName string, s *godog.Scenario) {
 	if notExcluded(s.Tags) {
 		p.setup()
 		p.name = s.Name
@@ -165,7 +165,7 @@ func (p *probeState) BeforeScenario(eventName string, s *godog.Scenario) {
 }
 
 // Setup resets scenario-specific values
-func (p *probeState) setup() {
+func (p *scenarioState) setup() {
 	p.state.PodName = ""
 	p.state.CreationError = nil
 	p.useDefaultNS = false
@@ -254,7 +254,7 @@ func AssertResult(s *State, res, msg string) error {
 }
 
 //general feature steps:
-func (p *probeState) aKubernetesClusterIsDeployed() error {
+func (p *scenarioState) aKubernetesClusterIsDeployed() error {
 	b := kubernetes.GetKubeInstance().ClusterIsDeployed()
 
 	if b == nil || !*b {
