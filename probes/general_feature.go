@@ -53,7 +53,7 @@ func (s *scenarioState) iInspectTheThatAreConfigured(roleLevel string) error {
 	}
 
 	description := fmt.Sprintf("Ensures that %s are configured. Retains wildcard roles in state for following steps. Passes if retrieval command does not have error.", roleLevel)
-	s.audit.AuditProbeStep(description, s, err)
+	s.audit.AuditScenarioStep(description, s, err)
 	return err
 }
 
@@ -66,7 +66,7 @@ func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfiguratio
 	}
 
 	description := "Examines probe state's wildcard roles. Passes if no wildcard roles are found."
-	s.audit.AuditProbeStep(description, s, err)
+	s.audit.AuditScenarioStep(description, s, err)
 
 	return err
 }
@@ -84,7 +84,7 @@ func (s *scenarioState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityCont
 
 	description := "Attempts to create a deployment without a security context. Retains the status of the deployment in probe state for following steps. Passes if created, or if an expected error is encountered."
 	payload := podPayload(pod, podAudit)
-	s.audit.AuditProbeStep(description, payload, err)
+	s.audit.AuditScenarioStep(description, payload, err)
 	return err
 }
 
@@ -96,7 +96,7 @@ func (s *scenarioState) theDeploymentIsRejected() error {
 	}
 
 	description := "Looks for a creation error on the current probe state. Passes if error is found, because it should have been rejected."
-	s.audit.AuditProbeStep(description, nil, err)
+	s.audit.AuditScenarioStep(description, nil, err)
 
 	return err
 }
@@ -129,7 +129,7 @@ func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 	}
 
 	description := "Attempts to find a pod in the 'kube-system' namespace with the prefix 'kubernetes-dashboard'. Passes if no pod is returned."
-	s.audit.AuditProbeStep(description, nil, err)
+	s.audit.AuditScenarioStep(description, nil, err)
 
 	return err
 }

@@ -59,7 +59,7 @@ func (s *scenarioState) aPodIsDeployedInTheCluster() error {
 
 	description := ""
 	payload := podPayload(pod, podAudit)
-	s.audit.AuditProbeStep(description, payload, err)
+	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
 }
@@ -76,7 +76,7 @@ func (s *scenarioState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(
 
 	description := ""
 	var payload interface{}
-	s.audit.AuditProbeStep(description, payload, err)
+	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
 }
@@ -93,7 +93,7 @@ func (s *scenarioState) accessIs(accessResult string) error {
 
 	description := ""
 	var payload interface{}
-	s.audit.AuditProbeStep(description, payload, err)
+	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
 }

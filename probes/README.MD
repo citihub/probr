@@ -1,4 +1,4 @@
-# Probes Engineering Notes
+# Scenarios Engineering Notes
 
 Each "probe" is part of a Probr "event" which provides topical organization. Events are sorted within topical subdirectories within `probes/`.
 
@@ -14,9 +14,9 @@ In the summary logs you will see the term "Events" as a top level object, which 
 
 For more reading on how a _feature file_ is written, please review the [Cucumber documentation](https://cucumber.io/docs/gherkin/reference/)
 
-## Probes == Scenarios // true
+## Scenarios == Scenarios // true
 
-Probes are the heart of Probr, for obvious reasons. Each individual **probe** will attempt a behavior, and return a success or failure based on whether the result matches the expected result.
+Scenarios are the heart of Probr, for obvious reasons. Each individual **probe** will attempt a behavior, and return a success or failure based on whether the result matches the expected result.
 
 These **probes** are defined in _feature files_, and in Gherkin they would be considered _senarios_ or _scenario outlines_.
 

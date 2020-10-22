@@ -15,14 +15,14 @@ type EventAudit struct {
 	path            string
 	Name            string
 	PodsDestroyed   *int
-	ProbesAttempted *int
-	ProbesSucceeded *int
-	ProbesFailed    *int
+	ScenariosAttempted *int
+	ScenariosSucceeded *int
+	ScenariosFailed    *int
 	Result          *string
-	Probes          map[int]*ProbeAudit
+	Scenarios          map[int]*ScenarioAudit
 }
 
-type ProbeAudit struct {
+type ScenarioAudit struct {
 	Name   string
 	Result string // Passed / Failed / Given Not Met
 	Tags   []string
@@ -55,8 +55,8 @@ func (e *EventAudit) Write() {
 	}
 }
 
-// auditProbeStep sets description, payload, and pass/fail based on err parameter
-func (p *ProbeAudit) AuditProbeStep(description string, payload interface{}, err error) {
+// auditScenarioStep sets description, payload, and pass/fail based on err parameter
+func (p *ScenarioAudit) AuditScenarioStep(description string, payload interface{}, err error) {
 	// Initialize any empty objects
 	// Now do the actual probe summary
 	stepName := getCallerName(3)
@@ -89,7 +89,7 @@ func getCallerName(up int) string {
 }
 
 func (e *EventAudit) probeRan() bool {
-	if len(e.Probes) > 0 {
+	if len(e.Scenarios) > 0 {
 		return true
 	}
 	return false

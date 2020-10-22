@@ -47,10 +47,10 @@ type Event struct {
 	Name          string  `yaml:"name"`
 	Excluded      bool    `yaml:"excluded"`
 	Justification string  `yaml:"justification"`
-	Probes        []Probe `yaml:"probes"`
+	Scenarios        []Scenario `yaml:"probes"`
 }
 
-type Probe struct {
+type Scenario struct {
 	Name          string `yaml:"name"`
 	Excluded      bool   `yaml:"excluded"`
 	Justification string `yaml:"justification"`
@@ -65,7 +65,7 @@ func (ctx *ConfigVars) GetTags() string {
 		if v.Excluded {
 			ctx.HandleExclusion(v.Name, v.Justification)
 		} else {
-			ctx.HandleProbeExclusions(&v)
+			ctx.HandleScenarioExclusions(&v)
 		}
 	}
 	return ctx.Tags
@@ -83,8 +83,8 @@ func (ctx *ConfigVars) HandleExclusion(name, justification string) {
 	ctx.TagExclusions = append(ctx.TagExclusions, name) // Add exclusion to list
 }
 
-func (ctx *ConfigVars) HandleProbeExclusions(e *Event) {
-	for _, v := range e.Probes {
+func (ctx *ConfigVars) HandleScenarioExclusions(e *Event) {
+	for _, v := range e.Scenarios {
 		if v.Excluded {
 			ctx.HandleExclusion(v.Name, v.Justification)
 		}

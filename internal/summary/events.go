@@ -10,9 +10,9 @@ type Event struct {
 	Meta            map[string]interface{}
 	PodsCreated     int
 	PodsDestroyed   int
-	ProbesAttempted int
-	ProbesSucceeded int
-	ProbesFailed    int
+	ScenariosAttempted int
+	ScenariosSucceeded int
+	ScenariosFailed    int
 	Result          string
 }
 
@@ -26,31 +26,31 @@ func (e *Event) CountPodDestroyed() {
 	e.PodsDestroyed = e.PodsDestroyed + 1
 }
 
-// countResults stores the current total number of failures as e.ProbesFailed. Run at event end
+// countResults stores the current total number of failures as e.ScenariosFailed. Run at event end
 func (e *Event) countResults() {
-	e.ProbesAttempted = len(e.audit.Probes)
-	for _, v := range e.audit.Probes {
+	e.ScenariosAttempted = len(e.audit.Scenarios)
+	for _, v := range e.audit.Scenarios {
 		if v.Result == "Failed" {
-			e.ProbesFailed = e.ProbesFailed + 1
+			e.ScenariosFailed = e.ScenariosFailed + 1
 		} else if v.Result == "Passed" {
-			e.ProbesSucceeded = e.ProbesSucceeded + 1
+			e.ScenariosSucceeded = e.ScenariosSucceeded + 1
 		}
 	}
 }
 
-func (e *Event) InitializeAuditor(name string, tags []*messages.Pickle_PickleTag) *ProbeAudit {
-	if e.audit.Probes == nil {
-		e.audit.Probes = make(map[int]*ProbeAudit)
+func (e *Event) InitializeAuditor(name string, tags []*messages.Pickle_PickleTag) *ScenarioAudit {
+	if e.audit.Scenarios == nil {
+		e.audit.Scenarios = make(map[int]*ScenarioAudit)
 	}
-	probeCounter := len(e.audit.Probes) + 1
+	probeCounter := len(e.audit.Scenarios) + 1
 	var t []string
 	for _, tag := range tags {
 		t = append(t, tag.Name)
 	}
-	e.audit.Probes[probeCounter] = &ProbeAudit{
+	e.audit.Scenarios[probeCounter] = &ScenarioAudit{
 		Name:  name,
 		Steps: make(map[int]*StepAudit),
 		Tags:  t,
 	}
-	return e.audit.Probes[probeCounter]
+	return e.audit.Scenarios[probeCounter]
 }

@@ -109,9 +109,9 @@ func (s *SummaryState) initEvent(n string) {
 
 		// The event auditor should have pointers to the summary information
 		s.Events[n].audit.PodsDestroyed = &s.Events[n].PodsDestroyed
-		s.Events[n].audit.ProbesAttempted = &s.Events[n].ProbesAttempted
-		s.Events[n].audit.ProbesSucceeded = &s.Events[n].ProbesSucceeded
-		s.Events[n].audit.ProbesFailed = &s.Events[n].ProbesFailed
+		s.Events[n].audit.ScenariosAttempted = &s.Events[n].ScenariosAttempted
+		s.Events[n].audit.ScenariosSucceeded = &s.Events[n].ScenariosSucceeded
+		s.Events[n].audit.ScenariosFailed = &s.Events[n].ScenariosFailed
 		s.Events[n].audit.Result = &s.Events[n].Result
 	}
 }
@@ -121,11 +121,11 @@ func (s *SummaryState) completeEvent(e *Event) {
 	if e.Result == "Excluded" {
 		e.Meta["audit_path"] = ""
 		s.EventsSkipped = s.EventsSkipped + 1
-	} else if len(e.audit.Probes) < 1 {
-		e.Result = "No Probes Executed"
+	} else if len(e.audit.Scenarios) < 1 {
+		e.Result = "No Scenarios Executed"
 		e.Meta["audit_path"] = ""
 		s.EventsSkipped = s.EventsSkipped + 1
-	} else if e.ProbesFailed < 1 {
+	} else if e.ScenariosFailed < 1 {
 		e.Result = "Success"
 		s.EventsPassed = s.EventsPassed + 1
 	} else {

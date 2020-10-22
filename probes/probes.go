@@ -25,7 +25,7 @@ type podState struct {
 
 type scenarioState struct {
 	name           string
-	audit          *summary.ProbeAudit
+	audit          *summary.ScenarioAudit
 	event          *summary.Event
 	httpStatusCode int
 	podName        string
@@ -266,7 +266,7 @@ func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 		KubeConfigPath string
 		KubeContext    string
 	}{config.Vars.KubeConfigPath, config.Vars.KubeContext}
-	s.audit.AuditProbeStep(description, payload, nil)
+	s.audit.AuditScenarioStep(description, payload, nil)
 
 	return nil
 }

@@ -90,12 +90,12 @@ if wait {
 summary.State.GetEventLog(event).CountPodDestroyed()
 ```
 
-**Event.AuditProbeStep**
+**Event.AuditScenarioStep**
 
-This function should be used every time a step in a probe completes. `AuditProbeStep` will automatically form the name of the step from the name of the function that called it. The name value provided will establish which probe the step is a part of. The error (or nil) provided will dictate whether the test passes or fails.
+This function should be used every time a step in a probe completes. `AuditScenarioStep` will automatically form the name of the step from the name of the function that called it. The name value provided will establish which probe the step is a part of. The error (or nil) provided will dictate whether the test passes or fails.
 
 The description and payload values are arbitrary and are used only to assist auditors in their evaluation. A `nil` error will be recorded as a successful step.
 
 ```
-s.audit.AuditProbeStep( "description string", payloadObject, err) 
+s.audit.AuditScenarioStep( "description string", payloadObject, err) 
 ```
