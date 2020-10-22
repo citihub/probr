@@ -16,17 +16,17 @@ type Probe struct {
 	Result             string
 }
 
-// CountPodCreated increments pods_created for event
+// CountPodCreated increments pods_created for probe
 func (e *Probe) CountPodCreated() {
 	e.PodsCreated = e.PodsCreated + 1
 }
 
-// CountPodDestroyed increments pods_destroyed for event
+// CountPodDestroyed increments pods_destroyed for probe
 func (e *Probe) CountPodDestroyed() {
 	e.PodsDestroyed = e.PodsDestroyed + 1
 }
 
-// countResults stores the current total number of failures as e.ScenariosFailed. Run at event end
+// countResults stores the current total number of failures as e.ScenariosFailed. Run at probe end
 func (e *Probe) countResults() {
 	e.ScenariosAttempted = len(e.audit.Scenarios)
 	for _, v := range e.audit.Scenarios {
@@ -42,15 +42,15 @@ func (e *Probe) InitializeAuditor(name string, tags []*messages.Pickle_PickleTag
 	if e.audit.Scenarios == nil {
 		e.audit.Scenarios = make(map[int]*ScenarioAudit)
 	}
-	probeCounter := len(e.audit.Scenarios) + 1
+	scenarioCounter := len(e.audit.Scenarios) + 1
 	var t []string
 	for _, tag := range tags {
 		t = append(t, tag.Name)
 	}
-	e.audit.Scenarios[probeCounter] = &ScenarioAudit{
+	e.audit.Scenarios[scenarioCounter] = &ScenarioAudit{
 		Name:  name,
 		Steps: make(map[int]*StepAudit),
 		Tags:  t,
 	}
-	return e.audit.Scenarios[probeCounter]
+	return e.audit.Scenarios[scenarioCounter]
 }

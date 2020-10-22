@@ -20,7 +20,7 @@ import (
 const iam_name = "iam_control"
 
 // IdentityAccessManagement is the section of the kubernetes package which provides the kubernetes interactions required to support
-// identity access management probes.
+// identity access management scenarios.
 var iam kubernetes.IdentityAccessManagement
 
 // SetIAM allows injection of an IdentityAccessManagement helper.
@@ -85,7 +85,7 @@ func (s *scenarioState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentit
 			s.useDefaultNS = true
 		}
 		pd, err := iam.CreateIAMTestPod(y, s.useDefaultNS)
-		err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
+		err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
 	}
 
 	description := ""
@@ -191,7 +191,7 @@ func (s *scenarioState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoTheSam
 		err = LogAndReturnError("error reading yaml for test: %v", err)
 	} else {
 		pd, err := iam.CreateIAMTestPod(y, false)
-		err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
+		err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
 	}
 
 	description := ""
@@ -265,7 +265,7 @@ func (s *scenarioState) kubernetesShouldPreventMeFromRunningTheCommand() error {
 		err = LogAndReturnError("verification command was not blocked")
 	}
 
-	description := "Examines probe state to ensure that verification command was blocked."
+	description := "Examines scenario state to ensure that verification command was blocked."
 	s.audit.AuditScenarioStep(description, nil, err)
 
 	return err

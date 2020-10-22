@@ -543,7 +543,7 @@ func (k *Kube) ExecCommand(cmd, ns, pn *string) (s *CmdExecutionResult) {
 
 // DeletePod deletes the given pod in the specified namespace.
 // Passing true for 'wait' causes the function to wait for pod deletion (not normally required).
-func (k *Kube) DeletePod(pname *string, ns *string, wait bool, event string) error {
+func (k *Kube) DeletePod(pname *string, ns *string, wait bool, probe string) error {
 	c, err := k.GetClient()
 	if err != nil {
 		return err
@@ -560,7 +560,7 @@ func (k *Kube) DeletePod(pname *string, ns *string, wait bool, event string) err
 	}
 
 	if wait {
-		waitForDelete(c, ns, pname, event)
+		waitForDelete(c, ns, pname, probe)
 	}
 	log.Printf("[INFO] POD %v deleted.", *pname)
 
@@ -956,7 +956,7 @@ func (k *Kube) podInErrorState(p *apiv1.Pod) (bool, *PodCreationError) {
 	return false, nil
 }
 
-func waitForDelete(c *kubernetes.Clientset, ns *string, n *string, eventName string) error {
+func waitForDelete(c *kubernetes.Clientset, ns *string, n *string, probeName string) error {
 
 	ps := c.CoreV1().Pods(*ns)
 
@@ -979,8 +979,8 @@ func waitForDelete(c *kubernetes.Clientset, ns *string, n *string, eventName str
 		log.Printf("[DEBUG] Watch Container status: %+v", p.Status.ContainerStatuses)
 
 		if e.Type == "DELETED" {
-			summary.State.GetProbeLog(eventName).CountPodDestroyed()
-			log.Printf("[INFO] DELETED event received for pod %v", p.GetObjectMeta().GetName())
+			summary.State.GetProbeLog(probeName).CountPodDestroyed()
+			log.Printf("[INFO] DELETED probe received for pod %v", p.GetObjectMeta().GetName())
 			break
 		}
 

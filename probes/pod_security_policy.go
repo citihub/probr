@@ -144,7 +144,7 @@ func (s *scenarioState) privilegedAccessRequestIsMarkedForTheKubernetesDeploymen
 
 	pd, err := psp.CreatePODSettingSecurityContext(&pa, nil, nil)
 
-	err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPNoPrivilege, err)
+	err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPNoPrivilege, err)
 
 	description := ""
 	var payload interface{}
@@ -186,7 +186,7 @@ func (s *scenarioState) hostPIDRequestIsMarkedForTheKubernetesDeployment(hostPID
 
 	pd, err := psp.CreatePODSettingAttributes(&hostPID, nil, nil)
 
-	err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPHostNamespace, err)
+	err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPHostNamespace, err)
 
 	description := ""
 	var payload interface{}
@@ -227,7 +227,7 @@ func (s *scenarioState) hostIPCRequestIsMarkedForTheKubernetesDeployment(hostIPC
 
 	pd, err := psp.CreatePODSettingAttributes(nil, &hostIPC, nil)
 
-	err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPHostNamespace, err)
+	err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPHostNamespace, err)
 
 	description := ""
 	var payload interface{}
@@ -269,7 +269,7 @@ func (s *scenarioState) hostNetworkRequestIsMarkedForTheKubernetesDeployment(hos
 
 	pd, err := psp.CreatePODSettingAttributes(nil, nil, &hostNetwork)
 
-	err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPHostNetwork, err)
+	err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPHostNetwork, err)
 
 	description := ""
 	var payload interface{}
@@ -310,7 +310,7 @@ func (s *scenarioState) privilegedEscalationIsMarkedForTheKubernetesDeployment(p
 
 	pd, err := psp.CreatePODSettingSecurityContext(nil, &pa, nil)
 
-	err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPNoPrivilegeEscalation, err)
+	err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPNoPrivilegeEscalation, err)
 
 	description := ""
 	var payload interface{}
@@ -342,7 +342,7 @@ func (s *scenarioState) theUserRequestedIsForTheKubernetesDeployment(requestedUs
 	}
 
 	pd, err := psp.CreatePODSettingSecurityContext(nil, nil, &runAsUser)
-	err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPAllowedUsersGroups, err)
+	err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPAllowedUsersGroups, err)
 
 	description := ""
 	var payload interface{}
@@ -381,7 +381,7 @@ func (s *scenarioState) nETRAWIsMarkedForTheKubernetesDeployment(netRawRequested
 	}
 
 	pd, err := psp.CreatePODSettingCapabilities(&c)
-	err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPAllowedCapabilities, err)
+	err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPAllowedCapabilities, err)
 
 	description := ""
 	var payload interface{}
@@ -421,7 +421,7 @@ func (s *scenarioState) additionalCapabilitiesForTheKubernetesDeployment(addCapa
 	}
 
 	pd, err := psp.CreatePODSettingCapabilities(&c)
-	err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPAllowedCapabilities, err)
+	err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPAllowedCapabilities, err)
 
 	description := ""
 	var payload interface{}
@@ -462,7 +462,7 @@ func (s *scenarioState) assignedCapabilitiesForTheKubernetesDeployment(assignCap
 	}
 
 	pd, err := psp.CreatePODSettingCapabilities(&c)
-	err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPAllowedCapabilities, err)
+	err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPAllowedCapabilities, err)
 
 	description := ""
 	var payload interface{}
@@ -505,7 +505,7 @@ func (s *scenarioState) anPortRangeIsRequestedForTheKubernetesDeployment(portRan
 
 	if err == nil {
 		pd, err := psp.CreatePodFromYaml(y)
-		err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPAllowedPortRange, err)
+		err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPAllowedPortRange, err)
 	}
 
 	description := ""
@@ -550,7 +550,7 @@ func (s *scenarioState) anVolumeTypeIsRequestedForTheKubernetesDeployment(volume
 
 	if err == nil {
 		pd, err := psp.CreatePodFromYaml(y)
-		err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPAllowedVolumeTypes, err)
+		err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPAllowedVolumeTypes, err)
 	}
 
 	description := ""
@@ -593,7 +593,7 @@ func (s *scenarioState) anSeccompProfileIsRequestedForTheKubernetesDeployment(se
 
 	if err != nil {
 		pd, err := psp.CreatePodFromYaml(y)
-		err = ProcessPodCreationResult(s.event, &s.podState, pd, kubernetes.PSPSeccompProfile, err)
+		err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPSeccompProfile, err)
 	}
 
 	description := ""

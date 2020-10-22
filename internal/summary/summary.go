@@ -47,7 +47,7 @@ func (s *SummaryState) SetProbrStatus() {
 		s.Status = fmt.Sprintf("Complete - %v of %v Probes Failed", s.ProbesFailed, (len(s.Probes) - s.ProbesSkipped))
 	}
 	if config.Vars.Probes != nil {
-		s.Meta["event_tags_from_config"] = config.Vars.Probes
+		s.Meta["probe_tags_from_config"] = config.Vars.Probes
 	}
 }
 
@@ -59,14 +59,14 @@ func (s *SummaryState) LogProbeMeta(name string, key string, value interface{}) 
 	s.Probes[name].name = name // Probe must be able to access its own name, but it is not publicly printed
 }
 
-// ProbeComplete takes an event name and status then updates the summary & event meta information
+// ProbeComplete takes an probe name and status then updates the summary & probe meta information
 func (s *SummaryState) ProbeComplete(name string) {
 	e := s.GetProbeLog(name)
 	s.completeProbe(e)
 	e.audit.Write()
 }
 
-// GetProbeLog initializes or returns existing log event for the provided test name
+// GetProbeLog initializes or returns existing log probe for the provided test name
 func (s *SummaryState) GetProbeLog(n string) *Probe {
 	s.initProbe(n)
 	return s.Probes[n]
@@ -107,7 +107,7 @@ func (s *SummaryState) initProbe(n string) {
 		}
 		s.Probes[n].Meta["audit_path"] = ap // Meta is open for extension, any similar data can be stored there as needed
 
-		// The event auditor should have pointers to the summary information
+		// The probe auditor should have pointers to the summary information
 		s.Probes[n].audit.PodsDestroyed = &s.Probes[n].PodsDestroyed
 		s.Probes[n].audit.ScenariosAttempted = &s.Probes[n].ScenariosAttempted
 		s.Probes[n].audit.ScenariosSucceeded = &s.Probes[n].ScenariosSucceeded

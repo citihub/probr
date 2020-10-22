@@ -37,7 +37,7 @@ type ConfigVars struct {
 			DefaultNamespaceAIB string `yaml:"defaultNamespaceAIB"`
 		} `yaml:"azureIdentity"`
 	} `yaml:"azure"`
-	Probes             []Probe  `yaml:"events"`
+	Probes             []Probe  `yaml:"probes"`
 	SystemClusterRoles []string `yaml:"systemClusterRoles"`
 	Tags               string   `yaml:"tags"`
 	TagExclusions      []string // not from yaml
@@ -47,7 +47,7 @@ type Probe struct {
 	Name          string  `yaml:"name"`
 	Excluded      bool    `yaml:"excluded"`
 	Justification string  `yaml:"justification"`
-	Scenarios        []Scenario `yaml:"probes"`
+	Scenarios        []Scenario `yaml:"scenarios"`
 }
 
 type Scenario struct {
