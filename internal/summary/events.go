@@ -4,30 +4,30 @@ import (
 	"github.com/cucumber/messages-go/v10"
 )
 
-type Event struct {
-	name            string
-	audit           *EventAudit
-	Meta            map[string]interface{}
-	PodsCreated     int
-	PodsDestroyed   int
+type Probe struct {
+	name               string
+	audit              *ProbeAudit
+	Meta               map[string]interface{}
+	PodsCreated        int
+	PodsDestroyed      int
 	ScenariosAttempted int
 	ScenariosSucceeded int
 	ScenariosFailed    int
-	Result          string
+	Result             string
 }
 
 // CountPodCreated increments pods_created for event
-func (e *Event) CountPodCreated() {
+func (e *Probe) CountPodCreated() {
 	e.PodsCreated = e.PodsCreated + 1
 }
 
 // CountPodDestroyed increments pods_destroyed for event
-func (e *Event) CountPodDestroyed() {
+func (e *Probe) CountPodDestroyed() {
 	e.PodsDestroyed = e.PodsDestroyed + 1
 }
 
 // countResults stores the current total number of failures as e.ScenariosFailed. Run at event end
-func (e *Event) countResults() {
+func (e *Probe) countResults() {
 	e.ScenariosAttempted = len(e.audit.Scenarios)
 	for _, v := range e.audit.Scenarios {
 		if v.Result == "Failed" {
@@ -38,7 +38,7 @@ func (e *Event) countResults() {
 	}
 }
 
-func (e *Event) InitializeAuditor(name string, tags []*messages.Pickle_PickleTag) *ScenarioAudit {
+func (e *Probe) InitializeAuditor(name string, tags []*messages.Pickle_PickleTag) *ScenarioAudit {
 	if e.audit.Scenarios == nil {
 		e.audit.Scenarios = make(map[int]*ScenarioAudit)
 	}

@@ -11,7 +11,7 @@ import (
 	"github.com/citihub/probr/internal/config"
 )
 
-type EventAudit struct {
+type ProbeAudit struct {
 	path            string
 	Name            string
 	PodsDestroyed   *int
@@ -37,7 +37,7 @@ type StepAudit struct {
 	Payload     interface{} // Handles any values that are sent across the network
 }
 
-func (e *EventAudit) Write() {
+func (e *ProbeAudit) Write() {
 	if config.Vars.AuditEnabled == "true" && e.probeRan() {
 		_, err := os.Stat(e.path)
 		if err == nil && config.Vars.OverwriteHistoricalAudits == "false" {
@@ -88,7 +88,7 @@ func getCallerName(up int) string {
 	return s[len(s)-1]                         // select last element from caller path
 }
 
-func (e *EventAudit) probeRan() bool {
+func (e *ProbeAudit) probeRan() bool {
 	if len(e.Scenarios) > 0 {
 		return true
 	}

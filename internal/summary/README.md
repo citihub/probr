@@ -2,22 +2,22 @@
 
 Summary is intended for development use to enable systematic event logging.
 
-These logs are designed to be one-per-event. Each test may have multiple events, and multiple events will likely share similar event types. Events will overwrite _within_ each test, however, to ensure that only one event type is logged per test.
+These logs are designed to be one-per-event. Each test may have multiple events, and multiple events will likely share similar event types. Probes will overwrite _within_ each test, however, to ensure that only one event type is logged per test.
 
 ### State
 
 A new State context is created each time `probr` is run, and is readily accessible anywhere in the code via `summary.State`.
 
 
-**SummaryStateStruct.LogEventMeta**
+**SummaryStateStruct.LogProbeMeta**
 
-Adding entries to the an Event's meta data requires the name of the test and a key-value pair to be inserted. 
+Adding entries to the an Probe's meta data requires the name of the test and a key-value pair to be inserted. 
 
 ```
 n := "name-of-the-current-test"
 k = "arbitrary_key_name"
 v = "string_value"
-summary.State.LogEventMeta(n, k, v)
+summary.State.LogProbeMeta(n, k, v)
 ```
 
 **SummaryStateStruct.LogPodName**
@@ -31,25 +31,25 @@ if pd != nil {
 }
 ```
 
-**SummaryStateStruct.GetEventLog**
+**SummaryStateStruct.GetProbeLog**
 
 Many summarys will be made directly to events. In order to do so, the event must first be retrieved by name. In the example below, the event is being stored alongside other test context information for easy access during execution.
 
 ```
 	ctx.BeforeScenario(func(s *godog.Scenario) {
 		ps.name = s.Name
-		ps.event = summary.State.GetEventLog(NAME)
+		ps.event = summary.State.GetProbeLog(NAME)
 		probes.LogScenarioStart(s)
 	})
 ```
 
-**SummaryStateStruct.EventComplete**
+**SummaryStateStruct.ProbeComplete**
 
 After an event has finished running every probe, we should summary the final outcome of the event.
 
 ```
 s, o, err := g.Handler(g.Data)
-summary.State.EventComplete(t.TestDescriptor.Name)
+summary.State.ProbeComplete(t.TestDescriptor.Name)
 ```
 
 **SummaryStateStruct.SetProbrStatus**
@@ -69,9 +69,9 @@ summary.State.PrintSummary()
 os.Exit(s)
 ```
 
-### Events
+### Probes
 
-**Event.CountPodCreated** and **Event.CountPodDestroyed**
+**Probe.CountPodCreated** and **Probe.CountPodDestroyed**
 
 Whenever Probr will create or destroy a pod, these counters should be called to update the event accordingly.
 
@@ -87,10 +87,10 @@ if pd != nil {
 if wait {
   waitForDelete(c, ns, pname)
 }
-summary.State.GetEventLog(event).CountPodDestroyed()
+summary.State.GetProbeLog(event).CountPodDestroyed()
 ```
 
-**Event.AuditScenarioStep**
+**Probe.AuditScenarioStep**
 
 This function should be used every time a step in a probe completes. `AuditScenarioStep` will automatically form the name of the step from the name of the function that called it. The name value provided will establish which probe the step is a part of. The error (or nil) provided will dictate whether the test passes or fails.
 

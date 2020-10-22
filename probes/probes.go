@@ -26,7 +26,7 @@ type podState struct {
 type scenarioState struct {
 	name           string
 	audit          *summary.ScenarioAudit
-	event          *summary.Event
+	event          *summary.Probe
 	httpStatusCode int
 	podName        string
 	podState       podState
@@ -159,7 +159,7 @@ func (s *scenarioState) BeforeScenario(eventName string, gs *godog.Scenario) {
 	if notExcluded(gs.Tags) {
 		s.setup()
 		s.name = gs.Name
-		s.audit = summary.State.GetEventLog(eventName).InitializeAuditor(gs.Name, gs.Tags)
+		s.audit = summary.State.GetProbeLog(eventName).InitializeAuditor(gs.Name, gs.Tags)
 		LogScenarioStart(gs)
 	}
 }
@@ -173,7 +173,7 @@ func (s *scenarioState) setup() {
 
 // ProcessPodCreationResult is a convenince function to process the result of a pod creation attempt.
 // It records state information on the supplied state structure.
-func ProcessPodCreationResult(event *summary.Event, s *podState, pd *apiv1.Pod, expected kubernetes.PodCreationErrorReason, err error) error {
+func ProcessPodCreationResult(event *summary.Probe, s *podState, pd *apiv1.Pod, expected kubernetes.PodCreationErrorReason, err error) error {
 	//first check for errors:
 	if err != nil {
 		//check if we've got a partial pod creation

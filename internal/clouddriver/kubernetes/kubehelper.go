@@ -891,10 +891,10 @@ func (k *Kube) waitForPhase(ph apiv1.PodPhase, c *kubernetes.Clientset, ns *stri
 	log.Printf("[INFO] *** Waiting for phase %v on pod %v ...", ph, *n)
 
 	for e := range w.ResultChan() {
-		log.Printf("[DEBUG] Watch Event Type: %v", e.Type)
+		log.Printf("[DEBUG] Watch Probe Type: %v", e.Type)
 		p, ok := e.Object.(*apiv1.Pod)
 		if !ok {
-			log.Printf("[WARN] Unexpected Watch Event Type - skipping")
+			log.Printf("[WARN] Unexpected Watch Probe Type - skipping")
 			//check for timeout
 			if ctx.Err() != nil {
 				log.Printf("[WARN] Context error received while waiting on pod %v. Error: %v", *n, ctx.Err())
@@ -904,7 +904,7 @@ func (k *Kube) waitForPhase(ph apiv1.PodPhase, c *kubernetes.Clientset, ns *stri
 			continue
 		}
 		if p.GetName() != *n {
-			log.Printf("[DEBUG] Event received for pod %v which we're not waiting on. Skipping.", p.GetName())
+			log.Printf("[DEBUG] Probe received for pod %v which we're not waiting on. Skipping.", p.GetName())
 			continue
 		}
 
@@ -969,17 +969,17 @@ func waitForDelete(c *kubernetes.Clientset, ns *string, n *string, eventName str
 	log.Printf("[INFO] *** Waiting for DELETE on pod %v ...", *n)
 
 	for e := range w.ResultChan() {
-		log.Printf("[DEBUG] Watch Event Type: %v", e.Type)
+		log.Printf("[DEBUG] Watch Probe Type: %v", e.Type)
 		p, ok := e.Object.(*apiv1.Pod)
 		if !ok {
-			log.Printf("[WARN] Unexpected Watch Event Type received for pod %v - skipping", p.GetObjectMeta().GetName())
+			log.Printf("[WARN] Unexpected Watch Probe Type received for pod %v - skipping", p.GetObjectMeta().GetName())
 			break
 		}
 		log.Printf("[INFO] Watch Container phase: %v", p.Status.Phase)
 		log.Printf("[DEBUG] Watch Container status: %+v", p.Status.ContainerStatuses)
 
 		if e.Type == "DELETED" {
-			summary.State.GetEventLog(eventName).CountPodDestroyed()
+			summary.State.GetProbeLog(eventName).CountPodDestroyed()
 			log.Printf("[INFO] DELETED event received for pod %v", p.GetObjectMeta().GetName())
 			break
 		}
