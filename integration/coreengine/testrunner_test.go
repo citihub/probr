@@ -43,7 +43,6 @@ func TestTestRunner(t *testing.T) {
 
 	//test descriptor ... (general)
 	grp := coreengine.CloudDriver
-	cat := coreengine.General
 	name := "account_manager"
 	td := coreengine.TestDescriptor{Group: grp, Name: name}
 
@@ -88,7 +87,6 @@ func TestTestRunner(t *testing.T) {
 
 	//try another one ..
 	//test descriptor ... (general)
-	cat2 := coreengine.InternetAccess
 	name2 := "internet_access"
 	td2 := coreengine.TestDescriptor{Name: name2}
 
@@ -120,7 +118,6 @@ func TestTestRunnerInMem(t *testing.T) {
 
 	//test descriptor ... (general)
 	grp := coreengine.CloudDriver
-	cat := coreengine.General
 	name := "account_manager"
 	td := coreengine.TestDescriptor{Group: grp, Name: name}
 

@@ -37,9 +37,9 @@ func TestExecAllTests(t *testing.T) {
 	tm := coreengine.NewTestManager()
 
 	//add some tests and add them to the TM
-	addTest(tm, "account_manager", coreengine.CloudDriver, coreengine.General)
-	addTest(tm, "pod_security_policy", coreengine.Kubernetes, coreengine.PodSecurityPolicies)
-	addTest(tm, "internet_access", coreengine.Kubernetes, coreengine.InternetAccess)
+	addTest(tm, "account_manager", coreengine.CloudDriver)
+	addTest(tm, "pod_security_policy", coreengine.Kubernetes)
+	addTest(tm, "internet_access", coreengine.Kubernetes)
 
 	tm.ExecAllTests()
 }
