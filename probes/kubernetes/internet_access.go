@@ -13,8 +13,7 @@ var ia_ps scenarioState
 
 func init() {
 	ia_ps = scenarioState{}
-	td := coreengine.TestDescriptor{Group: coreengine.Kubernetes,
-		Category: coreengine.InternetAccess, Name: ia_name}
+	td := coreengine.TestDescriptor{Group: coreengine.Kubernetes, Name: ia_name}
 
 	coreengine.AddTestHandler(td, &coreengine.GoDogTestTuple{
 		Handler: coreengine.GodogTestHandler,

@@ -33,8 +33,7 @@ func SetIAM(i kubernetes.IdentityAccessManagement) {
 // which will be called from probes.coreengine.GodogTestHandler.  Note: a blank import at probr library level should be done to
 // invoke this function automatically on initial load.
 func init() {
-	td := coreengine.TestDescriptor{Group: coreengine.Kubernetes,
-		Category: coreengine.IAM, Name: iam_name}
+	td := coreengine.TestDescriptor{Group: coreengine.Kubernetes, Name: iam_name}
 
 	coreengine.AddTestHandler(td, &coreengine.GoDogTestTuple{
 		Handler: coreengine.GodogTestHandler,
