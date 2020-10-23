@@ -74,7 +74,7 @@ func NewTestManager() *TestStore {
 	}
 }
 
-// AddTest adds a test, described by the TestDescriptor, to the TestStore.
+// AddTest provided GodogTest to the TestStore.
 func (ts *TestStore) AddTest(test *GodogTest) string {
 	ts.Lock.Lock()
 	defer ts.Lock.Unlock()
@@ -110,23 +110,17 @@ func (ts *TestStore) GetTest(name string) (*GodogTest, error) {
 	return t, nil
 }
 
-//GetTest by TestDescriptor ... TODO
-
 // ExecTest executes the test identified by the specified name.
 func (ts *TestStore) ExecTest(name string) (int, error) {
 	t, err := ts.GetTest(name)
 	if err != nil {
-		return 1, err
+		return 1, err // Failure
 	}
 	if t.Status.String() != Excluded.String() {
-		return ts.RunTest(t)
+		return ts.RunTest(t) // Return test results
 	}
-	//TODO: manage store
-	//move to FAILURE / SUCCESS as approriate ...
-	return 0, nil
+	return 0, nil // Succeed if test is excluded
 }
-
-//ExecTest by TestDescriptor, etc ... TODO.  In this case there may be more than one so we should set up for concurrency
 
 // ExecAllTests executes all tests that are present in the TestStore.
 func (ts *TestStore) ExecAllTests() (int, error) {

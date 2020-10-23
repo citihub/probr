@@ -28,14 +28,6 @@ type GodogTest struct {
 	Results              *bytes.Buffer
 }
 
-// AddTestToStore adds the TestHandlerFunc to the handler map, keyed on the TestDescriptor, and is effectively
-// a register of the test cases.  This is the mechanism which links the test case handler to the TestRunner,
-// therefore it is essential that the test case register itself with the TestRunner by calling this function
-// supplying a description of the test and the GodogTest.  See pod_security_feature.init() for an example.
-func AddTestToStore(td TestDescriptor, test *GodogTest) {
-	//
-}
-
 // RunTest runs the test case described by the supplied Test.  It looks in it's test register (the handlers global
 // variable) for an entry with the same TestDescriptor as the supplied test.  If found, it uses the provided GodogTest
 func (ts *TestStore) RunTest(test *GodogTest) (int, error) {
@@ -52,8 +44,6 @@ func (ts *TestStore) RunTest(test *GodogTest) (int, error) {
 		return 3, fmt.Errorf("test descriptor is nil - cannot run test")
 	}
 
-	// get the handler (based on the test supplied)
-
 	s, o, err := GodogTestHandler(test)
 
 	if s == 0 {
@@ -62,8 +52,6 @@ func (ts *TestStore) RunTest(test *GodogTest) (int, error) {
 	} else {
 		// fail
 		*test.Status = CompleteFail
-
-		//TODO: this could be adjusted based on test strictness ...
 	}
 
 	test.Results = o // If in-mem output provided, store as Results
