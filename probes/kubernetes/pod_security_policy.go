@@ -9,8 +9,6 @@ import (
 	"github.com/cucumber/godog"
 )
 
-const psp_name = "pod_security_policy"
-
 // PodSecurityPolicy is the section of the kubernetes package which provides the kubernetes interactions required to support
 // pod security policy
 var psp kubernetes.PodSecurityPolicy

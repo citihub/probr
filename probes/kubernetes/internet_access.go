@@ -9,8 +9,6 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 )
 
-const ia_name = "internet_access"
-
 var ia_ps scenarioState
 
 func init() {

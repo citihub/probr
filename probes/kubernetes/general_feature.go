@@ -13,8 +13,6 @@ import (
 	"github.com/cucumber/godog"
 )
 
-const gen_name = "general"
-
 // init() registers the feature tests descibed in this package with the test runner (coreengine.TestRunner) via the call
 // to coreengine.AddTestHandler.  This links the test - described by the TestDescriptor - with the handler to invoke.  In
 // this case, the general test handler is being used (probes.coreengine.GodogTestHandler) and the GodogTest data provides the data
