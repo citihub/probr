@@ -27,33 +27,24 @@ type GodogTest struct {
 	FeaturePath          *string
 }
 
-// GoDogTestTuple holds the tuple of data required when excuting the test case, namely the function to call as
-// denoted by Handler and the data to pass to the function, as denoted by Data.
-type GoDogTestTuple struct {
-	Handler TestHandlerFunc
-	Data    *GodogTest
-}
-
 var (
-	handlers    = make(map[TestDescriptor]*GoDogTestTuple)
+	handlers    = make(map[string]*GodogTest)
 	handlersMux sync.RWMutex
 )
 
 // AddTestHandler adds the TestHandlerFunc to the handler map, keyed on the TestDescriptor, and is effectively
 // a register of the test cases.  This is the mechanism which links the test case handler to the TestRunner,
 // therefore it is essential that the test case register itself with the TestRunner by calling this function
-// supplying a description of the test and the GoDogTestTuple.  See pod_security_feature.init() for an example.
-func AddTestHandler(td TestDescriptor, gd *GoDogTestTuple) {
+// supplying a description of the test and the GodogTest.  See pod_security_feature.init() for an example.
+func AddTestHandler(td TestDescriptor, test *GodogTest) {
 	handlersMux.Lock()
 	defer handlersMux.Unlock()
 
-	handlers[td] = gd
+	handlers[td.Name] = test
 }
 
 // RunTest runs the test case described by the supplied Test.  It looks in it's test register (the handlers global
-// variable) for an entry with the same TestDescriptor as the supplied test.  If found, it uses the
-// function and data held in the GoDogTestTuple to execute the test: it calls the handler function with the
-// GodogTest data structure.
+// variable) for an entry with the same TestDescriptor as the supplied test.  If found, it uses the provided GodogTest
 func (ts *TestStore) RunTest(t *Test) (int, error) {
 	if t == nil {
 		summary.State.GetProbeLog(t.TestDescriptor.Name).Result = "Internal Error - Test not found"
@@ -68,16 +59,9 @@ func (ts *TestStore) RunTest(t *Test) (int, error) {
 	}
 
 	// get the handler (based on the test supplied)
-	g, exists := getHandler(t)
+	test := getTest(t.TestDescriptor.Name)
 
-	if !exists {
-		//update status
-		*t.Status = Error
-		summary.State.GetProbeLog(t.TestDescriptor.Name).Result = "Internal Error - No handler available for test"
-		return 4, fmt.Errorf("no test handler available for %v - cannot run test", *t.TestDescriptor)
-	}
-
-	s, o, err := g.Handler(g.Data) // Currently the only handler type is coreengine.GodogTestHandler, but this can be extended
+	s, o, err := GodogTestHandler(test)
 	if s == 0 {
 		// success
 		*t.Status = CompleteSuccess
@@ -92,10 +76,8 @@ func (ts *TestStore) RunTest(t *Test) (int, error) {
 	return s, err
 }
 
-func getHandler(t *Test) (*GoDogTestTuple, bool) {
+func getTest(testName string) *GodogTest {
 	handlersMux.Lock()
 	defer handlersMux.Unlock()
-	g, exists := handlers[*(*t).TestDescriptor]
-
-	return g, exists
+	return handlers[testName]
 }

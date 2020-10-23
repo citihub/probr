@@ -13,14 +13,11 @@ func init() {
 
 	fp := filepath.Join("probes", "clouddriver", "probe_definitions")
 
-	coreengine.AddTestHandler(td, &coreengine.GoDogTestTuple{
-		Handler: coreengine.GodogTestHandler,
-		Data: &coreengine.GodogTest{
-			TestDescriptor:       &td,
-			TestSuiteInitializer: amTestSuiteInitialize,
-			ScenarioInitializer:  amScenarioInitialize,
-			FeaturePath:          &fp,
-		},
+	coreengine.AddTestHandler(td, &coreengine.GodogTest{
+		TestDescriptor:       &td,
+		TestSuiteInitializer: amTestSuiteInitialize,
+		ScenarioInitializer:  amScenarioInitialize,
+		FeaturePath:          &fp,
 	})
 }
 

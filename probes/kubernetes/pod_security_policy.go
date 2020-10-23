@@ -27,13 +27,10 @@ func SetPodSecurityPolicy(p kubernetes.PodSecurityPolicy) {
 func init() {
 	td := coreengine.TestDescriptor{Group: coreengine.Kubernetes, Name: psp_name}
 
-	coreengine.AddTestHandler(td, &coreengine.GoDogTestTuple{
-		Handler: coreengine.GodogTestHandler,
-		Data: &coreengine.GodogTest{
-			TestDescriptor:       &td,
-			TestSuiteInitializer: pspTestSuiteInitialize,
-			ScenarioInitializer:  pspScenarioInitialize,
-		},
+	coreengine.AddTestHandler(td, &coreengine.GodogTest{
+		TestDescriptor:       &td,
+		TestSuiteInitializer: pspTestSuiteInitialize,
+		ScenarioInitializer:  pspScenarioInitialize,
 	})
 }
 

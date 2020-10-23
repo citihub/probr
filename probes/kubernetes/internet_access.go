@@ -15,13 +15,10 @@ func init() {
 	ia_ps = scenarioState{}
 	td := coreengine.TestDescriptor{Group: coreengine.Kubernetes, Name: ia_name}
 
-	coreengine.AddTestHandler(td, &coreengine.GoDogTestTuple{
-		Handler: coreengine.GodogTestHandler,
-		Data: &coreengine.GodogTest{
-			TestDescriptor:       &td,
-			TestSuiteInitializer: iaTestSuiteInitialize,
-			ScenarioInitializer:  iaScenarioInitialize,
-		},
+	coreengine.AddTestHandler(td, &coreengine.GodogTest{
+		TestDescriptor:       &td,
+		TestSuiteInitializer: iaTestSuiteInitialize,
+		ScenarioInitializer:  iaScenarioInitialize,
 	})
 }
 

@@ -22,13 +22,10 @@ import (
 func init() {
 	td := coreengine.TestDescriptor{Group: coreengine.Kubernetes, Name: gen_name}
 
-	coreengine.AddTestHandler(td, &coreengine.GoDogTestTuple{
-		Handler: coreengine.GodogTestHandler,
-		Data: &coreengine.GodogTest{
-			TestDescriptor:       &td,
-			TestSuiteInitializer: genTestSuiteInitialize,
-			ScenarioInitializer:  genScenarioInitialize,
-		},
+	coreengine.AddTestHandler(td, &coreengine.GodogTest{
+		TestDescriptor:       &td,
+		TestSuiteInitializer: genTestSuiteInitialize,
+		ScenarioInitializer:  genScenarioInitialize,
 	})
 }
 
