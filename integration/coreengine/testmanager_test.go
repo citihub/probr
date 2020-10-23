@@ -22,9 +22,9 @@ func TestExecTest(t *testing.T) {
 
 	assert.NotNil(t, tm)
 
-	tsuuid := tm.AddTest(td)
+	testName := tm.AddTest(td)
 
-	s, err := tm.ExecTest(tsuuid)
+	s, err := tm.ExecTest(testName)
 	if err != nil {
 		t.Fatalf("Error executing test: %v", err)
 	}

@@ -13,7 +13,7 @@ func init() {
 
 	fp := filepath.Join("probes", "clouddriver", "probe_definitions")
 
-	coreengine.AddTestHandler(td, &coreengine.GodogTest{
+	coreengine.AddTestToStore(td, &coreengine.GodogTest{
 		TestDescriptor:       &td,
 		TestSuiteInitializer: amTestSuiteInitialize,
 		ScenarioInitializer:  amScenarioInitialize,
