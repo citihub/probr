@@ -70,9 +70,9 @@ func (s *scenarioState) theDeploymentAttemptIs(res string) error {
 	return err
 }
 
-// craTestSuiteInitialize handles any overall Test Suite initialisation steps.  This is registered with the
+// craProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
 // test handler as part of the init() function.
-func craTestSuiteInitialize(ctx *godog.TestSuiteContext) {
+func craProbeInitialize(ctx *godog.TestSuiteContext) {
 	ctx.BeforeSuite(func() {}) //nothing for now
 
 	//check dependancies ...

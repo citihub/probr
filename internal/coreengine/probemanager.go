@@ -12,12 +12,12 @@ import (
 	"github.com/citihub/probr/internal/summary"
 )
 
-// TestStatus type describes the status of the test, e.g. Pending, Running, CompleteSuccess, CompleteFail and Error
-type TestStatus int
+// ProbeStatus type describes the status of the test, e.g. Pending, Running, CompleteSuccess, CompleteFail and Error
+type ProbeStatus int
 
-//TestStatus enumeration for the TestStatus type.
+//ProbeStatus enumeration for the ProbeStatus type.
 const (
-	Pending TestStatus = iota
+	Pending ProbeStatus = iota
 	Running
 	CompleteSuccess
 	CompleteFail
@@ -25,7 +25,7 @@ const (
 	Excluded
 )
 
-func (s TestStatus) String() string {
+func (s ProbeStatus) String() string {
 	return [...]string{"Pending", "Running", "CompleteSuccess", "CompleteFail", "Error", "Excluded"}[s]
 }
 
@@ -43,44 +43,44 @@ func (g Group) String() string {
 	return [...]string{"kubernetes", "clouddriver", "coreengine"}[g]
 }
 
-// TestDescriptor describes the specific test case and includes name and group.
-type TestDescriptor struct {
+// ProbeDescriptor describes the specific test case and includes name and group.
+type ProbeDescriptor struct {
 	Group Group  `json:"group,omitempty"`
 	Name  string `json:"name,omitempty"`
 }
 
-// TestStore maintains a collection of tests to be run and their status.  FailedTests is an explicit
+// ProbeStore maintains a collection of tests to be run and their status.  FailedTests is an explicit
 // collection of failed tests.
-type TestStore struct {
-	Tests       map[string]*GodogTest
-	FailedTests map[TestStatus]*GodogTest
+type ProbeStore struct {
+	Tests       map[string]*GodogProbe
+	FailedTests map[ProbeStatus]*GodogProbe
 	Lock        sync.RWMutex
 }
 
 // GetAvailableTests return the collection of available tests.
-func GetAvailableTests() *[]TestDescriptor {
+func GetAvailableTests() *[]ProbeDescriptor {
 	//TODO: to implement
-	//get this from the TestRunner handler store - basically it's the collection of
+	//get this from the ProbeRunner handler store - basically it's the collection of
 	//tests that have registered a handler ..
 
 	// return &p
 	return nil
 }
 
-// NewTestManager creates a new test manager, backed by TestStore
-func NewTestManager() *TestStore {
-	return &TestStore{
-		Tests: make(map[string]*GodogTest),
+// NewProbeStore creates a new test manager, backed by ProbeStore
+func NewProbeStore() *ProbeStore {
+	return &ProbeStore{
+		Tests: make(map[string]*GodogProbe),
 	}
 }
 
-// AddTest provided GodogTest to the TestStore.
-func (ts *TestStore) AddTest(test *GodogTest) string {
+// AddProbe provided GodogProbe to the ProbeStore.
+func (ts *ProbeStore) AddProbe(test *GodogProbe) string {
 	ts.Lock.Lock()
 	defer ts.Lock.Unlock()
 
-	var status TestStatus
-	if test.TestDescriptor.isExcluded() {
+	var status ProbeStatus
+	if test.ProbeDescriptor.isExcluded() {
 		status = Excluded
 	} else {
 		status = Pending
@@ -88,16 +88,16 @@ func (ts *TestStore) AddTest(test *GodogTest) string {
 
 	//add the test
 	test.Status = &status
-	ts.Tests[test.TestDescriptor.Name] = test
+	ts.Tests[test.ProbeDescriptor.Name] = test
 
-	summary.State.GetProbeLog(test.TestDescriptor.Name).Result = test.Status.String()
-	summary.State.LogProbeMeta(test.TestDescriptor.Name, "group", test.TestDescriptor.Group.String())
+	summary.State.GetProbeLog(test.ProbeDescriptor.Name).Result = test.Status.String()
+	summary.State.LogProbeMeta(test.ProbeDescriptor.Name, "group", test.ProbeDescriptor.Group.String())
 
-	return test.TestDescriptor.Name
+	return test.ProbeDescriptor.Name
 }
 
-// GetTest returns the test identified by the given name.
-func (ts *TestStore) GetTest(name string) (*GodogTest, error) {
+// GetProbe returns the test identified by the given name.
+func (ts *ProbeStore) GetProbe(name string) (*GodogProbe, error) {
 	ts.Lock.Lock()
 	defer ts.Lock.Unlock()
 
@@ -110,25 +110,25 @@ func (ts *TestStore) GetTest(name string) (*GodogTest, error) {
 	return t, nil
 }
 
-// ExecTest executes the test identified by the specified name.
-func (ts *TestStore) ExecTest(name string) (int, error) {
-	t, err := ts.GetTest(name)
+// ExecProbe executes the test identified by the specified name.
+func (ts *ProbeStore) ExecProbe(name string) (int, error) {
+	t, err := ts.GetProbe(name)
 	if err != nil {
 		return 1, err // Failure
 	}
 	if t.Status.String() != Excluded.String() {
-		return ts.RunTest(t) // Return test results
+		return ts.RunProbe(t) // Return test results
 	}
 	return 0, nil // Succeed if test is excluded
 }
 
-// ExecAllTests executes all tests that are present in the TestStore.
-func (ts *TestStore) ExecAllTests() (int, error) {
+// ExecAllProbes executes all tests that are present in the ProbeStore.
+func (ts *ProbeStore) ExecAllProbes() (int, error) {
 	status := 0
 	var err error
 
 	for name := range ts.Tests {
-		st, err := ts.ExecTest(name)
+		st, err := ts.ExecProbe(name)
 		summary.State.ProbeComplete(name)
 		if err != nil {
 			//log but continue with remaining tests
@@ -141,7 +141,7 @@ func (ts *TestStore) ExecAllTests() (int, error) {
 	return status, err
 }
 
-func (td *TestDescriptor) isExcluded() bool {
+func (td *ProbeDescriptor) isExcluded() bool {
 	v := []string{td.Name, td.Group.String()} // iterable name & group strings
 	for _, r := range v {
 		if tagIsExcluded(r) {

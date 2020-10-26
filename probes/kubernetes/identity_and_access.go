@@ -249,9 +249,9 @@ func (s *scenarioState) kubernetesShouldPreventMeFromRunningTheCommand() error {
 	return err
 }
 
-// iamTestSuiteInitialize handles any overall Test Suite initialisation steps.  This is registered with the
+// iamProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
 // test handler as part of the init() function.
-func iamTestSuiteInitialize(ctx *godog.TestSuiteContext) {
+func iamProbeInitialize(ctx *godog.TestSuiteContext) {
 	ctx.BeforeSuite(func() {
 		//check dependancies ...
 		if iam == nil {

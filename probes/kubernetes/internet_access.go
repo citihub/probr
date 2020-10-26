@@ -85,9 +85,9 @@ func (s *scenarioState) accessIs(accessResult string) error {
 	return err
 }
 
-// iaTestSuiteInitialize handles any overall Test Suite initialisation steps.  This is registered with the
+// iaProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
 // test handler as part of the init() function.
-func iaTestSuiteInitialize(ctx *godog.TestSuiteContext) {
+func iaProbeInitialize(ctx *godog.TestSuiteContext) {
 	ctx.BeforeSuite(func() {}) //nothing for now
 
 	ctx.AfterSuite(func() {

@@ -600,9 +600,9 @@ func (s *scenarioState) iShouldNotBeAbleToPerformASystemCallThatIsBlockedByTheSe
 	return err
 }
 
-// pspTestSuiteInitialize handles any overall Test Suite initialisation steps.  This is registered with the
+// pspProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
 // test handler as part of the init() function.
-func pspTestSuiteInitialize(ctx *godog.TestSuiteContext) {
+func pspProbeInitialize(ctx *godog.TestSuiteContext) {
 	ctx.BeforeSuite(func() {
 		//check dependancies ...
 		if psp == nil {
