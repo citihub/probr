@@ -13,10 +13,6 @@ import (
 	"github.com/cucumber/messages-go/v10"
 )
 
-const (
-	long_string = "Verify that this somewhat long string remains unchanged in the output after being handled"
-)
-
 func TestGetRootDir(t *testing.T) {
 	// Make sure it doesn't catch one of the several fail conditions
 	_, err := getRootDir()
@@ -60,6 +56,7 @@ func TestLogAndReturnError(t *testing.T) {
 		log.SetOutput(os.Stderr) // Return to normal Stderr handling after function
 	}()
 
+	long_string := "Verify that this somewhat long string remains unchanged in the output after being handled"
 	err := LogAndReturnError(long_string)
 	err_contains_string := strings.Contains(err.Error(), long_string)
 	if !err_contains_string {
