@@ -26,7 +26,7 @@ func SetContainerRegistryAccess(c kubernetes.ContainerRegistryAccess) {
 // CIS-6.1.3
 // Minimize cluster access to read-only
 func (s *scenarioState) iAmAuthorisedToPullFromAContainerRegistry() error {
-	pod, podAudit, err := cra.SetupContainerAccessTestPod(config.Vars.Images.Repository)
+	pod, podAudit, err := cra.SetupContainerAccessProbePod(config.Vars.Images.Repository)
 
 	err = ProcessPodCreationResult(s.probe, &s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
 
@@ -50,7 +50,7 @@ func (s *scenarioState) thePushRequestIsRejectedDueToAuthorization() error {
 // CIS-6.1.4
 // Ensure only authorised container registries are allowed
 func (s *scenarioState) aUserAttemptsToDeployAContainerFrom(auth string, registry string) error {
-	pod, podAudit, err := cra.SetupContainerAccessTestPod(registry)
+	pod, podAudit, err := cra.SetupContainerAccessProbePod(registry)
 
 	err = ProcessPodCreationResult(s.probe, &s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
 
@@ -106,7 +106,7 @@ func craScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the deployment attempt is "([^"]*)"$`, ps.theDeploymentAttemptIs)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
-		cra.TeardownContainerAccessTestPod(&ps.podState.PodName, ContainerRegistryAccess.String())
+		cra.TeardownContainerAccessProbePod(&ps.podState.PodName, ContainerRegistryAccess.String())
 
 		coreengine.LogScenarioEnd(s)
 	})

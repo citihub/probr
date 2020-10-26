@@ -62,7 +62,7 @@ func (s *scenarioState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentit
 		if namespace == "the default" {
 			s.useDefaultNS = true
 		}
-		pd, err := iam.CreateIAMTestPod(y, s.useDefaultNS)
+		pd, err := iam.CreateIAMProbePod(y, s.useDefaultNS)
 		err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
 	}
 
@@ -168,7 +168,7 @@ func (s *scenarioState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoTheSam
 	if err != nil {
 		err = coreengine.LogAndReturnError("error reading yaml for test: %v", err)
 	} else {
-		pd, err := iam.CreateIAMTestPod(y, false)
+		pd, err := iam.CreateIAMProbePod(y, false)
 		err = ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
 	}
 
@@ -306,7 +306,7 @@ func iamScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the cluster has managed identity components deployed$`, ps.theClusterHasManagedIdentityComponentsDeployed)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
-		iam.DeleteIAMTestPod(ps.podState.PodName, ps.useDefaultNS, InternetAccess.String())
+		iam.DeleteIAMProbePod(ps.podState.PodName, ps.useDefaultNS, InternetAccess.String())
 		coreengine.LogScenarioEnd(s)
 	})
 }
