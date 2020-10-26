@@ -30,30 +30,30 @@ type GodogProbe struct {
 
 // RunProbe runs the test case described by the supplied Test.  It looks in it's test register (the handlers global
 // variable) for an entry with the same ProbeDescriptor as the supplied test.  If found, it uses the provided GodogProbe
-func (ts *ProbeStore) RunProbe(test *GodogProbe) (int, error) {
+func (ps *ProbeStore) RunProbe(probe *GodogProbe) (int, error) {
 
-	if test == nil {
-		summary.State.GetProbeLog(test.ProbeDescriptor.Name).Result = "Internal Error - Test not found"
-		return 2, fmt.Errorf("test is nil - cannot run test")
+	if probe == nil {
+		summary.State.GetProbeLog(probe.ProbeDescriptor.Name).Result = "Internal Error - Test not found"
+		return 2, fmt.Errorf("probe is nil - cannot run test")
 	}
 
-	if test.ProbeDescriptor == nil {
+	if probe.ProbeDescriptor == nil {
 		//update status
-		*test.Status = Error
-		summary.State.GetProbeLog(test.ProbeDescriptor.Name).Result = "Internal Error - Test descriptor not found"
-		return 3, fmt.Errorf("test descriptor is nil - cannot run test")
+		*probe.Status = Error
+		summary.State.GetProbeLog(probe.ProbeDescriptor.Name).Result = "Internal Error - Test descriptor not found"
+		return 3, fmt.Errorf("probe descriptor is nil - cannot run test")
 	}
 
-	s, o, err := GodogProbeHandler(test)
+	s, o, err := GodogProbeHandler(probe)
 
 	if s == 0 {
 		// success
-		*test.Status = CompleteSuccess
+		*probe.Status = CompleteSuccess
 	} else {
 		// fail
-		*test.Status = CompleteFail
+		*probe.Status = CompleteFail
 	}
 
-	test.Results = o // If in-mem output provided, store as Results
+	probe.Results = o // If in-mem output provided, store as Results
 	return s, err
 }

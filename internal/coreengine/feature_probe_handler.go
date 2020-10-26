@@ -19,11 +19,11 @@ import (
 // output type, the test will either be executed using an in-memory or file output.  In
 // both cases, the handler uses the data supplied in GodogProbe to call the underlying
 // GoDog test suite.
-func GodogProbeHandler(test *GodogProbe) (int, *bytes.Buffer, error) {
+func GodogProbeHandler(probe *GodogProbe) (int, *bytes.Buffer, error) {
 	if config.Vars.OutputType == "INMEM" {
-		return inMemGodogProbeHandler(test)
+		return inMemGodogProbeHandler(probe)
 	}
-	return toFileGodogProbeHandler(test)
+	return toFileGodogProbeHandler(probe)
 }
 
 func toFileGodogProbeHandler(gd *GodogProbe) (int, *bytes.Buffer, error) {

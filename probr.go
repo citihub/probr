@@ -22,10 +22,10 @@ func RunAllProbes() (int, *coreengine.ProbeStore, error) {
 }
 
 //GetAllProbeResults ...
-func GetAllProbeResults(ts *coreengine.ProbeStore) (map[string]string, error) {
+func GetAllProbeResults(ps *coreengine.ProbeStore) (map[string]string, error) {
 	out := make(map[string]string)
-	for name := range ts.Tests {
-		r, n, err := ReadProbeResults(ts, name)
+	for name := range ps.Probes {
+		r, n, err := ReadProbeResults(ps, name)
 		if err != nil {
 			return nil, err
 		}
@@ -37,14 +37,14 @@ func GetAllProbeResults(ts *coreengine.ProbeStore) (map[string]string, error) {
 }
 
 //ReadProbeResults ...
-func ReadProbeResults(ts *coreengine.ProbeStore, name string) (string, string, error) {
-	t, err := ts.GetProbe(name)
-	test := t
+func ReadProbeResults(ps *coreengine.ProbeStore, name string) (string, string, error) {
+	p, err := ps.GetProbe(name)
+	probe := p
 	if err != nil {
 		return "", "", err
 	}
-	r := test.Results
-	n := test.ProbeDescriptor.Name
+	r := probe.Results
+	n := probe.ProbeDescriptor.Name
 	if r != nil {
 		b := r.Bytes()
 		return string(b), n, nil

@@ -49,16 +49,16 @@ type ProbeDescriptor struct {
 	Name  string `json:"name,omitempty"`
 }
 
-// ProbeStore maintains a collection of tests to be run and their status.  FailedTests is an explicit
-// collection of failed tests.
+// ProbeStore maintains a collection of probes to be run and their status.  FailedProbes is an explicit
+// collection of failed probes.
 type ProbeStore struct {
-	Tests       map[string]*GodogProbe
-	FailedTests map[ProbeStatus]*GodogProbe
-	Lock        sync.RWMutex
+	Probes       map[string]*GodogProbe
+	FailedProbes map[ProbeStatus]*GodogProbe
+	Lock         sync.RWMutex
 }
 
-// GetAvailableTests return the collection of available tests.
-func GetAvailableTests() *[]ProbeDescriptor {
+// GetAvailableProbes return the collection of available tests.
+func GetAvailableProbes() *[]ProbeDescriptor {
 	//TODO: to implement
 	//get this from the ProbeRunner handler store - basically it's the collection of
 	//tests that have registered a handler ..
@@ -70,65 +70,65 @@ func GetAvailableTests() *[]ProbeDescriptor {
 // NewProbeStore creates a new test manager, backed by ProbeStore
 func NewProbeStore() *ProbeStore {
 	return &ProbeStore{
-		Tests: make(map[string]*GodogProbe),
+		Probes: make(map[string]*GodogProbe),
 	}
 }
 
 // AddProbe provided GodogProbe to the ProbeStore.
-func (ts *ProbeStore) AddProbe(test *GodogProbe) string {
-	ts.Lock.Lock()
-	defer ts.Lock.Unlock()
+func (ps *ProbeStore) AddProbe(probe *GodogProbe) string {
+	ps.Lock.Lock()
+	defer ps.Lock.Unlock()
 
 	var status ProbeStatus
-	if test.ProbeDescriptor.isExcluded() {
+	if probe.ProbeDescriptor.isExcluded() {
 		status = Excluded
 	} else {
 		status = Pending
 	}
 
 	//add the test
-	test.Status = &status
-	ts.Tests[test.ProbeDescriptor.Name] = test
+	probe.Status = &status
+	ps.Probes[probe.ProbeDescriptor.Name] = probe
 
-	summary.State.GetProbeLog(test.ProbeDescriptor.Name).Result = test.Status.String()
-	summary.State.LogProbeMeta(test.ProbeDescriptor.Name, "group", test.ProbeDescriptor.Group.String())
+	summary.State.GetProbeLog(probe.ProbeDescriptor.Name).Result = probe.Status.String()
+	summary.State.LogProbeMeta(probe.ProbeDescriptor.Name, "group", probe.ProbeDescriptor.Group.String())
 
-	return test.ProbeDescriptor.Name
+	return probe.ProbeDescriptor.Name
 }
 
 // GetProbe returns the test identified by the given name.
-func (ts *ProbeStore) GetProbe(name string) (*GodogProbe, error) {
-	ts.Lock.Lock()
-	defer ts.Lock.Unlock()
+func (ps *ProbeStore) GetProbe(name string) (*GodogProbe, error) {
+	ps.Lock.Lock()
+	defer ps.Lock.Unlock()
 
 	//get the test from the store
-	t, exists := ts.Tests[name]
+	p, exists := ps.Probes[name]
 
 	if !exists {
 		return nil, errors.New("test with name '" + name + "' not found")
 	}
-	return t, nil
+	return p, nil
 }
 
 // ExecProbe executes the test identified by the specified name.
-func (ts *ProbeStore) ExecProbe(name string) (int, error) {
-	t, err := ts.GetProbe(name)
+func (ps *ProbeStore) ExecProbe(name string) (int, error) {
+	p, err := ps.GetProbe(name)
 	if err != nil {
 		return 1, err // Failure
 	}
-	if t.Status.String() != Excluded.String() {
-		return ts.RunProbe(t) // Return test results
+	if p.Status.String() != Excluded.String() {
+		return ps.RunProbe(p) // Return test results
 	}
 	return 0, nil // Succeed if test is excluded
 }
 
 // ExecAllProbes executes all tests that are present in the ProbeStore.
-func (ts *ProbeStore) ExecAllProbes() (int, error) {
+func (ps *ProbeStore) ExecAllProbes() (int, error) {
 	status := 0
 	var err error
 
-	for name := range ts.Tests {
-		st, err := ts.ExecProbe(name)
+	for name := range ps.Probes {
+		st, err := ps.ExecProbe(name)
 		summary.State.ProbeComplete(name)
 		if err != nil {
 			//log but continue with remaining tests
@@ -141,8 +141,8 @@ func (ts *ProbeStore) ExecAllProbes() (int, error) {
 	return status, err
 }
 
-func (td *ProbeDescriptor) isExcluded() bool {
-	v := []string{td.Name, td.Group.String()} // iterable name & group strings
+func (pd *ProbeDescriptor) isExcluded() bool {
+	v := []string{pd.Name, pd.Group.String()} // iterable name & group strings
 	for _, r := range v {
 		if tagIsExcluded(r) {
 			return true

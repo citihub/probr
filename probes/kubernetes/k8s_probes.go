@@ -86,10 +86,10 @@ func (p Probe) ScenarioContext(s *godog.ScenarioContext) {
 }
 
 func (p Probe) GetGodogProbe() *coreengine.GodogProbe {
-	td := coreengine.ProbeDescriptor{Group: coreengine.Kubernetes, Name: p.String()}
+	pd := coreengine.ProbeDescriptor{Group: coreengine.Kubernetes, Name: p.String()}
 
 	return &coreengine.GodogProbe{
-		ProbeDescriptor:     &td,
+		ProbeDescriptor:     &pd,
 		ProbeInitializer:    p.TestSuiteContext,
 		ScenarioInitializer: p.ScenarioContext,
 	}
