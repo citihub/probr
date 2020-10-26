@@ -24,24 +24,24 @@ const (
 	WithoutPrivilegedAccess
 )
 
-// PSPTestCommand type enumerating the commands that can be used to test pods for compliance with Pod Security Policies
-type PSPTestCommand int
+// PSPProbeCommand type enumerating the commands that can be used to test pods for compliance with Pod Security Policies
+type PSPProbeCommand int
 
-// enumn supporting PSPTestCommand type
+// enumn supporting PSPProbeCommand type
 const (
-	Chroot PSPTestCommand = iota
+	Chroot PSPProbeCommand = iota
 	EnterHostPIDNS
 	EnterHostIPCNS
 	EnterHostNetworkNS
 	VerifyNonRootUID
-	NetRawTest
-	SpecialCapTest
+	NetRawProbe
+	SpecialCapProbe
 	NetCat
 	Unshare
 	Ls
 )
 
-func (c PSPTestCommand) String() string {
+func (c PSPProbeCommand) String() string {
 	return [...]string{"chroot .",
 		"nsenter -t 1 -p ps",
 		"nsenter -t 1 -i ps",
@@ -56,7 +56,7 @@ func (c PSPTestCommand) String() string {
 
 // PSPVerificationProbe encapsulates the command and expected result to be used in a Pod Security Policy probe.
 type PSPVerificationProbe struct {
-	Cmd              PSPTestCommand
+	Cmd              PSPProbeCommand
 	ExpectedExitCode int
 }
 
@@ -91,8 +91,8 @@ type PodSecurityPolicy interface {
 	CreatePODSettingAttributes(hostPID *bool, hostIPC *bool, hostNetwork *bool) (*apiv1.Pod, error)
 	CreatePODSettingCapabilities(c *[]string) (*apiv1.Pod, error)
 	CreatePodFromYaml(y []byte) (*apiv1.Pod, error)
-	ExecPSPTestCmd(pName *string, cmd PSPTestCommand) (*CmdExecutionResult, error)
-	TeardownPodSecurityTest(p *string, e string) error
+	ExecPSPProbeCmd(pName *string, cmd PSPProbeCommand) (*CmdExecutionResult, error)
+	TeardownPodSecurityProbe(p *string, e string) error
 	CreateConfigMap() error
 	DeleteConfigMap() error
 }
@@ -103,7 +103,7 @@ type PSP struct {
 	securityPolicyProviders *[]SecurityPolicyProvider
 
 	probeNamespace string
-	probeImage      string
+	probeImage     string
 	probeContainer string
 	probePodName   string
 }
@@ -560,8 +560,8 @@ func (psp *PSP) CreatePodFromYaml(y []byte) (*apiv1.Pod, error) {
 	return psp.k.CreatePodFromYaml(y, pname, psp.probeNamespace, psp.probeImage, "", true)
 }
 
-// ExecPSPTestCmd executes the given PSPTestCommand against the supplied pod name.
-func (psp *PSP) ExecPSPTestCmd(pName *string, cmd PSPTestCommand) (*CmdExecutionResult, error) {
+// ExecPSPProbeCmd executes the given PSPProbeCommand against the supplied pod name.
+func (psp *PSP) ExecPSPProbeCmd(pName *string, cmd PSPProbeCommand) (*CmdExecutionResult, error) {
 	var pn string
 	//if we've not been given a pod name, assume one needs to be created:
 	if pName == nil {
@@ -582,7 +582,7 @@ func (psp *PSP) ExecPSPTestCmd(pName *string, cmd PSPTestCommand) (*CmdExecution
 	ns := psp.probeNamespace
 	res := psp.k.ExecCommand(&c, &ns, &pn)
 
-	log.Printf("[INFO] ExecPSPTestCmd: %v stdout: %v exit code: %v (error: %v)", cmd, res.Stdout, res.Code, res.Err)
+	log.Printf("[INFO] ExecPSPProbeCmd: %v stdout: %v exit code: %v (error: %v)", cmd, res.Stdout, res.Code, res.Err)
 
 	return res, nil
 }
@@ -605,8 +605,8 @@ func (psp *PSP) DeleteConfigMap() error {
 	return psp.k.DeleteConfigMap(utils.StringPtr("test-config-map"), &psp.probeNamespace)
 }
 
-// TeardownPodSecurityTest deletes the given pod name in the PSP test namespace.
-func (psp *PSP) TeardownPodSecurityTest(p *string, e string) error {
+// TeardownPodSecurityProbe deletes the given pod name in the PSP test namespace.
+func (psp *PSP) TeardownPodSecurityProbe(p *string, e string) error {
 	ns := psp.probeNamespace
 	err := psp.k.DeletePod(p, &ns, false, e) //don't worry about waiting
 	return err

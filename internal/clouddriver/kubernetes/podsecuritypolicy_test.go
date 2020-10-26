@@ -11,7 +11,7 @@ import (
 	apiv1 "k8s.io/api/core/v1"
 )
 
-func TestPSPTestCommand(t *testing.T) {
+func TestPSPProbeCommand(t *testing.T) {
 	assert.Equal(t, "chroot .", Chroot.String())
 	assert.Equal(t, "nsenter -t 1 -p ps", EnterHostPIDNS.String())
 	assert.Equal(t, "nsenter -t 1 -i ps", EnterHostIPCNS.String())

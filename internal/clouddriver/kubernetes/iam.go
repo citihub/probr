@@ -28,16 +28,16 @@ const (
 	defaultIAMProbePodName     = "iam-test-pod"
 )
 
-// IAMTestCommand defines commands for use in testing IAM
-type IAMTestCommand int
+// IAMProbeCommand defines commands for use in testing IAM
+type IAMProbeCommand int
 
-// enum supporting IAMTestCommand
+// enum supporting IAMProbeCommand
 const (
-	CatAzJSON IAMTestCommand = iota
+	CatAzJSON IAMProbeCommand = iota
 	CurlAuthToken
 )
 
-func (c IAMTestCommand) String() string {
+func (c IAMProbeCommand) String() string {
 	return [...]string{"cat /etc/kubernetes/azure.json",
 		"curl http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01&resource=https%3A%2F%2Fmanagement.azure.com%2F -H Metadata:true -s"}[c]
 }
@@ -49,7 +49,7 @@ type IdentityAccessManagement interface {
 	CreateAIB(y []byte, ai string, n string, ns string) (bool, error)
 	CreateIAMProbePod(y []byte, useDefaultNS bool) (*apiv1.Pod, error)
 	DeleteIAMProbePod(n string, useDefaultNS bool, e string) error
-	ExecuteVerificationCmd(pn string, cmd IAMTestCommand, useDefaultNS bool) (*CmdExecutionResult, error)
+	ExecuteVerificationCmd(pn string, cmd IAMProbeCommand, useDefaultNS bool) (*CmdExecutionResult, error)
 	GetAccessToken(pn string, useDefaultNS bool) (*string, error)
 }
 
@@ -232,7 +232,7 @@ func (i *IAM) DeleteIAMProbePod(n string, useDefaultNS bool, e string) error {
 }
 
 // ExecuteVerificationCmd executes a verification command against the supplied pod name.
-func (i *IAM) ExecuteVerificationCmd(pn string, cmd IAMTestCommand, useDefaultNS bool) (*CmdExecutionResult, error) {
+func (i *IAM) ExecuteVerificationCmd(pn string, cmd IAMProbeCommand, useDefaultNS bool) (*CmdExecutionResult, error) {
 	c := cmd.String()
 	res := i.k.ExecCommand(&c, i.getNamespace(useDefaultNS), &pn)
 

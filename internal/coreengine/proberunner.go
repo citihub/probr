@@ -28,19 +28,19 @@ type GodogProbe struct {
 	Results             *bytes.Buffer
 }
 
-// RunProbe runs the test case described by the supplied Test.  It looks in it's test register (the handlers global
+// RunProbe runs the test case described by the supplied Probe.  It looks in it's test register (the handlers global
 // variable) for an entry with the same ProbeDescriptor as the supplied test.  If found, it uses the provided GodogProbe
 func (ps *ProbeStore) RunProbe(probe *GodogProbe) (int, error) {
 
 	if probe == nil {
-		summary.State.GetProbeLog(probe.ProbeDescriptor.Name).Result = "Internal Error - Test not found"
+		summary.State.GetProbeLog(probe.ProbeDescriptor.Name).Result = "Internal Error - Probe not found"
 		return 2, fmt.Errorf("probe is nil - cannot run test")
 	}
 
 	if probe.ProbeDescriptor == nil {
 		//update status
 		*probe.Status = Error
-		summary.State.GetProbeLog(probe.ProbeDescriptor.Name).Result = "Internal Error - Test descriptor not found"
+		summary.State.GetProbeLog(probe.ProbeDescriptor.Name).Result = "Internal Error - Probe descriptor not found"
 		return 3, fmt.Errorf("probe descriptor is nil - cannot run test")
 	}
 
