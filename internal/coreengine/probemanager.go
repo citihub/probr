@@ -57,16 +57,6 @@ type ProbeStore struct {
 	Lock         sync.RWMutex
 }
 
-// GetAvailableProbes return the collection of available tests.
-func GetAvailableProbes() *[]ProbeDescriptor {
-	//TODO: to implement
-	//get this from the ProbeRunner handler store - basically it's the collection of
-	//tests that have registered a handler ..
-
-	// return &p
-	return nil
-}
-
 // NewProbeStore creates a new test manager, backed by ProbeStore
 func NewProbeStore() *ProbeStore {
 	return &ProbeStore{
