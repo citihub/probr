@@ -54,36 +54,34 @@ func TestIsExcluded(t *testing.T) {
 }
 
 func TestAddProbe(t *testing.T) {
-	probe := "test probe"
-	excluded_probe := "different test probe"
-	config.Vars.TagExclusions = []string{excluded_probe}
+	probe_name := "test probe"
+	excluded_probe_name := "different test probe"
+	config.Vars.TagExclusions = []string{excluded_probe_name}
 	ps := NewProbeStore()
-	probe_obj := createProbeObj(probe)
-	excluded_probe_obj := createProbeObj(excluded_probe)
-	ps.AddProbe(probe_obj)
-	ps.AddProbe(excluded_probe_obj)
+	ps.AddProbe(createProbeObj(probe_name))
+	ps.AddProbe(createProbeObj(excluded_probe_name))
 
 	// Verify correct conditions succeed
-	if ps.Probes[probe] == nil {
+	if ps.Probes[probe_name] == nil {
 		t.Logf("Probe not added to probe store")
 		t.Fail()
-	} else if ps.Probes[probe].ProbeDescriptor.Name != probe {
+	} else if ps.Probes[probe_name].ProbeDescriptor.Name != probe_name {
 		t.Logf("Probe name not set properly in test store")
 		t.Fail()
 	}
 
 	// Verify probe1 and probe2 are different
-	if ps.Probes[probe] == ps.Probes[excluded_probe] {
+	if ps.Probes[probe_name] == ps.Probes[excluded_probe_name] {
 		t.Logf("Probes that should not match are equal to each other")
 		t.Fail()
 	}
 
 	// Verify status is properly set
-	if *ps.Probes[excluded_probe].Status != Excluded {
+	if *ps.Probes[excluded_probe_name].Status != Excluded {
 		t.Logf("Excluded probe was not excluded from probe store")
 		t.Fail()
 	}
-	if *ps.Probes[probe].Status == Excluded {
+	if *ps.Probes[probe_name].Status == Excluded {
 		t.Logf("Excluded probe was not excluded from probe store")
 		t.Fail()
 	}
@@ -91,3 +89,24 @@ func TestAddProbe(t *testing.T) {
 	// are properly set for this because we may change how that is handled
 	// without effecting probr functionality
 }
+
+func TestGetProbe(t *testing.T) {
+	probe_name := "test probe"
+	ps := NewProbeStore()
+	probe := createProbeObj(probe_name)
+	ps.AddProbe(probe)
+
+	retrieved_probe, err := ps.GetProbe(probe_name)
+	if err != nil {
+		t.Logf(err.Error())
+		t.Fail()
+	}
+	if retrieved_probe != probe {
+		t.Logf("Retrieved probe does not match added probe")
+		t.Fail()
+	}
+}
+
+// Integration methods:
+// TestExecProbe
+// TestExecAllProbes
