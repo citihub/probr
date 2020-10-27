@@ -6,7 +6,6 @@ import (
 )
 
 func TestGetProbesPath(t *testing.T) {
-	var failed bool
 	r, _ := getRootDir()
 	desired_path := filepath.Join(r, "probes", "clouddriver", "probe_definitions", "accountmanager")
 
@@ -16,7 +15,7 @@ func TestGetProbesPath(t *testing.T) {
 	path, err := getProbesPath(test)
 	if err != nil || desired_path != path {
 		t.Logf("Custom feature path not handled properly")
-		failed = true
+		t.Fail()
 	}
 
 	// Test building path from properties
@@ -24,11 +23,6 @@ func TestGetProbesPath(t *testing.T) {
 	path, err = getProbesPath(test)
 	if err != nil || desired_path != path {
 		t.Logf("Failed to build probe path from GodogProbe properties")
-		failed = true
-	}
-
-	// Allow both failures to log before ending, if applicable
-	if failed {
 		t.Fail()
 	}
 }

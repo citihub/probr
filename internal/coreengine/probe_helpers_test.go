@@ -66,7 +66,6 @@ func TestLogAndReturnError(t *testing.T) {
 }
 
 func TestScenarioString(t *testing.T) {
-	var failed bool
 	gs := &godog.Scenario{Name: "test scenario"}
 
 	// Start scenario
@@ -74,7 +73,7 @@ func TestScenarioString(t *testing.T) {
 	s_contains_string := strings.Contains(s, "Start")
 	if !s_contains_string {
 		t.Logf("Test string does not contain 'Start'")
-		failed = true
+		t.Fail()
 	}
 
 	// End scenario
@@ -82,11 +81,6 @@ func TestScenarioString(t *testing.T) {
 	s_contains_string = strings.Contains(s, "End")
 	if !s_contains_string {
 		t.Logf("Test string does not contain 'End'")
-		failed = true
-	}
-
-	// Allow both failures to log before ending, if applicable
-	if failed {
 		t.Fail()
 	}
 }

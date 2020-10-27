@@ -57,7 +57,7 @@ type ProbeStore struct {
 	Lock         sync.RWMutex
 }
 
-// NewProbeStore creates a new test manager, backed by ProbeStore
+// NewProbeStore creates a new object to store GodogProbes
 func NewProbeStore() *ProbeStore {
 	return &ProbeStore{
 		Probes: make(map[string]*GodogProbe),
