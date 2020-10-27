@@ -65,7 +65,7 @@ func NewProbeStore() *ProbeStore {
 }
 
 // AddProbe provided GodogProbe to the ProbeStore.
-func (ps *ProbeStore) AddProbe(probe *GodogProbe) string {
+func (ps *ProbeStore) AddProbe(probe *GodogProbe) {
 	ps.Lock.Lock()
 	defer ps.Lock.Unlock()
 
@@ -82,8 +82,6 @@ func (ps *ProbeStore) AddProbe(probe *GodogProbe) string {
 
 	summary.State.GetProbeLog(probe.ProbeDescriptor.Name).Result = probe.Status.String()
 	summary.State.LogProbeMeta(probe.ProbeDescriptor.Name, "group", probe.ProbeDescriptor.Group.String())
-
-	return probe.ProbeDescriptor.Name
 }
 
 // GetProbe returns the test identified by the given name.
