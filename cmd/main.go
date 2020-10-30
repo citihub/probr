@@ -4,6 +4,9 @@ import (
 	"flag"
 	"log"
 	"os"
+	"time"
+
+	"github.com/briandowns/spinner"
 
 	"github.com/citihub/probr"
 	"github.com/citihub/probr/cmd/cli_flags"
@@ -22,6 +25,11 @@ var kube = kubernetes.GetKubeInstance()
 func main() {
 	cli_flags.HandleFlags()
 	config.LogConfigState()
+
+	if config.Vars.LogLevel == "ERROR" {
+		spin := spinner.New(spinner.CharSets[43], 100*time.Millisecond) // Build our new spinner
+		spin.Start()                                                    // Start the spinner
+	}
 
 	//exec 'em all (for now!)
 	s, ts, err := probr.RunAllProbes()
@@ -43,5 +51,9 @@ func main() {
 		}
 	}
 	summary.State.PrintSummary()
+
+	if config.Vars.LogLevel == "ERROR" {
+		spin.Stop()
+	}
 	os.Exit(s)
 }
