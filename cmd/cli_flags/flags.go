@@ -55,13 +55,16 @@ func boolFlag(name string, usage string, handler flagHandlerFunc) {
 	flags = append(flags, f)
 }
 
+// Note:
+// Even though it's a bit ugly, using things like `*v.(*string)` comes from accepting bool, string, and other flag types
+
 // varsFileHandler initializes configuration with varsFile overriding env vars & defaults
 func varsFileHandler(v interface{}) {
 	err := config.Init(*v.(*string))
 	if err != nil {
 		log.Fatalf("[ERROR] Could not create config from provided filepath: %v", v.(*string))
 	} else if len(*v.(*string)) > 0 {
-		log.Printf("[NOTICE] Config read from file '%s', but may still be overridden by CLI flags.", v.(*string))
+		log.Printf("[NOTICE] Config read from file '%v', but may still be overridden by CLI flags.", v.(*string))
 	} else {
 		log.Printf("[NOTICE] No configuration variables file specified. Using environment variabls and defaults only.")
 	}
@@ -83,7 +86,7 @@ func outputTypeHandler(v interface{}) {
 		} else if *v.(*string) == "INMEM" {
 			log.Printf("[NOTICE] Output type specified as INMEM: Results will not be handled by the CLI. Refer to the Summary Log for a results summary.")
 		} else {
-			log.Fatalf("[ERROR] Unknown output type specified: %s. Please use 'IO' or 'INMEM'", v.(*string))
+			log.Fatalf("[ERROR] Unknown output type specified: %v. Please use 'IO' or 'INMEM'", v.(*string))
 		}
 		config.Vars.OutputType = *v.(*string)
 	}
