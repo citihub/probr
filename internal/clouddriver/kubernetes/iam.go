@@ -87,7 +87,7 @@ func (i *IAM) setenv() {
 
 	// image repository + curl from config
 	// but default if not supplied
-	ig := config.Vars.Images.Repository
+	ig := config.Vars.ImagesRepository
 	//need to fudge for 'curl' as it's registered as curlimages/curl
 	//on docker, so if we've been given a repository from the config
 	//and it's 'docker.io' then ignore it and set default (curlimages)

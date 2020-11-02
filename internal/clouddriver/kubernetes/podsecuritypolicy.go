@@ -142,7 +142,7 @@ func (psp *PSP) setenv() {
 
 	// image repository from config
 	// but default if not supplied
-	i := config.Vars.Images.Repository
+	i := config.Vars.ImagesRepository
 	if len(i) < 1 {
 		i = defaultPSPImageRepository
 	}

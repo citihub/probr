@@ -4,8 +4,7 @@ auditDir: audit_output
 cucumberDir: cucumber_output
 overwriteHistoricalAudits: true
 summaryEnabled: true
-images:
-    repository:
+imagesRepository:
 azure:
     subscriptionID:
     clientID:

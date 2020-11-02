@@ -59,7 +59,7 @@ func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfiguratio
 func (s *scenarioState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext() error {
 	cname := "probr-general"
 	pod_name := kubernetes.GenerateUniquePodName(cname)
-	image := config.Vars.Images.Repository + "/" + gfProbeImage
+	image := config.Vars.ImagesRepository + "/" + gfProbeImage
 
 	//create pod with nil security context
 	pod, podAudit, err := kubernetes.GetKubeInstance().CreatePod(pod_name, "probr-general-test-ns", cname, image, true, nil)
