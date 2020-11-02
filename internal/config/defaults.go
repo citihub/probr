@@ -21,9 +21,7 @@ func setFromEnvOrDefaults(e *ConfigVars) {
 	e.set(&e.LogLevel, "PROBR_LOG_LEVEL", "ERROR")
 	e.set(&e.OverwriteHistoricalAudits, "OVERWRITE_AUDITS", "true")
 
-	e.set(&e.Images.Repository, "IMAGE_REPOSITORY", "docker.io")
-	e.set(&e.Images.Curl, "CURL_IMAGE", "curl")
-	e.set(&e.Images.BusyBox, "BUSYBOX_IMAGE", "busybox")
+	e.set(&e.Images.Repository, "PROBR_IMAGE_REPOSITORY", "docker.io")
 
 	e.set(&e.Azure.SubscriptionID, "AZURE_SUBSCRIPTION_ID", "")
 	e.set(&e.Azure.ClientID, "AZURE_CLIENT_ID", "")

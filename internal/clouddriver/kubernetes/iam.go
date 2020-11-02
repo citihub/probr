@@ -23,9 +23,9 @@ const (
 	//NOTE: either the above namespace needs to be added to the exclusion list on the
 	//container registry rule or busybox need to be available in the allowed (probably internal) registry
 	defaultIAMImageRepository = "curlimages"
-	defaultIAMProbeImage       = "curl"
-	defaultIAMProbeContainer   = "iam-test"
-	defaultIAMProbePodName     = "iam-test-pod"
+	defaultIAMProbeImage      = "curl"
+	defaultIAMProbeContainer  = "iam-test"
+	defaultIAMProbePodName    = "iam-test-pod"
 )
 
 // IAMProbeCommand defines commands for use in testing IAM
@@ -94,12 +94,8 @@ func (i *IAM) setenv() {
 	if len(ig) < 1 || ig == "docker.io" {
 		ig = defaultIAMImageRepository
 	}
-	b := config.Vars.Images.Curl
-	if len(b) < 1 {
-		b = defaultIAMProbeImage
-	}
 
-	i.probeImage = ig + "/" + b
+	i.probeImage = ig + "/" + defaultIAMProbeImage
 
 	i.testAzureIdentityBinding = "probr-specificns-aib"
 }

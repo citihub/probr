@@ -11,11 +11,11 @@ import (
 
 const (
 	//default values.  Overrides can be set via the environment.
-	defaultNAProbeNamespace   = "probr-network-access-test-ns" //this needs to be set up as an exculsion in the image registry policy
+	defaultNAProbeNamespace  = "probr-network-access-test-ns" //this needs to be set up as an exculsion in the image registry policy
 	defaultNAImageRepository = "curlimages"
-	defaultNAProbeImage       = "curl"
-	defaultNAProbeContainer   = "na-test"
-	defaultNAProbePodName     = "na-test-pod"
+	defaultNAProbeImage      = "curl"
+	defaultNAProbeContainer  = "na-test"
+	defaultNAProbePodName    = "na-test-pod"
 )
 
 // NetworkAccess defines functionality for supporting Network Access tests.
@@ -71,12 +71,7 @@ func (n *NA) setup() {
 		i = defaultNAImageRepository
 	}
 
-	b := config.Vars.Images.Curl
-	if len(b) < 1 {
-		b = defaultNAProbeImage
-	}
-
-	n.probeImage = i + "/" + b
+	n.probeImage = i + "/" + defaultNAProbeImage
 }
 
 // ClusterIsDeployed verifies if a suitable cluster is deployed.

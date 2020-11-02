@@ -24,8 +24,6 @@ type ConfigVars struct {
 	OverwriteHistoricalAudits string `yaml:"overwriteHistoricalAudits"`
 	Images                    struct {
 		Repository string `yaml:"repository"`
-		Curl       string `yaml:"curl"`
-		BusyBox    string `yaml:"busyBox"`
 	} `yaml:"images"`
 	Azure struct {
 		SubscriptionID  string `yaml:"subscriptionID"`
