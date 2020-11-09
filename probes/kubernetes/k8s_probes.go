@@ -46,10 +46,10 @@ const (
 
 // Probes contains all probes with helper functions allowing all to be added in a loop
 var Probes []Probe
-var Definitions *packr.Box
+var Specifications *packr.Box
 
 func init() {
-	Definitions = packr.New("probe_definitions", "probe_definitions")
+	Specifications = packr.New("probe_specifications", "probe_specifications")
 
 	Probes = []Probe{
 		ContainerRegistryAccess,
@@ -98,7 +98,7 @@ func (p Probe) GetGodogProbe() *coreengine.GodogProbe {
 		ProbeDescriptor:     &pd,
 		ProbeInitializer:    p.TestSuiteContext,
 		ScenarioInitializer: p.ScenarioContext,
-		FeaturePath:         filepath.Join(Definitions.ResolutionDir, p.String()+".feature"),
+		FeaturePath:         filepath.Join(Specifications.ResolutionDir, p.String()+".feature"),
 	}
 }
 

@@ -7,10 +7,10 @@ import (
 
 func TestGetProbesPath(t *testing.T) {
 	r, _ := getRootDir()
-	desired_path := filepath.Join(r, "probes", "clouddriver", "probe_definitions", "accountmanager")
+	desired_path := filepath.Join(r, "probes", "clouddriver", "probe_specifications", "accountmanager")
 
 	// Test with feature path provided
-	p := filepath.Join("probes", "clouddriver", "probe_definitions", "accountmanager")
+	p := filepath.Join("probes", "clouddriver", "probe_specifications", "accountmanager")
 	test := &GodogProbe{FeaturePath: &p}
 	path, err := getProbesPath(test)
 	if err != nil || desired_path != path {
