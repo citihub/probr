@@ -2,9 +2,10 @@ package k8s_probes
 
 import (
 	"log"
+	"path/filepath"
 
 	"github.com/cucumber/godog"
-	"github.com/gobuffalo/packr"
+	packr "github.com/gobuffalo/packr/v2"
 	apiv1 "k8s.io/api/core/v1"
 
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
@@ -45,10 +46,10 @@ const (
 
 // Probes contains all probes with helper functions allowing all to be added in a loop
 var Probes []Probe
-var Definitions packr.Box
+var Definitions *packr.Box
 
 func init() {
-	Definitions = packr.NewBox("./probe_definitions")
+	Definitions = packr.New("probe_definitions", "probe_definitions")
 
 	Probes = []Probe{
 		ContainerRegistryAccess,
@@ -92,16 +93,12 @@ func (p Probe) ScenarioContext(s *godog.ScenarioContext) {
 }
 
 func (p Probe) GetGodogProbe() *coreengine.GodogProbe {
-	box, err := Definitions.FindString(p.String() + ".feature")
-	if err != nil {
-		log.Fatal(err)
-	}
 	pd := coreengine.ProbeDescriptor{Group: coreengine.Kubernetes, Name: p.String()}
 	return &coreengine.GodogProbe{
 		ProbeDescriptor:     &pd,
 		ProbeInitializer:    p.TestSuiteContext,
 		ScenarioInitializer: p.ScenarioContext,
-		FeaturePath:         box,
+		FeaturePath:         filepath.Join(Definitions.ResolutionDir, p.String()+".feature"),
 	}
 }
 
