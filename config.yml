@@ -1,4 +1,4 @@
-#kubeConfig: .kube/config
+kubeConfig: .kube/tivey_config
 auditEnabled: true
 auditDir: audit_output
 cucumberDir: cucumber_output

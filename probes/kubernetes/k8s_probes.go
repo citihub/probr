@@ -3,14 +3,15 @@ package k8s_probes
 import (
 	"log"
 
+	"github.com/cucumber/godog"
+	"github.com/gobuffalo/packr"
+	apiv1 "k8s.io/api/core/v1"
+
 	"github.com/citihub/probr/internal/clouddriver/kubernetes"
 	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/internal/utils"
-
-	"github.com/cucumber/godog"
-	apiv1 "k8s.io/api/core/v1"
 )
 
 // podState captures useful pod state data for use in a scenario's state.
@@ -44,8 +45,11 @@ const (
 
 // Probes contains all probes with helper functions allowing all to be added in a loop
 var Probes []Probe
+var Definitions packr.Box
 
 func init() {
+	Definitions = packr.NewBox("./probe_definitions")
+
 	Probes = []Probe{
 		ContainerRegistryAccess,
 		General,
@@ -88,12 +92,16 @@ func (p Probe) ScenarioContext(s *godog.ScenarioContext) {
 }
 
 func (p Probe) GetGodogProbe() *coreengine.GodogProbe {
+	box, err := Definitions.FindString(p.String() + ".feature")
+	if err != nil {
+		log.Fatal(err)
+	}
 	pd := coreengine.ProbeDescriptor{Group: coreengine.Kubernetes, Name: p.String()}
-
 	return &coreengine.GodogProbe{
 		ProbeDescriptor:     &pd,
 		ProbeInitializer:    p.TestSuiteContext,
 		ScenarioInitializer: p.ScenarioContext,
+		FeaturePath:         box,
 	}
 }
 
