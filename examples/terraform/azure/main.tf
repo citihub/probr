@@ -1,12 +1,11 @@
 provider "azurerm" {
   version = "~>2.5.0"
   features {} // azurerm will err if this is not included
+}
 
-# Authentication uses defaults from azure cli (az account list); 
-# these fields can override those defaults
-#   subscription_id = "00000000-0000-0000-0000-000000000000"
-#   tenant_id       = "11111111-1111-1111-1111-111111111111"
-
+resource "azurerm_resource_group" "rg" {
+  name     = "${var.prefix}-rg"
+  location = var.location
 }
 
 resource "azurerm_kubernetes_cluster" "cluster" {
@@ -15,16 +14,16 @@ resource "azurerm_kubernetes_cluster" "cluster" {
   resource_group_name = azurerm_resource_group.rg.name
   dns_prefix          = "${var.prefix}-dns"
   tags = {
-    aadpodidentity: "enabled",
-    policies: "all",
-    project: "probr"
+    aadpodidentity : "enabled",
+    policies : "all",
+    project : "probr demo"
   }
 
   default_node_pool {
     name       = "default"
     node_count = 1
     vm_size    = "Standard_DS2_v2"
-    vnet_subnet_id = element(tolist(azurerm_virtual_network.vnet.subnet), 0).id // subnet object contains one value
+    //vnet_subnet_id = element(tolist(azurerm_virtual_network.vnet.subnet), 0).id // subnet object contains one value
   }
 
   identity {
@@ -47,21 +46,30 @@ resource "azurerm_kubernetes_cluster" "cluster" {
     kube_dashboard {
       enabled = false
     }
-    
+
     oms_agent {
-      enabled                    = true
-      log_analytics_workspace_id = azurerm_log_analytics_workspace.awp.id
+      enabled = false
+      //log_analytics_workspace_id = azurerm_log_analytics_workspace.awp.id
     }
   }
 }
 
 resource "null_resource" "kubectl" {
+  triggers = {
+    always_run = timestamp()
+  }
+
   provisioner "local-exec" {
-    command = "echo '${azurerm_kubernetes_cluster.cluster.kube_config_raw}' > .kubeconfig"
+    command     = "echo '${azurerm_kubernetes_cluster.cluster.kube_config_raw}' > ${var.kube_config_filepath}"
     interpreter = ["/bin/bash", "-c"]
   }
+}
+
+resource "null_resource" "aad-pod-identity" {
+  depends_on = [null_resource.kubectl]
+
   provisioner "local-exec" {
-    command = "kubectl apply --kubeconfig=${var.kube_config} -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml"
+    command     = "kubectl apply --kubeconfig=${var.kube_config_filepath} -f https://raw.githubusercontent.com/Azure/aad-pod-identity/master/deploy/infra/deployment-rbac.yaml"
     interpreter = ["/bin/bash", "-c"]
   }
 }
