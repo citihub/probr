@@ -46,11 +46,36 @@ The following elements are required to get started with Probr:
 These values are populated in one of three ways, with the value being taken from the highest priority entry.
 
 1. Default values; found in `internal/config/defaults.go` (lowest priority)
-2. OS environment variables; set locally prior to probr execution (mid priority)
-3. Vars file; yaml (highest non-CLI priority)
-4. CLI flags; see `./probr --help` for available flags (highest priority)
+1. OS environment variables; set locally prior to probr execution (mid priority)
+1. Vars file; yaml (highest non-CLI priority)
+1. CLI flags; see `./probr --help` for available flags (highest priority)
 
 _Note: See `internal/config/README.md` for engineering notes regarding the configuration._
+
+### Configuration Variables - Summary
+| Variable | Description | CLI Flag | VarsFile Tag | Env Var | Default |
+|---|---|---|---|---|---|
+|VarsFile|Config YAML File Path|`varsFile`|N/A|N/A|N/A|
+|OutputType|Determines output to file or terminal|`outputType`|outputType|PROBR_OUTPUT_TYPE|IO|
+|OutputDir|Path to output dir|`yes`|yes|PROBR_CUCUMBER_DIR|cucumber_output|
+|Tags|Feature tag inclusions and exclusions|`tags`|tags|PROBR_TAGS|""|
+|KubeConfig|Path to kubernetes config|`kubeConfig`|kubeConfig|KUBE_CONFIG|N/A|
+|KubeContext|Kubernetes context|`N/A`|kubeContext|KUBE_CONTEXT|""|
+|AuditEnabled|Flag to switch on audit log|`N/A` |auditEnabled|PROBR_AUDIT_ENABLED|true|
+|SummaryEnabled|Flag to switch on summary log|`N/A`|summaryEnabled|PROBR_SUMMARY_ENABLED|true|
+|AuditDir|Path to audit dir|`N/A`|auditDir|PROBR_AUDIT_DIR|audit_output|
+|LogLevel|Set log verbosity level|`N/A`|logLevel|PROBR_LOG_LEVEL|ERROR|
+|OverwriteHistoricalAudits|Flag to allow audit overwriting|`N/A`|overwriteHistoricalAudits|OVERWRITE_AUDITS|true|
+|ContainerRegistry|Probe image regsitry|`N/A`|containerRegistry|PROBR_CONTAINER_REGISTRY|docker.io|
+|ProbeImage|Probe image name|`N/A`|probeImage|PROBR_PROBE_IMAGE|citihub/probr-probe|
+|Azure|Azure subscription|`N/A`|azure.subscriptionID|AZURE_SUBSCRIPTION_ID|""|
+|Azure|Azure client id|`N/A`|azure.clientID|AZURE_CLIENT_ID|""|
+|Azure|Azure client secret|`N/A`|azure.clientSecret|AZURE_CLIENT_SECRET|""|
+|Azure|Azure subscription|`N/A`|azure.tenantID|AZURE_TENANT_ID|""|
+|Azure|Azure subscription|`N/A`|azure.locationDefault|AZURE_LOCATION_DEFAULT|""|
+|Azure|Azure subscription|`N/A`|azure.azureIdentity.|DEFAULT_NS_AZURE_IDENTITY|probr-defaultns-ai|
+|Azure connection info|`N/A`|azure.azureIdentity.|DEFAULT_NS_AZURE_IDENTITY_BINDING|probr-defaultns-aib|
+|Azure connection info|`N/A`|systemClusterRoles|N/A|{"system:", "aks", "cluster-admin", "policy-agent"}|
 
 ### Default Values
 
