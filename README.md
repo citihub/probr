@@ -2,11 +2,11 @@
 
 ## Your Zero Trust Compliance Toolbox
 
-Probr automatically interprets your cloud platform control requirements (specified in cucumber feature files) and 'probes' your target platform to test whether the controls have been correctly implemented.
+Probr is intended to provide flexible "probing" of your cloud provider and Kubernetes cluster to ensure that the result of your security controls have properly taken effect.
 
-In addition to vaildating that specific policies are in place, Probr performs actions in order to test that controls are effective. For example, an attempt is made to pull an image from an unauthorized container registry in order to validate that the action is correctly denied.
+Instead of reading configurations or scanning to validate that specific policies are in place, Probr attempts to perform specific tasks that should or shouldn't be able to occur from specific roles.
 
-Probr is of use for **security professionals** and **engineering teams** to validate that internal policy and external regulatory requirements are being complied with. Typically, Probr will be run within the CI/CD pipline to ensure that any changes to the platform are automatically tested for compliance.
+Probr may be used by **security professionals** to audit or demonstrate the need for specific policies and remediation, or Probr may be used by **engineering teams** to display that necessary regulations are being met.
 
 ## Installation
 

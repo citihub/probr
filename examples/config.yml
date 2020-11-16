@@ -6,12 +6,11 @@ SummaryEnabled: true
 ImagesRepository:
 ServicePacks:
   Kubernetes:
-#    KubeConfig: .kube/config
-    KubeConfig:
+    KubeConfig: .kube/config
     KubeContext:
 CloudProviders:
   Azure:
-    SubscriptionID:
+    SubscriptionID: 1234
     ClientID:
     ClientSecret:
     TenantID:
