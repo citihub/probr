@@ -6,7 +6,8 @@ SummaryEnabled: true
 ImagesRepository:
 ServicePacks:
   Kubernetes:
-    KubeConfig: .kube/config
+#    KubeConfig: .kube/config
+    KubeConfig:
     KubeContext:
 CloudProviders:
   Azure:
