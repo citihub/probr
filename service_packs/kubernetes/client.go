@@ -5,7 +5,6 @@ import (
 
 	"github.com/citihub/probr/internal/config"
 
-	"k8s.io/client-go/kubernetes"
 	k8s "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -31,7 +30,7 @@ func (k *Kube) GetClient() (*k8s.Clientset, error) {
 	}
 
 	// create the clientset (note: assigned to global "kubeClient")
-	k.kubeClient, err = kubernetes.NewForConfig(clientConfig)
+	k.kubeClient, err = k8s.NewForConfig(clientConfig)
 	if err != nil {
 		return nil, err
 	}

@@ -93,7 +93,7 @@ func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	//check dependancies ...
 	if cra == nil {
 		// not been given one so set default
-		cra = kubernetes.NewDefaultCRA()
+		cra = NewDefaultCRA()
 	}
 }
 

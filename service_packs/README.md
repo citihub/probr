@@ -25,7 +25,7 @@ in the `.go` file that has the name of the associated probe. (For example,
 Within the probe's go file, functions must be defined to execute each of the
 steps specified in the corresponding feature file.
 
-For example, the `container_registry_access.feature` file specifies a step 
+For example, the `container_registry_access.feature` file specifies a step
 `When I attempt to push to the container registry using the cluster identity`.
 Within the `container_registry_access.go` file, a ScenarioState method
 `iAttemptToPushToTheContainerRegistryUsingTheClusterIdentity` is defined and
