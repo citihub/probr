@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/citihub/probr/internal/utils"
-	k8s_logic "github.com/citihub/probr/service_packs/kubernetes/probe_logic"
+	"github.com/citihub/probr/service_packs/kubernetes"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	apiv1 "k8s.io/api/core/v1"
@@ -191,11 +191,11 @@ func reflectiveCall(p *PSP, tm string) (*bool, error) {
 
 //TODO: this feel rough - we need access to some 'kube' functions, but want to short circuit any external calls
 //should move these more general functions out to a utility/helper
-var k = k8s_logic.GetKubeInstance()
+var k = kubernetes.GetKubeInstance()
 
 func TestCreatePODSettingSecurityContext(t *testing.T) {
 	//need a mock kube
-	mk := &k8s_logic.KubeMock{}
+	mk := &kubernetes.KubeMock{}
 	psp := NewPSP(mk, nil)
 
 	//set up the mock
@@ -252,7 +252,7 @@ func TestCreatePODSettingSecurityContext(t *testing.T) {
 
 func TestCreatePODSettingAttributes(t *testing.T) {
 	//need a mock kube
-	mk := &k8s_logic.KubeMock{}
+	mk := &kubernetes.KubeMock{}
 	psp := NewPSP(mk, nil)
 
 	//set up the mock
@@ -326,7 +326,7 @@ func TestCreatePODSettingAttributes(t *testing.T) {
 
 func TestCreatePODSettingCapabilities(t *testing.T) {
 	//need a mock kube
-	mk := &k8s_logic.KubeMock{}
+	mk := &kubernetes.KubeMock{}
 	psp := NewPSP(mk, nil)
 
 	//set up the mock

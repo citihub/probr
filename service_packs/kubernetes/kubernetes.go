@@ -2,24 +2,21 @@ package kubernetes
 
 import (
 	"log"
-	"path/filepath"
 
 	"github.com/cucumber/godog"
-	packr "github.com/gobuffalo/packr/v2"
 	apiv1 "k8s.io/api/core/v1"
 
 	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/internal/utils"
-	k8s_logic "github.com/citihub/probr/probes/kubernetes/probe_logic"
 )
 
 // podState captures useful pod state data for use in a scenario's state.
-type podState struct {
+type PodState struct {
 	PodName         string
-	CreationError   *k8s_logic.PodCreationError
-	ExpectedReason  *k8s_logic.PodCreationErrorReason
+	CreationError   *PodCreationError
+	ExpectedReason  *PodCreationErrorReason
 	CommandExitCode int
 }
 
@@ -29,83 +26,20 @@ type scenarioState struct {
 	probe          *summary.Probe
 	httpStatusCode int
 	podName        string
-	podState       podState
+	podState       PodState
 	useDefaultNS   bool
 	wildcardRoles  interface{}
 }
 
-type Probe int
-
-const (
-	ContainerRegistryAccess Probe = iota
-	General
-	PodSecurityPolicy
-	InternetAccess
-	IAMControl
-)
-
-// Probes contains all probes with helper functions allowing all to be added in a loop
-var Probes []Probe
-var Specifications *packr.Box
-
-func init() {
-	Specifications = packr.New("probe_specifications", "probe_specifications")
-
-	Probes = []Probe{
-		ContainerRegistryAccess,
-		General,
-		PodSecurityPolicy,
-		InternetAccess,
-		IAMControl,
-	}
-}
-
-func (p Probe) String() string {
-	return [...]string{
-		"container_registry_access",
-		"general",
-		"pod_security_policy",
-		"internet_access",
-		"iam_control",
-	}[p]
-}
-
-func (p Probe) TestSuiteContext(s *godog.TestSuiteContext) {
-	f := [...]func(*godog.TestSuiteContext){
-		craProbeInitialize,
-		genProbeInitialize,
-		pspProbeInitialize,
-		iaProbeInitialize,
-		iamProbeInitialize,
-	}[p]
-	f(s)
-}
-
-func (p Probe) ScenarioContext(s *godog.ScenarioContext) {
-	f := [...]func(*godog.ScenarioContext){
-		craScenarioInitialize,
-		genScenarioInitialize,
-		pspScenarioInitialize,
-		iaScenarioInitialize,
-		iamScenarioInitialize,
-	}[p]
-	f(s)
-}
-
-func (p Probe) GetGodogProbe() *coreengine.GodogProbe {
-	pd := coreengine.ProbeDescriptor{Group: coreengine.Kubernetes, Name: p.String()}
-	return &coreengine.GodogProbe{
-		ProbeDescriptor:     &pd,
-		ProbeInitializer:    p.TestSuiteContext,
-		ScenarioInitializer: p.ScenarioContext,
-		FeaturePath:         filepath.Join(Specifications.ResolutionDir, p.String()+".feature"),
-	}
+type PodPayload struct {
+	Pod      *apiv1.Pod
+	PodAudit *PodAudit
 }
 
 //
 // Helper Functions
 
-func (s *scenarioState) BeforeScenario(probeName string, gs *godog.Scenario) {
+func BeforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
 	if coreengine.TagsNotExcluded(gs.Tags) {
 		s.setup()
 		s.name = gs.Name
@@ -124,7 +58,7 @@ func (s *scenarioState) setup() {
 
 // ProcessPodCreationResult is a convenince function to process the result of a pod creation attempt.
 // It records state information on the supplied state structure.
-func ProcessPodCreationResult(probe *summary.Probe, s *podState, pd *apiv1.Pod, expected k8s_logic.PodCreationErrorReason, err error) error {
+func ProcessPodCreationResult(probe *summary.Probe, s *PodState, pd *apiv1.Pod, expected PodCreationErrorReason, err error) error {
 	//first check for errors:
 	if err != nil {
 		//check if we've got a partial pod creation
@@ -139,7 +73,7 @@ func ProcessPodCreationResult(probe *summary.Probe, s *podState, pd *apiv1.Pod, 
 		//check for known error type
 		//this means the pod has not been created for an expected reason and
 		//is a valid result if the test is addressing prevention of insecure pod creation
-		if e, ok := err.(*k8s_logic.PodCreationError); ok {
+		if e, ok := err.(*PodCreationError); ok {
 			s.CreationError = e
 			s.ExpectedReason = &expected
 			return nil
@@ -168,7 +102,7 @@ func ProcessPodCreationResult(probe *summary.Probe, s *podState, pd *apiv1.Pod, 
 
 // AssertResult evaluate the state in the context of the expected condition, e.g. if expected is "fail",
 // then the expecation is that a creation error will be present.
-func AssertResult(s *podState, res, msg string) error {
+func AssertResult(s *PodState, res, msg string) error {
 
 	if res == "Fail" || res == "denied" {
 		//expect pod creation error to be non-null
@@ -206,30 +140,20 @@ func AssertResult(s *podState, res, msg string) error {
 
 }
 
+type ClusterPayload struct {
+	KubeConfigPath string
+	KubeContext    string
+}
+
 //general feature steps:
-func (s *scenarioState) aKubernetesClusterIsDeployed() error {
-	b := k8s_logic.GetKubeInstance().ClusterIsDeployed()
+func ClusterIsDeployed() (string, ClusterPayload) {
+	b := GetKubeInstance().ClusterIsDeployed()
 
 	if b == nil || !*b {
 		log.Fatalf("[ERROR] Kubernetes cluster is not deployed")
 	}
 
 	description := "Passes if Probr successfully connects to the specified cluster."
-	payload := struct {
-		KubeConfigPath string
-		KubeContext    string
-	}{config.Vars.ServicePacks.Kubernetes.KubeConfigPath, config.Vars.ServicePacks.Kubernetes.KubeContext}
-	s.audit.AuditScenarioStep(description, payload, nil)
-
-	return nil
-}
-
-func podPayload(pod *apiv1.Pod, podAudit *k8s_logic.PodAudit) interface{} {
-	return struct {
-		Pod      *apiv1.Pod
-		PodAudit *k8s_logic.PodAudit
-	}{
-		Pod:      pod,
-		PodAudit: podAudit,
-	}
+	payload := ClusterPayload{config.Vars.ServicePacks.Kubernetes.KubeConfigPath, config.Vars.ServicePacks.Kubernetes.KubeContext}
+	return description, payload
 }

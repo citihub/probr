@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/citihub/probr/internal/utils"
-	k8s_logic "github.com/citihub/probr/service_packs/kubernetes/probe_logic"
+	"github.com/citihub/probr/service_packs/kubernetes"
 )
 
 //AzK8sConstraintTemplate captures the Azure specific constraint templates that are the result of applying
@@ -12,7 +12,7 @@ import (
 //Implements securitypolicyprovider and is the prefered way of determining constraints on
 //an AKS cluster.
 type AzK8sConstraintTemplate struct {
-	k k8s_logic.Kubernetes
+	k kubernetes.Kubernetes
 
 	//set of constraints applied to cluster
 	//(can view via kubectl get constrainttemplate)
@@ -32,7 +32,7 @@ const (
 )
 
 //NewAzK8sConstraintTemplate constructs a new AzK8sConstraintTemplate using the supplied kubernetes instance.
-func NewAzK8sConstraintTemplate(k k8s_logic.Kubernetes) *AzK8sConstraintTemplate {
+func NewAzK8sConstraintTemplate(k kubernetes.Kubernetes) *AzK8sConstraintTemplate {
 	a := &AzK8sConstraintTemplate{}
 	a.k = k
 
@@ -42,7 +42,7 @@ func NewAzK8sConstraintTemplate(k k8s_logic.Kubernetes) *AzK8sConstraintTemplate
 //NewDefaultAzK8sConstraintTemplate constructs a new AzK8sConstraintTemplate using the default kubernetes instance.
 func NewDefaultAzK8sConstraintTemplate() *AzK8sConstraintTemplate {
 	a := &AzK8sConstraintTemplate{}
-	a.k = k8s_logic.GetKubeInstance()
+	a.k = kubernetes.GetKubeInstance()
 
 	return a
 }

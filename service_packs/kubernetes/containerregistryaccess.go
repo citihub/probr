@@ -1,4 +1,4 @@
-package k8s_logic
+package kubernetes
 
 import (
 	"strings"

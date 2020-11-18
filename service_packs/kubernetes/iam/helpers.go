@@ -11,7 +11,6 @@ import (
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/service_packs/kubernetes"
-	k8s_logic "github.com/citihub/probr/service_packs/kubernetes/probe_logic"
 	"github.com/cucumber/godog"
 	"k8s.io/client-go/kubernetes/scheme"
 
@@ -63,13 +62,13 @@ type IdentityAccessManagement interface {
 	CreateAIB(y []byte, ai string, n string, ns string) (bool, error)
 	CreateIAMProbePod(y []byte, useDefaultNS bool) (*apiv1.Pod, error)
 	DeleteIAMProbePod(n string, useDefaultNS bool, e string) error
-	ExecuteVerificationCmd(pn string, cmd IAMProbeCommand, useDefaultNS bool) (*k8s_logic.CmdExecutionResult, error)
+	ExecuteVerificationCmd(pn string, cmd IAMProbeCommand, useDefaultNS bool) (*kubernetes.CmdExecutionResult, error)
 	GetAccessToken(pn string, useDefaultNS bool) (*string, error)
 }
 
 // IAM implements the IdentityAccessManagement interface.
 type IAM struct {
-	k k8s_logic.Kubernetes
+	k kubernetes.Kubernetes
 
 	probeNamespace string
 	probeImage     string
@@ -82,7 +81,7 @@ type IAM struct {
 // NewDefaultIAM creates a new IAM instance using the default kubernetes provider.
 func NewDefaultIAM() *IAM {
 	i := &IAM{}
-	i.k = k8s_logic.GetKubeInstance()
+	i.k = kubernetes.GetKubeInstance()
 
 	i.setenv()
 	return i
@@ -172,7 +171,7 @@ func (i *IAM) createFromYaml(y []byte, pname *string, ns *string, image *string,
 	bs := string(b)
 	log.Printf("[DEBUG] STRING result: %v", bs)
 
-	j := k8s_logic.K8SJSON{}
+	j := kubernetes.K8SJSON{}
 	json.Unmarshal(b, &j)
 
 	log.Printf("[DEBUG] JSON result: %+v", j)
@@ -216,7 +215,7 @@ func (i *IAM) filteredRawResourceGrp(g string, k string, f string) (bool, error)
 
 // CreateIAMProbePod creates a pod configured for IAM test cases.
 func (i *IAM) CreateIAMProbePod(y []byte, useDefaultNS bool) (*apiv1.Pod, error) {
-	n := k8s_logic.GenerateUniquePodName(i.probePodName)
+	n := kubernetes.GenerateUniquePodName(i.probePodName)
 
 	pod, err := i.k.CreatePodFromYaml(y, n, *i.getNamespace(useDefaultNS),
 		i.probeImage, *i.getAadPodIDBinding(useDefaultNS), true)
@@ -229,7 +228,7 @@ func (i *IAM) DeleteIAMProbePod(n string, useDefaultNS bool, e string) error {
 }
 
 // ExecuteVerificationCmd executes a verification command against the supplied pod name.
-func (i *IAM) ExecuteVerificationCmd(pn string, cmd IAMProbeCommand, useDefaultNS bool) (*k8s_logic.CmdExecutionResult, error) {
+func (i *IAM) ExecuteVerificationCmd(pn string, cmd IAMProbeCommand, useDefaultNS bool) (*kubernetes.CmdExecutionResult, error) {
 	c := cmd.String()
 	res := i.k.ExecCommand(&c, i.getNamespace(useDefaultNS), &pn)
 

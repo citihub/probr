@@ -9,7 +9,6 @@ import (
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/utils"
 	"github.com/citihub/probr/service_packs/kubernetes"
-	k8s_logic "github.com/citihub/probr/service_packs/kubernetes/probe_logic"
 )
 
 type ProbeStruct struct{}
@@ -40,7 +39,7 @@ func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 
 func (s *scenarioState) aPodIsDeployedInTheCluster() error {
 	var err error
-	var podAudit *k8s_logic.PodAudit
+	var podAudit *kubernetes.PodAudit
 	var pod *apiv1.Pod
 	if s.podName != "" {
 		//only one pod is needed for all scenarios in this probe

@@ -12,7 +12,6 @@ import (
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/utils"
 	"github.com/citihub/probr/service_packs/kubernetes"
-	k8s_logic "github.com/citihub/probr/service_packs/kubernetes/probe_logic"
 )
 
 type ProbeStruct struct{}
@@ -30,11 +29,11 @@ func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 func (s *scenarioState) iInspectTheThatAreConfigured(roleLevel string) error {
 	var err error
 	if roleLevel == "Cluster Roles" {
-		l, e := k8s_logic.GetKubeInstance().GetClusterRolesByResource("*")
+		l, e := kubernetes.GetKubeInstance().GetClusterRolesByResource("*")
 		err = e
 		s.wildcardRoles = l
 	} else if roleLevel == "Roles" {
-		l, e := k8s_logic.GetKubeInstance().GetRolesByResource("*")
+		l, e := kubernetes.GetKubeInstance().GetRolesByResource("*")
 		err = e
 		s.wildcardRoles = l
 	}
@@ -64,13 +63,13 @@ func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfiguratio
 //@CIS-5.6.3
 func (s *scenarioState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext() error {
 	cname := "probr-general"
-	pod_name := k8s_logic.GenerateUniquePodName(cname)
+	pod_name := kubernetes.GenerateUniquePodName(cname)
 	image := config.Vars.ContainerRegistry + "/" + config.Vars.ProbeImage
 
 	//create pod with nil security context
-	pod, podAudit, err := k8s_logic.GetKubeInstance().CreatePod(pod_name, "probr-general-test-ns", cname, image, true, nil)
+	pod, podAudit, err := kubernetes.GetKubeInstance().CreatePod(pod_name, "probr-general-test-ns", cname, image, true, nil)
 
-	err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pod, k8s_logic.UndefinedPodCreationErrorReason, err)
+	err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pod, kubernetes.UndefinedPodCreationErrorReason, err)
 
 	description := "Attempts to create a deployment without a security context. Retains the status of the deployment in scenario state for following steps. Passes if created, or if an expected error is encountered."
 	payload := kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
@@ -105,7 +104,7 @@ func (s *scenarioState) iShouldNotBeAbleToAccessTheKubernetesWebUI() error {
 
 func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 	//look for the dashboard pod in the kube-system ns
-	pl, err := k8s_logic.GetKubeInstance().GetPods("kube-system")
+	pl, err := kubernetes.GetKubeInstance().GetPods("kube-system")
 
 	if err != nil {
 		err = utils.ReformatError("Probe step not run. Error raised when trying to retrieve pods: %v", err)
@@ -164,7 +163,7 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the Kubernetes Web UI is disabled$`, ps.theKubernetesWebUIIsDisabled)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
-		k8s_logic.GetKubeInstance().DeletePod(&ps.podState.PodName, utils.StringPtr("probr-general-test-ns"), false, p.Name())
+		kubernetes.GetKubeInstance().DeletePod(&ps.podState.PodName, utils.StringPtr("probr-general-test-ns"), false, p.Name())
 		coreengine.LogScenarioEnd(s)
 	})
 }

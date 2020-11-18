@@ -17,7 +17,6 @@ import (
 	"github.com/citihub/probr/internal/utils"
 	"github.com/citihub/probr/service_packs/kubernetes"
 	iamassets "github.com/citihub/probr/service_packs/kubernetes/iam/assets"
-	k8s_logic "github.com/citihub/probr/service_packs/kubernetes/probe_logic"
 )
 
 type ProbeStruct struct{}
@@ -82,7 +81,7 @@ func (s *scenarioState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentit
 			s.useDefaultNS = true
 		}
 		pd, err := iam.CreateIAMProbePod(y, s.useDefaultNS)
-		err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pd, k8s_logic.UndefinedPodCreationErrorReason, err)
+		err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
 	}
 
 	description := ""
@@ -192,7 +191,7 @@ func (s *scenarioState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoTheSam
 		log.Print(err)
 	} else {
 		pd, err := iam.CreateIAMProbePod(y, false)
-		err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pd, k8s_logic.UndefinedPodCreationErrorReason, err)
+		err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
 	}
 
 	description := ""
@@ -205,7 +204,7 @@ func (s *scenarioState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoTheSam
 //AZ-AAD-AI-1.2
 func (s *scenarioState) theClusterHasManagedIdentityComponentsDeployed() error {
 	//look for the mic pods in the default ns
-	pl, err := k8s_logic.GetKubeInstance().GetPods("")
+	pl, err := kubernetes.GetKubeInstance().GetPods("")
 
 	if err != nil {
 		err = utils.ReformatError("error raised when trying to retrieve pods %v", err)

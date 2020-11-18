@@ -12,7 +12,6 @@ import (
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/internal/utils"
 	"github.com/citihub/probr/service_packs/kubernetes"
-	k8s_logic "github.com/citihub/probr/service_packs/kubernetes/probe_logic"
 	"github.com/cucumber/godog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -105,7 +104,7 @@ type PodSecurityPolicy interface {
 	CreatePODSettingAttributes(hostPID *bool, hostIPC *bool, hostNetwork *bool) (*apiv1.Pod, error)
 	CreatePODSettingCapabilities(c *[]string) (*apiv1.Pod, error)
 	CreatePodFromYaml(y []byte) (*apiv1.Pod, error)
-	ExecPSPProbeCmd(pName *string, cmd PSPProbeCommand) (*k8s_logic.CmdExecutionResult, error)
+	ExecPSPProbeCmd(pName *string, cmd PSPProbeCommand) (*kubernetes.CmdExecutionResult, error)
 	TeardownPodSecurityProbe(p *string, e string) error
 	CreateConfigMap() error
 	DeleteConfigMap() error
@@ -113,7 +112,7 @@ type PodSecurityPolicy interface {
 
 // PSP implements PodSecurityPolicy.
 type PSP struct {
-	k                       k8s_logic.Kubernetes
+	k                       kubernetes.Kubernetes
 	securityPolicyProviders *[]SecurityPolicyProvider
 
 	probeNamespace string
@@ -132,7 +131,7 @@ func beforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
 }
 
 // NewPSP creates a new PSP using the supplied kubernetes instance and collection of SecurityPolicyProviders.
-func NewPSP(k k8s_logic.Kubernetes, sp *[]SecurityPolicyProvider) *PSP {
+func NewPSP(k kubernetes.Kubernetes, sp *[]SecurityPolicyProvider) *PSP {
 	p := &PSP{}
 	p.k = k
 	p.securityPolicyProviders = sp
@@ -144,7 +143,7 @@ func NewPSP(k k8s_logic.Kubernetes, sp *[]SecurityPolicyProvider) *PSP {
 // NewDefaultPSP creates a new PSP using the default kubernetes instance and the pre-defined SecurityPolicyProviders.
 func NewDefaultPSP() *PSP {
 	p := &PSP{}
-	p.k = k8s_logic.GetKubeInstance()
+	p.k = kubernetes.GetKubeInstance()
 
 	//standard security providers
 	p.securityPolicyProviders = &[]SecurityPolicyProvider{
@@ -503,7 +502,7 @@ func (psp *PSP) CreatePODSettingSecurityContext(pr *bool, pe *bool, runAsUser *i
 		RunAsUser:                runAsUser,
 	}
 
-	pname, ns, cname, image := k8s_logic.GenerateUniquePodName(psp.probePodName), psp.probeNamespace, psp.probeContainer, psp.probeImage
+	pname, ns, cname, image := kubernetes.GenerateUniquePodName(psp.probePodName), psp.probeNamespace, psp.probeContainer, psp.probeImage
 
 	//let caller handle ...
 	pod, _, err := psp.k.CreatePod(pname, ns, cname, image, true, &sc)
@@ -527,7 +526,7 @@ func (psp *PSP) CreatePODSettingAttributes(hostPID *bool, hostIPC *bool, hostNet
 		hostNetwork = &f
 	}
 
-	pname, ns, cname, image := k8s_logic.GenerateUniquePodName(psp.probePodName), psp.probeNamespace, psp.probeContainer, psp.probeImage
+	pname, ns, cname, image := kubernetes.GenerateUniquePodName(psp.probePodName), psp.probeNamespace, psp.probeContainer, psp.probeImage
 
 	// get the pod object and manipulate:
 	po := psp.k.GetPodObject(pname, ns, cname, image, nil)
@@ -541,7 +540,7 @@ func (psp *PSP) CreatePODSettingAttributes(hostPID *bool, hostIPC *bool, hostNet
 
 // CreatePODSettingCapabilities creates a pod with the supplied capabilities.
 func (psp *PSP) CreatePODSettingCapabilities(c *[]string) (*apiv1.Pod, error) {
-	pname, ns, cname, image := k8s_logic.GenerateUniquePodName(psp.probePodName), psp.probeNamespace, psp.probeContainer, psp.probeImage
+	pname, ns, cname, image := kubernetes.GenerateUniquePodName(psp.probePodName), psp.probeNamespace, psp.probeContainer, psp.probeImage
 
 	// get the pod object and manipulate:
 	po := psp.k.GetPodObject(pname, ns, cname, image, nil)
@@ -568,13 +567,13 @@ func (psp *PSP) CreatePODSettingCapabilities(c *[]string) (*apiv1.Pod, error) {
 
 // CreatePodFromYaml creates a pod from the supplied yaml.
 func (psp *PSP) CreatePodFromYaml(y []byte) (*apiv1.Pod, error) {
-	pname := k8s_logic.GenerateUniquePodName(psp.probePodName)
+	pname := kubernetes.GenerateUniquePodName(psp.probePodName)
 
 	return psp.k.CreatePodFromYaml(y, pname, psp.probeNamespace, psp.probeImage, "", true)
 }
 
 // ExecPSPProbeCmd executes the given PSPProbeCommand against the supplied pod name.
-func (psp *PSP) ExecPSPProbeCmd(pName *string, cmd PSPProbeCommand) (*k8s_logic.CmdExecutionResult, error) {
+func (psp *PSP) ExecPSPProbeCmd(pName *string, cmd PSPProbeCommand) (*kubernetes.CmdExecutionResult, error) {
 	var pn string
 	//if we've not been given a pod name, assume one needs to be created:
 	if pName == nil {
@@ -627,13 +626,13 @@ func (psp *PSP) TeardownPodSecurityProbe(p *string, e string) error {
 
 // KubePodSecurityPolicyProvider implements SecurityPolicyProvider and looks for kubernetes PodSecurityPolices.
 type KubePodSecurityPolicyProvider struct {
-	k        k8s_logic.Kubernetes
+	k        kubernetes.Kubernetes
 	psps     *v1beta1.PodSecurityPolicyList
 	pspMutex sync.Mutex
 }
 
 // NewKubePodSecurityPolicyProvider creates a new KubePodSecurityPolicyProvider with the supplied kubernetes instance.
-func NewKubePodSecurityPolicyProvider(k k8s_logic.Kubernetes) *KubePodSecurityPolicyProvider {
+func NewKubePodSecurityPolicyProvider(k kubernetes.Kubernetes) *KubePodSecurityPolicyProvider {
 	return &KubePodSecurityPolicyProvider{k: k}
 }
 

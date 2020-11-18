@@ -1,6 +1,6 @@
 // Package kubernetes provides functions for interacting with Kubernetes and
 // is built using the kubernetes client-go (https://github.com/kubernetes/client-go).
-package k8s_logic
+package kubernetes
 
 import (
 	"bytes"
@@ -8,14 +8,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"math/rand"
-	"os"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/citihub/probr/internal/config"
-	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/internal/utils"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -36,62 +33,13 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 )
 
-// PodCreationErrorReason provides an CSP agnostic reason for errors encountered when creating pods.
-type PodCreationErrorReason int
-
-// enum values for PodCreationErrorReason
-const (
-	UndefinedPodCreationErrorReason PodCreationErrorReason = iota
-	PSPNoPrivilege
-	PSPNoPrivilegeEscalation
-	PSPAllowedUsersGroups
-	PSPContainerAllowedImages
-	PSPHostNamespace
-	PSPHostNetwork
-	PSPAllowedCapabilities
-	PSPAllowedPortRange
-	PSPAllowedVolumeTypes
-	PSPSeccompProfile
-	ImagePullError
-	Blocked
-	Unauthorized
-)
-
-func (r PodCreationErrorReason) String() string {
-	return [...]string{"podcreation-error: undefined",
-		"podcreation-error: psp-container-no-privilege",
-		"podcreation-error: psp-container-no-privilege-escalation",
-		"podcreation-error: psp-allowed-users-groups",
-		"podcreation-error: psp-container-allowed-images",
-		"podcreation-error: psp-host-namespace",
-		"podcreation-error: psp-host-network",
-		"podcreation-error: psp-allowed-capabilities",
-		"podcreation-error: psp-allowed-portrange",
-		"podcreation-error: psp-allowed-volume-types-profile",
-		"podcreation-error: psp-allowed-seccomp-profile",
-		"podcreation-error: image-pull-error",
-		"podcreation-error: blocked"}[r]
-}
-
-// PodCreationError encapsulates the underlying pod creation error along with a map of platform agnostic
-// PodCreationErrorReason codes.  Note that there could be more that one PodCreationErrorReason.  For
-// example a pod may fail due to a 'psp-container-no-privilege' error and 'psp-host-network', in which
-// case there would be two entires in the ReasonCodes map.
-type PodCreationError struct {
-	err         error
-	ReasonCodes map[PodCreationErrorReason]*PodCreationErrorReason
-}
-
-type PodAudit struct {
-	PodName         string
-	Namespace       string
-	ContainerName   string
-	Image           string
-	SecurityContext *apiv1.SecurityContext
-}
-
-func (p *PodCreationError) Error() string {
-	return fmt.Sprintf("pod creation error: %v %v", p.ReasonCodes, p.err)
+// K8SJSON encapsulates the response from a raw/rest call to the Kubernetes API
+type K8SJSON struct {
+	APIVersion string
+	Items      []struct {
+		Kind     string
+		Metadata map[string]string
+	}
 }
 
 // CmdExecutionResult encapsulates the result from an exec call to the kubernetes cluster.  This includes 'stdout',
@@ -136,9 +84,6 @@ type Kubernetes interface {
 	GetClusterRoles() (*rbacv1.ClusterRoleList, error)
 }
 
-var instance *Kube
-var once sync.Once
-
 // Kube provides an implementation of Kubernetes.
 type Kube struct {
 	kubeClient                   *kubernetes.Clientset
@@ -147,6 +92,9 @@ type Kube struct {
 
 	k8statusToPodCreationError map[string]PodCreationErrorReason
 }
+
+var instance *Kube
+var once sync.Once
 
 // GetKubeInstance returns a singleton instance of Kube.
 func GetKubeInstance() *Kube {
@@ -229,28 +177,6 @@ func (k *Kube) GetPods(ns string) (*apiv1.PodList, error) {
 	}
 
 	return pl, nil
-}
-
-func getPods(c *kubernetes.Clientset, ns string) (*apiv1.PodList, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	pods, err := c.CoreV1().Pods(ns).List(ctx, metav1.ListOptions{})
-
-	if err != nil {
-		return nil, err
-	}
-	if pods == nil {
-		return nil, fmt.Errorf("pod list returned nil")
-	}
-
-	log.Printf("[INFO] There are %d pods in the cluster\n", len(pods.Items))
-
-	for i := 0; i < len(pods.Items); i++ {
-		log.Printf("[DEBUG] Pod: %v %v\n", pods.Items[i].GetNamespace(), pods.Items[i].GetName())
-	}
-
-	return pods, nil
 }
 
 // CreatePod creates a pod with the supplied parameters.  A true value for 'wait' indicates that
@@ -454,44 +380,12 @@ func (k *Kube) DeleteConfigMap(n *string, ns *string) error {
 	return nil
 }
 
-// GenerateUniquePodName creates a unique pod name based on the format: 'baseName'-'nanosecond time'-'random int'.
-func GenerateUniquePodName(baseName string) string {
-	//take base and add some uniqueness
-	t := time.Now()
-	rand.Seed(t.UnixNano())
-	uniq := fmt.Sprintf("%v-%v", t.Format("020106-150405"), rand.Intn(100))
-
-	return fmt.Sprintf("%v-%v", baseName, uniq)
-}
-
-func defaultPodSecurityContext() *apiv1.PodSecurityContext {
-	var user, grp, fsgrp int64
-	user, grp, fsgrp = 1000, 3000, 2000
-
-	return &apiv1.PodSecurityContext{
-		RunAsUser:          &user,
-		RunAsGroup:         &grp,
-		FSGroup:            &fsgrp,
-		SupplementalGroups: []int64{1},
-	}
-}
-
-func defaultContainerSecurityContext() *apiv1.SecurityContext {
-	b := false
-
-	return &apiv1.SecurityContext{
-		Privileged:               &b,
-		AllowPrivilegeEscalation: &b,
-	}
-}
-
 // ExecCommand executes the supplied command on the given pod name in the specified namespace.
 func (k *Kube) ExecCommand(cmd, ns, pn *string) (s *CmdExecutionResult) {
 	if cmd == nil {
 		return &CmdExecutionResult{Err: fmt.Errorf("command string is nil - nothing to execute"), Internal: true}
 	}
-	logCmd(cmd, pn, ns)
-
+	log.Printf("[NOTICE] Executing command: \"%v\" on POD '%v' in namespace '%v'", cmd, pn, ns)
 	c, err := k.GetClient()
 	if err != nil {
 		return &CmdExecutionResult{Err: err, Internal: true}
@@ -671,18 +565,6 @@ func (k *Kube) getAPIResourcesByGrp(grp string, nPrefix string) (*map[string]int
 	return &con, nil
 }
 
-// K8SJSONItem encapsulates items returned from a raw/rest call to the Kubernetes API
-type K8SJSONItem struct {
-	Kind     string
-	Metadata map[string]string
-}
-
-// K8SJSON encapsulates the response from a raw/rest call to the Kubernetes API
-type K8SJSON struct {
-	APIVersion string
-	Items      []K8SJSONItem
-}
-
 // GetRawResourcesByGrp makes a 'raw' REST call to k8s to get the resources specified by the
 // supplied group string, e.g. "apis/aadpodidentity.k8s.io/v1/azureidentitybindings".  This
 // is required to support resources that are not supported by typed API calls (e.g. "pods").
@@ -835,22 +717,6 @@ func (k *Kube) GetRoles() (*rbacv1.RoleList, error) {
 	return r.List(ctx, metav1.ListOptions{LabelSelector: "gatekeeper.sh/system!=yes"})
 }
 
-func isAlreadyExists(err error) bool {
-	if se, ok := err.(*errors.StatusError); ok {
-		//409 is "already exists"
-		return se.ErrStatus.Code == 409
-	}
-	return false
-}
-
-func isForbidden(err error) bool {
-	if se, ok := err.(*errors.StatusError); ok {
-		//403 is "forbidden"
-		return se.ErrStatus.Code == 403
-	}
-	return false
-}
-
 func (k *Kube) toPodCreationErrorCode(err error) *map[PodCreationErrorReason]*PodCreationErrorReason {
 	//try and map the error codes within the error message issued by the service provider
 	//to known error codes (return a map so they can be easily accessed)
@@ -956,54 +822,4 @@ func (k *Kube) podInErrorState(p *apiv1.Pod) (bool, *PodCreationError) {
 	}
 
 	return false, nil
-}
-
-func waitForDelete(c *kubernetes.Clientset, ns *string, n *string, probeName string) error {
-
-	ps := c.CoreV1().Pods(*ns)
-
-	w, err := ps.Watch(context.Background(), metav1.ListOptions{})
-
-	if err != nil {
-		return err
-	}
-
-	log.Printf("[INFO] *** Waiting for DELETE on pod %v ...", *n)
-
-	for e := range w.ResultChan() {
-		log.Printf("[DEBUG] Watch Probe Type: %v", e.Type)
-		p, ok := e.Object.(*apiv1.Pod)
-		if !ok {
-			log.Printf("[WARN] Unexpected Watch Probe Type received for pod %v - skipping", p.GetObjectMeta().GetName())
-			break
-		}
-		log.Printf("[INFO] Watch Container phase: %v", p.Status.Phase)
-		log.Printf("[DEBUG] Watch Container status: %+v", p.Status.ContainerStatuses)
-
-		if e.Type == "DELETED" {
-			summary.State.GetProbeLog(probeName).CountPodDestroyed()
-			log.Printf("[INFO] DELETED probe received for pod %v", p.GetObjectMeta().GetName())
-			break
-		}
-
-	}
-
-	log.Printf("[INFO] *** Completed waiting for DELETE on pod %v", *n)
-
-	return nil
-}
-
-func homeDir() string {
-	if h := os.Getenv("HOME"); h != "" {
-		return h
-	}
-	return os.Getenv("USERPROFILE") // windows
-}
-
-func getConfigPathFromEnv() string {
-	return config.Vars.ServicePacks.Kubernetes.KubeConfigPath
-}
-
-func logCmd(c *string, p *string, n *string) {
-	log.Printf("[NOTICE] Executing command: \"%v\" on POD '%v' in namespace '%v'", *c, *p, *n)
 }

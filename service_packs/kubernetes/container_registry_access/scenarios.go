@@ -10,7 +10,6 @@ import (
 	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/service_packs/kubernetes"
-	k8s_logic "github.com/citihub/probr/service_packs/kubernetes/probe_logic"
 )
 
 type ProbeStruct struct{}
@@ -40,7 +39,7 @@ func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 func (s *scenarioState) iAmAuthorisedToPullFromAContainerRegistry() error {
 	pod, podAudit, err := cra.SetupContainerAccessProbePod(config.Vars.ContainerRegistry)
 
-	err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pod, k8s_logic.PSPContainerAllowedImages, err)
+	err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
 
 	description := fmt.Sprintf("Creates a new pod using an image from %s. Passes if image successfully pulls and pod is built.", config.Vars.ContainerRegistry)
 	payload := kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
@@ -64,7 +63,7 @@ func (s *scenarioState) thePushRequestIsRejectedDueToAuthorization() error {
 func (s *scenarioState) aUserAttemptsToDeployAContainerFrom(auth string, registry string) error {
 	pod, podAudit, err := cra.SetupContainerAccessProbePod(registry)
 
-	err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pod, k8s_logic.PSPContainerAllowedImages, err)
+	err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
 
 	description := fmt.Sprintf("Attempts to deploy a container from %s. Retains pod creation result in scenario state. Passes so long as user is authorized to deploy containers.", registry)
 	payload := kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
@@ -94,7 +93,7 @@ func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	//check dependancies ...
 	if cra == nil {
 		// not been given one so set default
-		cra = k8s_logic.NewDefaultCRA()
+		cra = kubernetes.NewDefaultCRA()
 	}
 }
 

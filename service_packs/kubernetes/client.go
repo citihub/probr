@@ -1,4 +1,4 @@
-package k8s_logic
+package kubernetes
 
 import (
 	"log"
@@ -6,6 +6,7 @@ import (
 	"github.com/citihub/probr/internal/config"
 
 	"k8s.io/client-go/kubernetes"
+	k8s "k8s.io/client-go/kubernetes"
 	restclient "k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -15,7 +16,7 @@ import (
 )
 
 //GetClient gets a client connection to the Kubernetes cluster specifed via config.Vars.ServicePacks.Kubernetes.KubeConfigPath
-func (k *Kube) GetClient() (*kubernetes.Clientset, error) {
+func (k *Kube) GetClient() (*k8s.Clientset, error) {
 	k.clientMutex.Lock()
 	defer k.clientMutex.Unlock()
 

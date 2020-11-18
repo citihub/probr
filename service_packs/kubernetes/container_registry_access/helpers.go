@@ -7,7 +7,6 @@ import (
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/service_packs/kubernetes"
-	k8s_logic "github.com/citihub/probr/service_packs/kubernetes/probe_logic"
 	"github.com/cucumber/godog"
 	apiv1 "k8s.io/api/core/v1"
 )
@@ -21,13 +20,13 @@ const (
 // ContainerRegistryAccess interface defines the methods to support container registry access tests.
 type ContainerRegistryAccess interface {
 	ClusterIsDeployed() *bool
-	SetupContainerAccessProbePod(r string) (*apiv1.Pod, *k8s_logic.PodAudit, error)
+	SetupContainerAccessProbePod(r string) (*apiv1.Pod, *kubernetes.PodAudit, error)
 	TeardownContainerAccessProbePod(p *string, e string) error
 }
 
 // CRA implements the ContainerRegistryAccess interface.
 type CRA struct {
-	k k8s_logic.Kubernetes
+	k kubernetes.Kubernetes
 }
 
 type scenarioState struct {
@@ -42,7 +41,7 @@ type scenarioState struct {
 }
 
 // NewCRA creates a new CRA with the supplied kubernetes instance.
-func NewCRA(k k8s_logic.Kubernetes) *CRA {
+func NewCRA(k kubernetes.Kubernetes) *CRA {
 	c := &CRA{}
 	c.k = k
 
@@ -52,7 +51,7 @@ func NewCRA(k k8s_logic.Kubernetes) *CRA {
 // NewDefaultCRA creates a new CRA using the default kubernetes instance.
 func NewDefaultCRA() *CRA {
 	c := &CRA{}
-	c.k = k8s_logic.GetKubeInstance()
+	c.k = kubernetes.GetKubeInstance()
 
 	return c
 }
@@ -63,10 +62,10 @@ func (c *CRA) ClusterIsDeployed() *bool {
 }
 
 //SetupContainerAccessProbePod creates a pod with characteristics required for testing container access.
-func (c *CRA) SetupContainerAccessProbePod(r string) (*apiv1.Pod, *k8s_logic.PodAudit, error) {
+func (c *CRA) SetupContainerAccessProbePod(r string) (*apiv1.Pod, *kubernetes.PodAudit, error) {
 	//full image is the repository + the configured image
 	i := r + "/" + config.Vars.ProbeImage
-	pname := k8s_logic.GenerateUniquePodName(caPodNameBase + "-" + strings.ReplaceAll(r, ".", "-"))
+	pname := kubernetes.GenerateUniquePodName(caPodNameBase + "-" + strings.ReplaceAll(r, ".", "-"))
 	ns, cname := caNamespace, caContainer
 	// let caller handle result ...
 	return c.k.CreatePod(pname, ns, cname, i, true, nil)
