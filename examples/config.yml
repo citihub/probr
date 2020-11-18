@@ -6,7 +6,7 @@ SummaryEnabled: true
 ImagesRepository:
 ServicePacks:
   Kubernetes:
-    KubeConfig: .kube/config
+    KubeConfig:
     KubeContext:
 CloudProviders:
   Azure:
@@ -24,11 +24,11 @@ Probes: # this entire object can be left out if all tests are to be run
     Justification: "demo"
 
   - Name: container_registry_access
-    Excluded: false
+    Excluded: true
     Justification: "demo"
 
   - Name: general
-    Excluded: false
+    Excluded: true
     Justification: "demo"
 
   - Name: iam_control
@@ -36,9 +36,9 @@ Probes: # this entire object can be left out if all tests are to be run
     Justification: "demo"
 
   - Name: internet_access
-    Excluded: false
+    Excluded: true
     Justification: "demo"
 
   - Name: pod_security_policy
-    Excluded: false
+    Excluded: true
     Justification: "demo"
