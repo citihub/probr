@@ -24,7 +24,7 @@ var packrBox *packr.Box
 var packs map[string][]probe
 
 func init() {
-	packrBox = packr.New("box", "")
+	packrBox = packr.New("box", "") // Allows static filepaths within this directory to be referenced even within the binary
 	packs = make(map[string][]probe)
 	packs["kubernetes"] = []probe{
 		container_registry_access.Probe,
@@ -41,7 +41,7 @@ func makeGodogProbe(pack string, p probe) *coreengine.GodogProbe {
 		ProbeDescriptor:     &pd,
 		ProbeInitializer:    p.ProbeInitialize,
 		ScenarioInitializer: p.ScenarioInitialize,
-		FeaturePath:         filepath.Join(packrBox.ResolutionDir, pack, p.Name(), "probe.feature"),
+		FeaturePath:         filepath.Join(packrBox.ResolutionDir, pack, p.Name(), p.Name()+".feature"),
 	}
 }
 
