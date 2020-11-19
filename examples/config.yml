@@ -1,9 +1,10 @@
+# Empty and omitted keys will use default values
 AuditEnabled: true
 AuditDir: audit_output
 CucumberDir: cucumber_output
 OverwriteHistoricalAudits: true
 SummaryEnabled: true
-ImagesRepository:
+ContainerRegistry:
 ServicePacks:
   Kubernetes:
     KubeConfig:
@@ -24,21 +25,21 @@ Probes: # this entire object can be left out if all tests are to be run
     Justification: "demo"
 
   - Name: container_registry_access
-    Excluded: true
+    Excluded: false
     Justification: "demo"
 
   - Name: general
-    Excluded: true
+    Excluded: false
     Justification: "demo"
 
-  - Name: iam_control
+  - Name: iam
     Excluded: false
     Justification: "demo"
 
   - Name: internet_access
-    Excluded: true
+    Excluded: false
     Justification: "demo"
 
   - Name: pod_security_policy
-    Excluded: true
+    Excluded: false
     Justification: "demo"
