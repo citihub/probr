@@ -271,7 +271,7 @@ func (k *Kube) CreatePodFromObject(pod *apiv1.Pod, podName string, ns string, wa
 			return res, err
 		}
 	}
-	probe.CountPodCreated()
+	probe.CountPodCreated(podName)
 	log.Printf("[INFO] POD %q creation completed. Pod is up and running.", res.GetObjectMeta().GetName())
 	return res, nil
 }
