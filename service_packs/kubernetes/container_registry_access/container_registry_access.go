@@ -37,11 +37,11 @@ func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 // CIS-6.1.3
 // Minimize cluster access to read-only
 func (s *scenarioState) iAmAuthorisedToPullFromAContainerRegistry() error {
-	pod, podAudit, err := cra.SetupContainerAccessProbePod(config.Vars.ContainerRegistry, s.probe)
+	pod, podAudit, err := cra.SetupContainerAccessProbePod(config.Vars.AuthorisedContainerRegistry, s.probe)
 
 	err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
 
-	description := fmt.Sprintf("Creates a new pod using an image from %s. Passes if image successfully pulls and pod is built.", config.Vars.ContainerRegistry)
+	description := fmt.Sprintf("Creates a new pod using an image from %s. Passes if image successfully pulls and pod is built.", config.Vars.AuthorisedContainerRegistry)
 	payload := kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
 	s.audit.AuditScenarioStep(description, payload, err)
 

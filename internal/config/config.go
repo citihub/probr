@@ -22,7 +22,6 @@ type ConfigVars struct {
 	AuditEnabled                  string         `yaml:"AuditEnabled"`
 	LogLevel                      string         `yaml:"LogLevel"`
 	OverwriteHistoricalAudits     string         `yaml:"OverwriteHistoricalAudits"`
-	ContainerRegistry             string         `yaml:"ContainerRegistry"`
 	AuthorisedContainerRegistry   string         `yaml:"AuthorisedContainerRegistry"`
 	UnauthorisedContainerRegistry string         `yaml:"UnauthorisedContainerRegistry"`
 	ProbeImage                    string         `yaml:"ProbeImage"`
