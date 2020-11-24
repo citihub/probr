@@ -196,9 +196,10 @@ func (k *Kube) CreatePod(podName string, ns string, containerName string, image 
 func (k *Kube) CreatePodFromYaml(y []byte, pname string, ns string, image string, aadpodidbinding string, w bool, probe *summary.Probe) (*apiv1.Pod, error) {
 	approvedImage := config.Vars.AuthorisedContainerRegistry + "/" + config.Vars.ProbeImage
 	podSpec := utils.ReplaceBytesValue(y, "{{ probr-compatible-image }}", approvedImage)
-	decode := scheme.Codecs.UniversalDeserializer().Decode
-
-	o, _, _ := decode(podSpec, nil, nil)
+	o, _, err := scheme.Codecs.UniversalDeserializer().Decode(podSpec, nil, nil)
+	if err != nil {
+		log.Printf("[ERROR] could not create pod from yaml asset: %v", err)
+	}
 
 	p := o.(*apiv1.Pod)
 	//update the name to the one that's supplied
@@ -217,7 +218,6 @@ func (k *Kube) CreatePodFromYaml(y []byte, pname string, ns string, image string
 		}
 		p.Labels["aadpodidbinding"] = aadpodidbinding
 	}
-
 	return k.CreatePodFromObject(p, pname, ns, w, probe)
 }
 

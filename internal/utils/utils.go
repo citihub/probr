@@ -4,10 +4,8 @@ package utils
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"path/filepath"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"github.com/gobuffalo/packr/v2"
@@ -79,11 +77,10 @@ func BoxStaticFile(boxName string, path ...string) *packr.Box {
 
 func ReplaceBytesValue(b []byte, old string, new string) []byte {
 	newString := strings.Replace(string(b), old, new, -1)
-	log.Printf("[ERROR] %s", newString)
-	var bytes []byte
-	for _, ps := range strings.Split(strings.Trim(newString, "[]"), " ") {
-		pi, _ := strconv.Atoi(ps)
-		bytes = append(bytes, byte(pi))
-	}
-	return bytes
+	return []byte(newString)
+}
+
+// Placeholder error in case function panics
+func PanicPrecaution() error {
+	return fmt.Errorf("This probe panicked and could not return a verbose error.")
 }

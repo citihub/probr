@@ -496,6 +496,8 @@ func (s *scenarioState) anPortRangeIsRequestedForTheKubernetesDeployment(portRan
 
 	var y []byte
 	var err error
+	description := ""
+	var payload interface{}
 
 	if portRange == "unapproved" {
 		y, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-hostport-unapproved.yaml")
@@ -508,8 +510,6 @@ func (s *scenarioState) anPortRangeIsRequestedForTheKubernetesDeployment(portRan
 		err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPAllowedPortRange, err)
 	}
 
-	description := ""
-	var payload interface{}
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
@@ -541,6 +541,8 @@ func (s *scenarioState) anVolumeTypeIsRequestedForTheKubernetesDeployment(volume
 
 	var y []byte
 	var err error
+	description := ""
+	var payload interface{}
 
 	if volumeType == "unapproved" {
 		y, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-volumetypes-unapproved.yaml")
@@ -553,8 +555,6 @@ func (s *scenarioState) anVolumeTypeIsRequestedForTheKubernetesDeployment(volume
 		err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPAllowedVolumeTypes, err)
 	}
 
-	description := ""
-	var payload interface{}
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
@@ -582,6 +582,8 @@ func (s *scenarioState) anSeccompProfileIsRequestedForTheKubernetesDeployment(se
 
 	var y []byte
 	var err error
+	description := ""
+	var payload interface{}
 
 	if seccompProfile == "unapproved" {
 		y, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-seccomp-unapproved.yaml")
@@ -596,8 +598,6 @@ func (s *scenarioState) anSeccompProfileIsRequestedForTheKubernetesDeployment(se
 		err = kubernetes.ProcessPodCreationResult(s.probe, &s.podState, pd, kubernetes.PSPSeccompProfile, err)
 	}
 
-	description := ""
-	var payload interface{}
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
