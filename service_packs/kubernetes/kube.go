@@ -194,10 +194,11 @@ func (k *Kube) CreatePod(podName string, ns string, containerName string, image 
 // CreatePodFromYaml creates a pod for the supplied yaml.  A true value for 'w' indicates that the function
 // should wait (block) until the pod is in a running state.
 func (k *Kube) CreatePodFromYaml(y []byte, pname string, ns string, image string, aadpodidbinding string, w bool, probe *summary.Probe) (*apiv1.Pod, error) {
-
+	approvedImage := config.Vars.AuthorisedContainerRegistry + "/" + config.Vars.ProbeImage
+	podSpec := utils.ReplaceBytesValue(y, "{{ probr-compatible-image }}", approvedImage)
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 
-	o, _, _ := decode(y, nil, nil)
+	o, _, _ := decode(podSpec, nil, nil)
 
 	p := o.(*apiv1.Pod)
 	//update the name to the one that's supplied

@@ -21,11 +21,11 @@ CloudProviders:
       DefaultNamespaceAIB:
 Probes: # this entire object can be left out if all tests are to be run
   - Name: container_registry_access
-    Excluded: false
+    Excluded: true
     Justification: "demo"
 
   - Name: general
-    Excluded: false
+    Excluded: true
     Justification: "demo"
 
   - Name: iam
@@ -37,5 +37,5 @@ Probes: # this entire object can be left out if all tests are to be run
     Justification: "demo"
 
   - Name: pod_security_policy
-    Excluded: true
+    Excluded: false
     Justification: "demo"
