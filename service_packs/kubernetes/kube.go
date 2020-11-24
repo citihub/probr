@@ -385,7 +385,7 @@ func (k *Kube) ExecCommand(cmd, ns, pn *string) (s *CmdExecutionResult) {
 	if cmd == nil {
 		return &CmdExecutionResult{Err: fmt.Errorf("command string is nil - nothing to execute"), Internal: true}
 	}
-	log.Printf("[NOTICE] Executing command: \"%v\" on POD '%v' in namespace '%v'", cmd, pn, ns)
+	log.Printf("[NOTICE] Executing command: \"%s\" on POD '%s' in namespace '%s'", *cmd, *pn, *ns)
 	c, err := k.GetClient()
 	if err != nil {
 		return &CmdExecutionResult{Err: err, Internal: true}
@@ -410,7 +410,7 @@ func (k *Kube) ExecCommand(cmd, ns, pn *string) (s *CmdExecutionResult) {
 
 	req.VersionedParams(&options, parameterCodec)
 
-	log.Printf("[INFO] ExecCommand Request URL: %v", req.URL().String())
+	log.Printf("[INFO] %s.%s: ExecCommand Request URL: %v", utils.CallerName(2), utils.CallerName(1), req.URL().String())
 
 	config, err := clientcmd.BuildConfigFromFlags("", config.Vars.ServicePacks.Kubernetes.KubeConfigPath)
 	exec, err := remotecommand.NewSPDYExecutor(config, "POST", req.URL())
