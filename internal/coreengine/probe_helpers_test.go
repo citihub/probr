@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/cucumber/godog"
-	"github.com/cucumber/messages-go/v10"
 
 	"github.com/citihub/probr/internal/config"
 )

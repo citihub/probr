@@ -24,7 +24,7 @@ type ConfigVars struct {
 	AuthorisedContainerRegistry   string           `yaml:"AuthorisedContainerRegistry"`
 	UnauthorisedContainerRegistry string           `yaml:"UnauthorisedContainerRegistry"`
 	ProbeImage                    string           `yaml:"ProbeImage"`
-	ProbeExclusions               []probeExclusion `yaml:"ProbeExclusions"`
+	ProbeExclusions               []ProbeExclusion `yaml:"ProbeExclusions"`
 	TagExclusions                 []string         `yaml:"TagExclusions"`
 	Tags                          string           // set by flags
 	VarsFile                      string           // set by flags only
@@ -58,7 +58,7 @@ type azure struct {
 	}
 }
 
-type probeExclusion struct {
+type ProbeExclusion struct {
 	Name          string `yaml:"Name"`
 	Excluded      bool   `yaml:"Excluded"`
 	Justification string `yaml:"Justification"`
