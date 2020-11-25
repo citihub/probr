@@ -66,20 +66,3 @@ func TestScenarioString(t *testing.T) {
 		t.Fail()
 	}
 }
-
-func TestTagsNotExcluded(t *testing.T) {
-	tags := []*messages.Pickle_PickleTag{
-		&messages.Pickle_PickleTag{Name: "@test-tag", AstNodeId: "123"},
-	}
-
-	if !TagsNotExcluded(tags) {
-		t.Logf("Non-excluded tag is being reported as excluded")
-		t.Fail()
-	}
-
-	config.Vars.TagExclusions = []string{"test-tag"}
-	if TagsNotExcluded(tags) {
-		t.Logf("Excluded tag is being reported as not excluded")
-		t.Fail()
-	}
-}
