@@ -26,20 +26,20 @@ func TestNewProbeStore(t *testing.T) {
 	}
 }
 
-func TestTagIsExcluded(t *testing.T) {
-	config.Vars.TagExclusions = []string{"tag_name"}
-	if tagIsExcluded("not_tag_name") {
-		t.Logf("Non-excluded tag was excluded")
+func TestProbeIsExcluded(t *testing.T) {
+	config.Vars.ProbeExclusions = []string{"probe_name"}
+	if probeIsExcluded("not_probe_name") {
+		t.Logf("Non-excluded probe was excluded")
 		t.Fail()
 	}
-	if !tagIsExcluded("tag_name") {
-		t.Logf("Excluded tag was not excluded")
+	if !probeIsExcluded("probe_name") {
+		t.Logf("Excluded probe was not excluded")
 		t.Fail()
 	}
 }
 
 func TestIsExcluded(t *testing.T) {
-	config.Vars.TagExclusions = []string{"excluded_probe"}
+	config.Vars.ProbeExclusions = []string{"excluded_probe"}
 	pd := ProbeDescriptor{Group: Kubernetes, Name: "good_probe"}
 	pd_excluded := ProbeDescriptor{Group: Kubernetes, Name: "excluded_probe"}
 
@@ -56,7 +56,7 @@ func TestIsExcluded(t *testing.T) {
 func TestAddProbe(t *testing.T) {
 	probe_name := "test probe"
 	excluded_probe_name := "different test probe"
-	config.Vars.TagExclusions = []string{excluded_probe_name}
+	config.Vars.ProbeExclusions = []string{excluded_probe_name}
 	ps := NewProbeStore()
 	ps.AddProbe(createProbeObj(probe_name))
 	ps.AddProbe(createProbeObj(excluded_probe_name))
