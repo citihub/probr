@@ -43,8 +43,8 @@ func (s *SummaryState) SetProbrStatus() {
 	} else {
 		s.Status = fmt.Sprintf("Complete - %v of %v Probes Failed", s.ProbesFailed, (len(s.Probes) - s.ProbesSkipped))
 	}
-	if config.Vars.ProbeExclusions != nil {
-		s.Meta["probe_tags_from_config"] = config.Vars.ProbeExclusions
+	if config.Vars.ServicePacks.Kubernetes.ProbeExclusions != nil {
+		s.Meta["probe_tags_from_config"] = config.Vars.ServicePacks.Kubernetes.ProbeExclusions
 	}
 }
 

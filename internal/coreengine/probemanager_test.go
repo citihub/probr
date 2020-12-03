@@ -15,7 +15,7 @@ func createProbeObj(name string) *GodogProbe {
 	return &GodogProbe{
 		ProbeDescriptor: &ProbeDescriptor{
 			Name:  name,
-			Group: Kubernetes,
+			ServicePack: Kubernetes,
 		},
 	}
 }
@@ -53,8 +53,8 @@ func TestIsExcluded(t *testing.T) {
 		Excluded:      true,
 		Justification: "testing",
 	}}
-	pd := ProbeDescriptor{Group: Kubernetes, Name: probe_name}
-	pd_excluded := ProbeDescriptor{Group: Kubernetes, Name: excluded_probe_name}
+	pd := ProbeDescriptor{ServicePack: Kubernetes, Name: probe_name}
+	pd_excluded := ProbeDescriptor{ServicePack: Kubernetes, Name: excluded_probe_name}
 
 	if pd.isExcluded() {
 		t.Logf("Non-excluded probe was excluded")

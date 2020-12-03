@@ -1,4 +1,4 @@
-package encryption_in_flight_azure
+package encryption_in_flight
 
 import (
 	"flag"

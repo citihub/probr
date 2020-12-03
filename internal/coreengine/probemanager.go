@@ -29,24 +29,23 @@ func (s ProbeStatus) String() string {
 	return [...]string{"Pending", "Running", "CompleteSuccess", "CompleteFail", "Error", "Excluded"}[s]
 }
 
-// Group type describes the group to which the test belongs, e.g. kubernetes, clouddriver, coreengine, etc.
-type Group int
+// ServicePack type describes the group to which the test belongs, e.g. kubernetes, clouddriver, coreengine, etc.
+type ServicePack int
 
-// Group type enumeration
+// ServicePack type enumeration
 const (
-	Kubernetes Group = iota
-	CloudDriver
-	CoreEngine
+	Kubernetes ServicePack = iota
+	Storage
 )
 
-func (g Group) String() string {
-	return [...]string{"kubernetes", "clouddriver", "coreengine"}[g]
+func (g ServicePack) String() string {
+	return [...]string{"kubernetes", "storage"}[g]
 }
 
 // ProbeDescriptor describes the specific test case and includes name and group.
 type ProbeDescriptor struct {
-	Group Group  `json:"group,omitempty"`
-	Name  string `json:"name,omitempty"`
+	ServicePack ServicePack `json:"group,omitempty"`
+	Name        string      `json:"name,omitempty"`
 }
 
 // ProbeStore maintains a collection of probes to be run and their status.  FailedProbes is an explicit
@@ -81,7 +80,7 @@ func (ps *ProbeStore) AddProbe(probe *GodogProbe) {
 	ps.Probes[probe.ProbeDescriptor.Name] = probe
 
 	summary.State.GetProbeLog(probe.ProbeDescriptor.Name).Result = probe.Status.String()
-	summary.State.LogProbeMeta(probe.ProbeDescriptor.Name, "group", probe.ProbeDescriptor.Group.String())
+	summary.State.LogProbeMeta(probe.ProbeDescriptor.Name, "ServicePack", probe.ProbeDescriptor.ServicePack.String())
 }
 
 // GetProbe returns the test identified by the given name.
@@ -130,18 +129,28 @@ func (ps *ProbeStore) ExecAllProbes() (int, error) {
 }
 
 func (pd *ProbeDescriptor) isExcluded() bool {
-	v := []string{pd.Name, pd.Group.String()} // iterable name & group strings
-	for _, r := range v {
-		if probeIsExcluded(r) {
+	switch pd.ServicePack.String() {
+	case "kubernetes":
+		if config.Vars.ServicePacks.Kubernetes.Excluded {
 			return true
+		} else {
+			return probeIsExcluded(pd.Name, config.Vars.ServicePacks.Kubernetes.ProbeExclusions)
 		}
+	case "storage":
+		if config.Vars.ServicePacks.Storage.Excluded {
+			return true
+		} else {
+			return probeIsExcluded(pd.Name, config.Vars.ServicePacks.Storage.ProbeExclusions)
+		}
+	default:
+		log.Printf("[ERROR] unknown servoce pack %s", pd.ServicePack.String())
+		return true
 	}
-	return false
 }
 
-func probeIsExcluded(name string) bool {
-	for _, exclusion := range config.Vars.ProbeExclusions {
-		if exclusion.Excluded && name == exclusion.Name {
+func probeIsExcluded(name string, probeExclusions []config.ProbeExclusion) bool {
+	for _, probeExclusion := range probeExclusions {
+		if probeExclusion.Excluded && name == probeExclusion.Name {
 			return true
 		}
 	}

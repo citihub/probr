@@ -25,10 +25,10 @@ ServicePacks:
       Excluded: false
       Justification: "demo"
     - Name: pod_security_policy
-      Excluded: true
+      Excluded: false
       Justification: "demo"
   Storage:
-    Excluded: true
+    Excluded: false
     ProbeExclusions: # allows specific probes to be disabled by name
 CloudProviders:
   Azure:
@@ -41,4 +41,4 @@ CloudProviders:
       DefaultNamespaceAI:
       DefaultNamespaceAIB:
 TagExclusions: # allows specific controls/scenarios to be disabled via tags
-  - CIS-6.1.4
+#  - CIS-6.1.4

@@ -30,6 +30,7 @@ type ConfigVars struct {
 
 type servicePacks struct {
 	Kubernetes kubernetes `yaml:"Kubernetes"`
+	Storage    storage    `yaml:"Storage"`
 }
 
 type cloudProviders struct {
@@ -37,6 +38,7 @@ type cloudProviders struct {
 }
 
 type kubernetes struct {
+	Excluded                      bool             `yaml:"Excluded"`
 	KubeConfigPath                string           `yaml:"KubeConfig"`
 	KubeContext                   string           `yaml:"KubeContext"`
 	SystemClusterRoles            []string         `yaml:"SystemClusterRoles"`
@@ -44,6 +46,11 @@ type kubernetes struct {
 	UnauthorisedContainerRegistry string           `yaml:"UnauthorisedContainerRegistry"`
 	ProbeImage                    string           `yaml:"ProbeImage"`
 	ProbeExclusions               []ProbeExclusion `yaml:"ProbeExclusions"`
+}
+
+type storage struct {
+	Excluded        bool             `yaml:"Excluded"`
+	ProbeExclusions []ProbeExclusion `yaml:"ProbeExclusions"`
 }
 
 type azure struct {

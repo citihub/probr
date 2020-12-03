@@ -1,4 +1,4 @@
-package encryption_in_flight_azure
+package encryption_in_flight
 
 import (
 	"context"
@@ -51,6 +51,8 @@ type EncryptionInFlightAzure struct {
 	httpsOption               bool
 	policyAssignmentMgmtGroup string
 }
+
+var state EncryptionInFlight
 
 func (state *EncryptionInFlightAzure) setup() {
 	log.Println("[DEBUG] Setting up \"EncryptionInFlightAzure\"")
@@ -207,12 +209,22 @@ func (p ProbeStruct) Name() string {
 
 // ProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
 // test handler as part of the init() function.
-func (p ProbeStruct) ProbeInitialize(ctx *godog.Suite) {
-
-	// logfilter.Setup()
+//func (p ProbeStruct) ProbeInitialize(ctx *godog.Suite) {
+func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	var state EncryptionInFlight
 
 	ctx.BeforeSuite(state.setup)
+
+	ctx.AfterSuite(state.teardown)
+}
+
+// initialises the scenario
+func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
+	ps := scenarioState{}
+
+	ctx.BeforeScenario(func(s *godog.Scenario) {
+		beforeScenario(&ps, p.Name(), s)
+	})
 
 	ctx.Step(`^security controls that restrict data from being unencrypted in flight$`, state.securityControlsThatRestrictDataFromBeingUnencryptedInFlight)
 	ctx.Step(`^we provision an Object Storage bucket$`, state.weProvisionAnObjectStorageBucket)
@@ -225,17 +237,6 @@ func (p ProbeStruct) ProbeInitialize(ctx *godog.Suite) {
 	ctx.Step(`^Object Storage is created with unencrypted data transfer enabled$`, state.createUnencryptedTransferObjectStorage)
 	ctx.Step(`^the detective capability detects the creation of Object Storage with unencrypted data transfer enabled$`, state.detectsTheObjectStorage)
 	ctx.Step(`^the detective capability enforces encrypted data transfer on the Object Storage Bucket$`, state.encryptedDataTrafficIsEnforced)
-
-	ctx.AfterSuite(state.teardown)
-}
-
-// initialises the scenario
-func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
-	ps := scenarioState{}
-
-	ctx.BeforeScenario(func(s *godog.Scenario) {
-		beforeScenario(&ps, p.Name(), s)
-	})
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		coreengine.LogScenarioEnd(s)

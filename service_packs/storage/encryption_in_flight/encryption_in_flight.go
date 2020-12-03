@@ -1,4 +1,4 @@
-package encryption_in_flight_azure
+package encryption_in_flight
 
 // EncryptionInFlight is an interface. For each CSP specific implementation
 type EncryptionInFlight interface {
