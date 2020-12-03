@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	"citihub.com/compliance-as-code/internal/logfilter"
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 )
@@ -52,7 +51,7 @@ func TestMain(m *testing.M) {
 }
 
 func FeatureContext(s *godog.Suite) {
-	logfilter.Setup()
+	//	logfilter.Setup()
 	var state EncryptionAtRest
 
 	cspEnv := strings.ToLower(os.Getenv(csp))
@@ -60,7 +59,7 @@ func FeatureContext(s *godog.Suite) {
 	case "azure":
 		state = &EncryptionAtRestAzure{}
 	case "aws":
-		state = &EncryptionAtRestAWS{}
+		//		state = &EncryptionAtRestAWS{}
 	default:
 		log.Panicf("Environment variable CSP is defined as \"%s\"", cspEnv)
 	}
