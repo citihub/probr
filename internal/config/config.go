@@ -13,23 +13,19 @@ import (
 // ConfigVars contains all possible config vars
 type ConfigVars struct {
 	// NOTE: Env and Defaults are ONLY available if corresponding logic is added to defaults.go and getters.go
-	ServicePacks                  servicePacks     `yaml:"ServicePacks"`
-	CloudProviders                cloudProviders   `yaml:"CloudProviders"`
-	OutputType                    string           `yaml:"OutputType"`
-	CucumberDir                   string           `yaml:"CucumberDir"`
-	AuditDir                      string           `yaml:"AuditDir"`
-	AuditEnabled                  string           `yaml:"AuditEnabled"`
-	LogLevel                      string           `yaml:"LogLevel"`
-	OverwriteHistoricalAudits     string           `yaml:"OverwriteHistoricalAudits"`
-	AuthorisedContainerRegistry   string           `yaml:"AuthorisedContainerRegistry"`
-	UnauthorisedContainerRegistry string           `yaml:"UnauthorisedContainerRegistry"`
-	ProbeImage                    string           `yaml:"ProbeImage"`
-	ProbeExclusions               []ProbeExclusion `yaml:"ProbeExclusions"`
-	TagExclusions                 []string         `yaml:"TagExclusions"`
-	Tags                          string           // set by flags
-	VarsFile                      string           // set by flags only
-	NoSummary                     bool             // set by flags only
-	Silent                        bool             // set by flags only
+	ServicePacks              servicePacks   `yaml:"ServicePacks"`
+	CloudProviders            cloudProviders `yaml:"CloudProviders"`
+	OutputType                string         `yaml:"OutputType"`
+	CucumberDir               string         `yaml:"CucumberDir"`
+	AuditDir                  string         `yaml:"AuditDir"`
+	AuditEnabled              string         `yaml:"AuditEnabled"`
+	LogLevel                  string         `yaml:"LogLevel"`
+	OverwriteHistoricalAudits string         `yaml:"OverwriteHistoricalAudits"`
+	TagExclusions             []string       `yaml:"TagExclusions"`
+	Tags                      string         // set by flags
+	VarsFile                  string         // set by flags only
+	NoSummary                 bool           // set by flags only
+	Silent                    bool           // set by flags only
 }
 
 type servicePacks struct {
@@ -41,9 +37,13 @@ type cloudProviders struct {
 }
 
 type kubernetes struct {
-	KubeConfigPath     string   `yaml:"KubeConfig"`
-	KubeContext        string   `yaml:"KubeContext"`
-	SystemClusterRoles []string `yaml:"SystemClusterRoles"`
+	KubeConfigPath                string           `yaml:"KubeConfig"`
+	KubeContext                   string           `yaml:"KubeContext"`
+	SystemClusterRoles            []string         `yaml:"SystemClusterRoles"`
+	AuthorisedContainerRegistry   string           `yaml:"AuthorisedContainerRegistry"`
+	UnauthorisedContainerRegistry string           `yaml:"UnauthorisedContainerRegistry"`
+	ProbeImage                    string           `yaml:"ProbeImage"`
+	ProbeExclusions               []ProbeExclusion `yaml:"ProbeExclusions"`
 }
 
 type azure struct {
@@ -148,7 +148,7 @@ func ValidateConfigPath(path string) error {
 
 // Check that probe exclusions are justified
 func (ctx *ConfigVars) validateProbeExclusions() {
-	for _, v := range ctx.ProbeExclusions {
+	for _, v := range ctx.ServicePacks.Kubernetes.ProbeExclusions {
 		if v.Excluded {
 			if v.Justification == "" {
 				log.Fatalf("[ERROR] A justification must be provided for the probe exclusion '%s'", v.Name)
@@ -157,6 +157,7 @@ func (ctx *ConfigVars) validateProbeExclusions() {
 	}
 }
 
+// Log the config state
 func LogConfigState() {
 	s, _ := json.MarshalIndent(Vars, "", "  ")
 	log.Printf("[NOTICE] Config State: %s", s)

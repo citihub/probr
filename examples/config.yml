@@ -3,12 +3,33 @@ AuditEnabled: true
 AuditDir: audit_output
 CucumberDir: cucumber_output
 OverwriteHistoricalAudits: true
-AuthorisedContainerRegistry: citihubprod.azurecr.io
-UnauthorisedContainerRegistry: docker.io
 ServicePacks:
   Kubernetes:
+    Excluded: false
     KubeConfig: 
     KubeContext:
+    AuthorisedContainerRegistry: citihubprod.azurecr.io
+    UnauthorisedContainerRegistry: docker.io
+    ProbeImage: citihub/probr-probe
+    ProbeExclusions: # allows specific probes to be disabled by name
+    - Name: container_registry_access
+      Excluded: false
+      Justification: "demo"
+    - Name: general
+      Excluded: false
+      Justification: "demo"
+    - Name: iam
+      Excluded: false
+      Justification: "demo"
+    - Name: internet_access
+      Excluded: false
+      Justification: "demo"
+    - Name: pod_security_policy
+      Excluded: true
+      Justification: "demo"
+  Storage:
+    Excluded: true
+    ProbeExclusions: # allows specific probes to be disabled by name
 CloudProviders:
   Azure:
     SubscriptionID: 1234
@@ -19,25 +40,5 @@ CloudProviders:
     Identity:
       DefaultNamespaceAI:
       DefaultNamespaceAIB:
-ProbeExclusions: # allows specific probes to be disabled by name
-  - Name: container_registry_access
-    Excluded: false
-    Justification: "demo"
-
-  - Name: general
-    Excluded: false
-    Justification: "demo"
-
-  - Name: iam
-    Excluded: false
-    Justification: "demo"
-
-  - Name: internet_access
-    Excluded: false
-    Justification: "demo"
-
-  - Name: pod_security_policy
-    Excluded: true
-    Justification: "demo"
 TagExclusions: # allows specific controls/scenarios to be disabled via tags
   - CIS-6.1.4

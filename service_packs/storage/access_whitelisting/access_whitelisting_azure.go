@@ -13,7 +13,7 @@ import (
 	"github.com/citihub/probr/internal/azureutil"
 	"github.com/citihub/probr/internal/azureutil/group"
 	"github.com/citihub/probr/internal/azureutil/policy"
-	"github.com/citihub/probr/internal/azureutil/storage"
+	"github.com/citihub/probr/service_packs/storage"
 )
 
 const (
