@@ -107,9 +107,8 @@ func AssertResult(s *PodState, res, msg string) error {
 
 	if res == "Fail" || res == "denied" {
 		//expect pod creation error to be non-null
-		if s.CreationError == nil || len(s.CreationError.ReasonCodes) == 0 {
+		if s.CreationError == nil {
 			//it's a fail:
-			log.Printf("[ERROR] --> %v", s.CreationError.err)
 			return utils.ReformatError("pod %v was created - test failed", s.PodName)
 		}
 		//should also check code:

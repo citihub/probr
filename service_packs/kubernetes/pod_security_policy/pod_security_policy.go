@@ -312,8 +312,8 @@ func (s *scenarioState) privilegedEscalationIsMarkedForTheKubernetesDeployment(p
 	description := "Attempt to create a pod with privilege escalation set to " + allowPrivilegeEscalation
 
 	y, err := utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-privileges.yaml")
-	yaml := utils.ReplaceBytesValue(y, "{{ allowPrivilegeEscalation }}", allowPrivilegeEscalation)
 	if err == nil {
+		yaml := utils.ReplaceBytesValue(y, "{{ allowPrivilegeEscalation }}", allowPrivilegeEscalation)
 		pd, err := psp.CreatePodFromYaml(yaml, s.probe)
 		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPNoPrivilegeEscalation, err)
 	}
