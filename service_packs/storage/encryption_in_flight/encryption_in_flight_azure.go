@@ -204,14 +204,13 @@ func (state *EncryptionInFlightAzure) encryptedDataTrafficIsEnforced() error {
 
 // Return this probe's name
 func (p ProbeStruct) Name() string {
-	return "encryption_in_flight_azure"
+	return "encryption_in_flight"
 }
 
 // ProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
 // test handler as part of the init() function.
 //func (p ProbeStruct) ProbeInitialize(ctx *godog.Suite) {
 func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
-	var state EncryptionInFlight
 
 	ctx.BeforeSuite(state.setup)
 
