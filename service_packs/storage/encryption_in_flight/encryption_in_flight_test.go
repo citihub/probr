@@ -11,23 +11,6 @@ import (
 	"github.com/cucumber/godog/colors"
 )
 
-// EncryptionInFlight is an interface. For each CSP specific implementation
-type EncryptionInFlight interface {
-	setup()
-	securityControlsThatRestrictDataFromBeingUnencryptedInFlight() error
-	weProvisionAnObjectStorageBucket() error
-	httpAccessIs(arg1 string) error
-	httpsAccessIs(arg1 string) error
-	creationWillWithAnErrorMatching(result, errDescription string) error
-
-	detectObjectStorageUnencryptedTransferAvailable() error
-	detectObjectStorageUnencryptedTransferEnabled() error
-	createUnencryptedTransferObjectStorage() error
-	detectsTheObjectStorage() error
-	encryptedDataTrafficIsEnforced() error
-	teardown()
-}
-
 var opt = godog.Options{Output: colors.Colored(os.Stdout)}
 
 func init() {

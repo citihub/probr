@@ -1,4 +1,4 @@
-package access_whitelisting_azure
+package access_whitelisting
 
 import (
 	"flag"
@@ -11,19 +11,6 @@ import (
 	"github.com/cucumber/godog"
 	"github.com/cucumber/godog/colors"
 )
-
-// EncryptionInFlight is an interface. For each CSP specific implementation
-type accessWhitelisting interface {
-	setup()
-	cspSupportsWhitelisting() error
-	examineStorageContainer(containerName string) error
-	whitelistingIsConfigured() error
-	checkPolicyAssigned() error
-	provisionStorageContainer() error
-	createWithWhitelist(ipPrefix string) error
-	creationWill(result string) error
-	teardown()
-}
 
 var opt = godog.Options{Output: colors.Colored(os.Stdout)}
 

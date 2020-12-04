@@ -1,4 +1,4 @@
-package access_whitelisting_azure
+package access_whitelisting
 
 import (
 	"context"
@@ -9,10 +9,13 @@ import (
 	azurePolicy "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-01-01/policy"
 	azureStorage "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/Azure/go-autorest/autorest/to"
+	"github.com/cucumber/godog"
 
 	"github.com/citihub/probr/internal/azureutil"
 	"github.com/citihub/probr/internal/azureutil/group"
 	"github.com/citihub/probr/internal/azureutil/policy"
+	"github.com/citihub/probr/internal/coreengine"
+	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/service_packs/storage"
 )
 
@@ -20,6 +23,23 @@ const (
 	policyAssignmentName = "deny_storage_wo_net_acl"
 	storageRgEnvVar      = "STORAGE_ACCOUNT_RESOURCE_GROUP"
 )
+
+// Allows this probe to be added to the ProbeStore
+type ProbeStruct struct{}
+
+// Allows this probe to be added to the ProbeStore
+var Probe ProbeStruct
+
+type scenarioState struct {
+	name  string
+	audit *summary.ScenarioAudit
+	probe *summary.Probe
+	//	httpStatusCode int
+	//	podName        string
+	//	podState       kubernetes.PodState
+	//	useDefaultNS   bool
+	//	wildcardRoles  interface{}
+}
 
 type accessWhitelistingAzure struct {
 	ctx                       context.Context
@@ -29,6 +49,8 @@ type accessWhitelistingAzure struct {
 	storageAccount            azureStorage.Account
 	runningErr                error
 }
+
+var state accessWhitelistingAzure
 
 func (state *accessWhitelistingAzure) setup() {
 
@@ -178,4 +200,47 @@ func (state *accessWhitelistingAzure) examineStorageContainer(containerNameEnvVa
 func (state *accessWhitelistingAzure) whitelistingIsConfigured() error {
 	// Checked in previous step
 	return nil
+}
+
+// Return this probe's name
+func (p ProbeStruct) Name() string {
+	return "access_whitelisting"
+}
+
+// ProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
+// test handler as part of the init() function.
+//func (p ProbeStruct) ProbeInitialize(ctx *godog.Suite) {
+func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
+
+	ctx.BeforeSuite(state.setup)
+
+	ctx.AfterSuite(state.teardown)
+}
+
+// initialises the scenario
+func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
+	ps := scenarioState{}
+
+	ctx.BeforeScenario(func(s *godog.Scenario) {
+		beforeScenario(&ps, p.Name(), s)
+	})
+
+	ctx.Step(`^the CSP provides a whitelisting capability for Object Storage containers$`, state.cspSupportsWhitelisting)
+	ctx.Step(`^we examine the Object Storage container in environment variable "([^"]*)"$`, state.examineStorageContainer)
+	ctx.Step(`^whitelisting is configured with the given IP address range or an endpoint$`, state.whitelistingIsConfigured)
+	ctx.Step(`^security controls that Prevent Object Storage from being created without network source address whitelisting are applied$`, state.checkPolicyAssigned)
+	ctx.Step(`^we provision an Object Storage container$`, state.provisionStorageContainer)
+	ctx.Step(`^it is created with whitelisting entry "([^"]*)"$`, state.createWithWhitelist)
+	ctx.Step(`^creation will "([^"]*)"$`, state.creationWill)
+
+	ctx.AfterScenario(func(s *godog.Scenario, err error) {
+		coreengine.LogScenarioEnd(s)
+	})
+}
+
+func beforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
+	s.name = gs.Name
+	s.probe = summary.State.GetProbeLog(probeName)
+	s.audit = summary.State.GetProbeLog(probeName).InitializeAuditor(gs.Name, gs.Tags)
+	coreengine.LogScenarioStart(gs)
 }
