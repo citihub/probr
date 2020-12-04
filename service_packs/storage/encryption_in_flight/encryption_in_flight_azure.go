@@ -52,7 +52,7 @@ type EncryptionInFlightAzure struct {
 	policyAssignmentMgmtGroup string
 }
 
-var state EncryptionInFlight
+var state EncryptionInFlightAzure
 
 func (state *EncryptionInFlightAzure) setup() {
 	log.Println("[DEBUG] Setting up \"EncryptionInFlightAzure\"")
