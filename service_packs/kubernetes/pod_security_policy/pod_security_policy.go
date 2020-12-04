@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"path/filepath"
 	"github.com/cucumber/godog"
 
 	"github.com/citihub/probr/internal/coreengine"
@@ -317,7 +318,13 @@ func (s *scenarioState) privilegedEscalationIsMarkedForTheKubernetesDeployment(p
 		pd, err := psp.CreatePodFromYaml(yaml, s.probe)
 		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPNoPrivilegeEscalation, err)
 	}
-	var payload interface{}
+	payload := struct{
+        PrivilegedEscalationRequested string
+        PodSpecPath string
+    }{ 
+        privilegedEscalationRequested,
+        filepath.Join(kubernetes.AssetsDir, "psp-azp-privileges.yaml"),
+    }
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
