@@ -118,7 +118,8 @@ func (i *IAM) createFromObject() error {
 
 	aib := aibv1.AzureIdentityBinding{
 		TypeMeta: metav1.TypeMeta{
-			Kind: "AzureIdentityBinding",
+			Kind:       "AzureIdentityBinding",
+			APIVersion: "aadpodidentity.k8s.io/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "probr-aib",
@@ -130,22 +131,32 @@ func (i *IAM) createFromObject() error {
 		},
 	}
 
-	fmt.Printf("\naib %v\n", aib)
+	runtimeAib := aib.DeepCopyObject()
 
-	//	r := c.CoreV1().RESTClient().Post().Body(unst)
-	r := c.CoreV1().RESTClient().Post().Body(aib)
+	fmt.Printf("\naib %v\n", runtimeAib)
+
+	apiNS := apiv1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "probr-rbac-test-ns",
+		},
+	}
+	c.CoreV1().Namespaces().Create(context.TODO(), &apiNS, metav1.CreateOptions{})
+
+	apiPath := "apis/aadpodidentity.k8s.io/v1"
+
+	r := c.CoreV1().RESTClient().Post().AbsPath(apiPath).Namespace("probr-rbac-test-ns").Resource("azureidentitybindings").Body(runtimeAib)
 
 	res := r.Do(context.TODO())
 	log.Printf("[DEBUG] RAW Result: %+v", res)
 
 	if res.Error() != nil {
-		log.Printf("[DEBUG] AIB creation Error: %v\n", res.Error())
+		log.Printf("[DEBUG] AIB creation Error: %+v", res.Error())
 		return res.Error()
 	}
 
 	b, _ := res.Raw()
 	bs := string(b)
-	log.Printf("[DEBUG] STRING result: %v", bs)
+	log.Printf("[DEBUG] STRING result: %+v", bs)
 
 	j := kubernetes.K8SJSON{}
 	json.Unmarshal(b, &j)
