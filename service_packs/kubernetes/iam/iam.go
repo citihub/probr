@@ -173,11 +173,14 @@ func (s *scenarioState) theDefaultNamespaceHasAnAzureIdentity() error {
 }
 
 func (s *scenarioState) iCreateAnAzureIdentityBindingCalledInANondefaultNamespace(arg1 string) error {
-	err := s.azureIdentitySetupCheck(iam.AzureIdentityBindingExists, false, "AzureIdentityBinding")
+	/*	err := s.azureIdentitySetupCheck(iam.AzureIdentityBindingExists, false, "AzureIdentityBinding")
 
-	description := ""
-	var payload interface{}
-	s.audit.AuditScenarioStep(description, payload, err)
+		description := ""
+		var payload interface{}
+		s.audit.AuditScenarioStep(description, payload, err) */
+
+	b, err := iam.CreateAIB(nil, "", "", "probr-rbac-test-ns")
+	log.Printf("\nvars %v %v\n", b, err)
 
 	return err
 }

@@ -14,6 +14,8 @@ import (
 	"github.com/cucumber/godog"
 	"k8s.io/client-go/kubernetes/scheme"
 
+	aibv1 "github.com/Azure/aad-pod-identity/pkg/apis/aadpodidentity"
+
 	apiv1 "k8s.io/api/core/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -105,8 +107,52 @@ func (i *IAM) setenv() {
 //ns - namespace in which to create the AIB
 func (i *IAM) CreateAIB(y []byte, ai string, n string, ns string) (bool, error) {
 
-	i.createFromYaml(y, nil, &ns, nil, false)
+	//	i.createFromYaml(nil, nil, &ns, nil, false)
+	i.createFromObject()
 	return false, nil
+}
+
+func (i *IAM) createFromObject() error {
+
+	c, _ := i.k.GetClient()
+
+	aib := aibv1.AzureIdentityBinding{
+		TypeMeta: metav1.TypeMeta{
+			Kind: "AzureIdentityBinding",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "probr-aib",
+			Namespace: "probr-rbac-test-ns",
+		},
+		Spec: aibv1.AzureIdentityBindingSpec{
+			AzureIdentity: "probr-probe",
+			Selector:      "aadpodidbinding",
+		},
+	}
+
+	fmt.Printf("\naib %v\n", aib)
+
+	//	r := c.CoreV1().RESTClient().Post().Body(unst)
+	r := c.CoreV1().RESTClient().Post().Body(aib)
+
+	res := r.Do(context.TODO())
+	log.Printf("[DEBUG] RAW Result: %+v", res)
+
+	if res.Error() != nil {
+		log.Printf("[DEBUG] AIB creation Error: %v\n", res.Error())
+		return res.Error()
+	}
+
+	b, _ := res.Raw()
+	bs := string(b)
+	log.Printf("[DEBUG] STRING result: %v", bs)
+
+	j := kubernetes.K8SJSON{}
+	json.Unmarshal(b, &j)
+
+	log.Printf("[DEBUG] JSON result: %+v", j)
+
+	return nil
 }
 
 func (i *IAM) createFromYaml(y []byte, pname *string, ns *string, image *string, w bool) (*apiv1.Pod, error) {
@@ -153,6 +199,7 @@ func (i *IAM) createFromYaml(y []byte, pname *string, ns *string, image *string,
 	log.Printf("[DEBUG] RAW Result: %+v", res)
 
 	if res.Error() != nil {
+		log.Printf("[DEBUG] AIB creation Error: %v\n", res.Error())
 		return nil, res.Error()
 	}
 
