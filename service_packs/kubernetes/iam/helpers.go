@@ -19,6 +19,7 @@ import (
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 )
 
 type scenarioState struct {
@@ -108,14 +109,11 @@ func (i *IAM) setenv() {
 	i.azureIdentitySelector = "aadpodidbinding"
 }
 
-// CreateAIB creates an AzureIdentityBinding to a specified AzureIdentity in a specified non-default namespace
-func (i *IAM) CreateAIB() error {
-
-	// Obtain the kubernetes cluster client connection
-	c, _ := i.k.GetClient()
-
+// creates an AzureIdentityBinding object to a specified AzureIdentity in a specified non-default namespace
+func (i *IAM) createAIBObject() runtime.Object {
 	// Create an AIB object and assign attributes using input parameters
 	aib := aibv1.AzureIdentityBinding{}
+
 	aib.TypeMeta.Kind = "AzureIdentityBinding"
 	aib.TypeMeta.APIVersion = "aadpodidentity.k8s.io/v1"
 	aib.ObjectMeta.Name = i.azureIdentityBinding
@@ -125,6 +123,18 @@ func (i *IAM) CreateAIB() error {
 
 	// Copy into a runtime.Object which is required for the api request
 	runtimeAib := aib.DeepCopyObject()
+
+	return runtimeAib
+}
+
+// CreateAIB creates an AzureIdentityBinding in the cluster
+func (i *IAM) CreateAIB() error {
+
+	// Obtain the kubernetes cluster client connection
+	c, _ := i.k.GetClient()
+
+	// Create an runtime AIB object and assign attributes using input parameters
+	runtimeAib := i.createAIBObject()
 
 	// Create the namespace
 	apiNS := apiv1.Namespace{}

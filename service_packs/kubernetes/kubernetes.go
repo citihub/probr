@@ -40,7 +40,7 @@ type PodPayload struct {
 }
 
 func init() {
-	AssetsDir = filepath.Join("../service_packs", "kubernetes", "assets")
+	AssetsDir = filepath.Join("service_packs", "kubernetes", "assets")
 }
 
 //
