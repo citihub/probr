@@ -213,7 +213,7 @@ func (i *IAM) CreateIAMProbePod(y []byte, useDefaultNS bool, probe *summary.Prob
 
 // DeleteIAMProbePod deletes the IAM test pod with the supplied name.
 func (i *IAM) DeleteIAMProbePod(n string, useDefaultNS bool, e string) error {
-	return i.k.DeletePod(n, i.getNamespace(useDefaultNS), false, e) //don't worry about waiting
+	return i.k.DeletePod(n, i.getNamespace(useDefaultNS), e) //don't worry about waiting
 }
 
 // ExecuteVerificationCmd executes a verification command against the supplied pod name.

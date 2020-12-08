@@ -129,7 +129,7 @@ func defaultContainerSecurityContext() *apiv1.SecurityContext {
 }
 
 func waitForDelete(c *k8s.Clientset, ns string, n string) error {
-
+	// Currently unused, not deleting yet in case it is useful elsewhere
 	ps := c.CoreV1().Pods(ns)
 
 	w, err := ps.Watch(context.Background(), metav1.ListOptions{})

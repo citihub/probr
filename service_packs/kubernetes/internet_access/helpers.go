@@ -101,7 +101,7 @@ func (n *NA) SetupNetworkAccessProbePod(probe *summary.Probe) (*apiv1.Pod, *kube
 func (n *NA) TeardownNetworkAccessProbePod(p string, e string) error {
 	_, exists := os.LookupEnv("DONT_DELETE")
 	if !exists {
-		err := n.k.DeletePod(p, n.probeNamespace, false, e) //don't worry about waiting
+		err := n.k.DeletePod(p, n.probeNamespace, e) //don't worry about waiting
 		return err
 	}
 

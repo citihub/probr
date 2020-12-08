@@ -617,7 +617,7 @@ func (psp *PSP) DeleteConfigMap() error {
 
 // TeardownPodSecurityProbe deletes the given pod name in the PSP test namespace.
 func (psp *PSP) TeardownPodSecurityProbe(p string, e string) error {
-	err := psp.k.DeletePod(p, psp.probeNamespace, false, e) //don't worry about waiting
+	err := psp.k.DeletePod(p, psp.probeNamespace, e) //don't worry about waiting
 	return err
 }
 

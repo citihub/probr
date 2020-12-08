@@ -73,7 +73,7 @@ func (c *CRA) SetupContainerAccessProbePod(r string, probe *summary.Probe) (*api
 
 //TeardownContainerAccessProbePod deletes the supplied test pod in the container registry access namespace.
 func (c *CRA) TeardownContainerAccessProbePod(p string, e string) error {
-	err := c.k.DeletePod(p, caNamespace, false, e) //don't worry about waiting
+	err := c.k.DeletePod(p, caNamespace, e) //don't worry about waiting
 	return err
 }
 

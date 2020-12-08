@@ -75,7 +75,7 @@ type Kubernetes interface {
 	CreatePodFromYaml(y []byte, pname string, ns string, image string, aadpodidbinding string, w bool, probe *summary.Probe) (*apiv1.Pod, error)
 	GetPodObject(pname string, ns string, cname string, image string, sc *apiv1.SecurityContext) *apiv1.Pod
 	ExecCommand(cmd, ns, pn *string) *CmdExecutionResult
-	DeletePod(pname string, ns string, w bool, e string) error
+	DeletePod(pname string, ns string, e string) error
 	DeleteNamespace(ns *string) error
 	CreateConfigMap(n *string, ns *string) (*apiv1.ConfigMap, error)
 	DeleteConfigMap(n *string, ns *string) error
@@ -438,8 +438,7 @@ func (k *Kube) ExecCommand(cmd, ns, pn *string) (s *CmdExecutionResult) {
 }
 
 // DeletePod deletes the given pod in the specified namespace.
-// Passing true for 'wait' causes the function to wait for pod deletion (not normally required).
-func (k *Kube) DeletePod(podName string, ns string, wait bool, probeName string) error {
+func (k *Kube) DeletePod(podName string, ns string, probeName string) error {
 	_, err := k.PodStatus(podName, ns)
 	if err != nil {
 		return err // If pod does not exist, it cannot be deleted
@@ -460,9 +459,6 @@ func (k *Kube) DeletePod(podName string, ns string, wait bool, probeName string)
 		return err
 	}
 
-	if wait {
-		waitForDelete(c, ns, podName)
-	}
 	summary.State.GetProbeLog(probeName).CountPodDestroyed()
 	log.Printf("[INFO] POD %v deleted.", podName)
 
