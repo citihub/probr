@@ -66,3 +66,8 @@ type Azure struct {
 		DefaultNamespaceAIB string `yaml:"DefaultNamespaceAIB"`
 	}
 }
+
+// For testing
+type Excludable interface {
+	isExcluded() bool
+}

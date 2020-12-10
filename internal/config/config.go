@@ -100,7 +100,7 @@ func LogConfigState() {
 }
 
 func AuditDir() string {
-	_ = os.Mkdir(Vars.AuditDir, 0755)
+	_ = os.Mkdir(Vars.AuditDir, 0755) // Creates if not already existing
 	return Vars.AuditDir
 }
 
