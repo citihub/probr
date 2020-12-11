@@ -95,7 +95,7 @@ func (i *IAM) setenv() {
 	i.probePodName = defaultIAMProbePodName
 
 	// Extract registry and image info from config
-	i.probeImage = config.Vars.AuthorisedContainerRegistry + "/" + config.Vars.ProbeImage
+	i.probeImage = config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry + "/" + config.Vars.ServicePacks.Kubernetes.ProbeImage
 
 	// Set the Azure Identity vars
 	// azureIdentitySelector - to allow selection of the binding on pod creation
