@@ -18,6 +18,8 @@ ServicePacks:
         Scenarios: # allows this probe's scenarios to be disabled using their probe tag value
           - Name: "1.0"
             Excluded: "Excluded to demonstrate scenario exclusion"
+  Storage:
+    Excluded: # "justification" # any non-empty value here will exclude all elements within the service pack
 
 CloudProviders:
   Azure:

@@ -20,6 +20,7 @@ type ConfigVars struct {
 
 type ServicePacks struct {
 	Kubernetes Kubernetes `yaml:"Kubernetes"`
+	Storage    Storage    `yaml:"Storage"`
 }
 
 type ServicePack struct {
@@ -37,6 +38,11 @@ type Kubernetes struct {
 	AuthorisedContainerRegistry   string   `yaml:"AuthorisedContainerRegistry"`
 	UnauthorisedContainerRegistry string   `yaml:"UnauthorisedContainerRegistry"`
 	ProbeImage                    string   `yaml:"ProbeImage"`
+}
+
+type Storage struct {
+	ServicePack
+	Excluded string `yaml:"Excluded"`
 }
 
 type Probe struct {

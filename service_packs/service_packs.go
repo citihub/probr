@@ -12,6 +12,8 @@ import (
 	"github.com/citihub/probr/service_packs/kubernetes/iam"
 	"github.com/citihub/probr/service_packs/kubernetes/internet_access"
 	"github.com/citihub/probr/service_packs/kubernetes/pod_security_policy"
+	"github.com/citihub/probr/service_packs/storage/access_whitelisting"
+	"github.com/citihub/probr/service_packs/storage/encryption_in_flight"
 )
 
 type probe interface {
@@ -31,10 +33,14 @@ func init() {
 		internet_access.Probe,
 		iam.Probe,
 	}
+	packs["storage"] = []probe{
+		encryption_in_flight.Probe,
+		access_whitelisting.Probe,
+	}
 }
 
 func makeGodogProbe(pack string, p probe) *coreengine.GodogProbe {
-	box := utils.BoxStaticFile(pack+p.Name(), "service_packs", pack, p.Name()) // Establish static files for binary build
+	box := utils.BoxStaticFile(pack+p.Name(), "../service_packs", pack, p.Name()) // Establish static files for binary build
 	descriptor := coreengine.ProbeDescriptor{Group: coreengine.Kubernetes, Name: p.Name()}
 	path := filepath.Join(box.ResolutionDir, p.Name()+".feature")
 	return &coreengine.GodogProbe{
