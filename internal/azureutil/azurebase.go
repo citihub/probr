@@ -3,6 +3,8 @@ package azureutil
 import (
 	"log"
 	"os"
+
+	"github.com/citihub/probr/internal/config"
 )
 
 const (
@@ -28,6 +30,11 @@ func Location() string {
 //Location returns the Subscription in which the tests should be executed, driven by environment variable AZURE_SUBSCRIPTION_ID.
 func SubscriptionID() string {
 	return getFromEnvVar("AZURE_SUBSCRIPTION_ID")
+}
+
+//
+func ManagementGroup() string {
+	return config.Vars.CloudProviders.Azure.ManagementGroup
 }
 
 func randomPrefix() string {

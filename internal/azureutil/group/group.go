@@ -3,6 +3,7 @@ package group
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
@@ -42,7 +43,37 @@ func Cleanup(ctx context.Context) error {
 }
 
 func client() resources.GroupsClient {
+
+	// Check that the env vars required to connect to azure are present
+	var envVar, value string
+	var ok bool
+	envVar = "AZURE_TENANT_ID"
+	value, ok = os.LookupEnv(envVar)
+	if !ok {
+		log.Fatalf("Mandatory env var not set: %v", envVar)
+	}
+	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
+	envVar = "AZURE_SUBSCRIPTION_ID"
+	value, ok = os.LookupEnv(envVar)
+	if !ok {
+		log.Fatalf("Mandatory env var not set: %v", envVar)
+	}
+	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
+	envVar = "AZURE_CLIENT_ID"
+	value, ok = os.LookupEnv(envVar)
+	if !ok {
+		log.Fatalf("Mandatory env var not set: %v", envVar)
+	}
+	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
+	envVar = "AZURE_CLIENT_SECRET"
+	value, ok = os.LookupEnv(envVar)
+	if !ok {
+		log.Fatalf("Mandatory env var not set: %v", envVar)
+	}
+	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
+
 	c := resources.NewGroupsClient(azureutil.SubscriptionID())
+
 	authorizer, err := auth.NewAuthorizerFromEnvironment()
 	if err == nil {
 		c.Authorizer = authorizer

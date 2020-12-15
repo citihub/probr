@@ -43,54 +43,72 @@ func (state *EncryptionAtRestAzure) securityControlsThatRestrictDataFromBeingUne
 	return nil
 }
 
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) weProvisionAnObjectStorageBucket() error {
 	return nil
 }
+
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) encryptionAtRestIs(encryptionOption string) error {
 	return nil
 }
+
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) creationWillWithAnErrorMatching(result string) error {
 	return nil
 }
 
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) createContainerWithoutEncryption() error {
 	return nil
 }
+
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) detectiveDetectsNonCompliant() error {
 	return nil
 }
+
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) containerIsRemediated() error {
 	return nil
 }
 
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) setup() {
 }
 
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) teardown() {
 }
 
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) policyOrRuleAvailable() error {
 	// It is available
 	log.Printf("[DEBUG] Azure Storage account is encrypted by default and cannot be turned off. No test to run. Checking Azure Policy. (Unless customise this test to check for specific key usage.")
 	return nil
 }
 
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) checkPolicyOrRuleAssignment() error {
 	return nil
 }
 
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) policyOrRuleAssigned() error {
 	return nil
 }
 
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) prepareToCreateContainer() error {
 	return nil
 }
 
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) createContainerWithEncryptionOption(encryptionOption string) error {
 	return nil
 }
 
+// PENDING IMPLEMENTATION
 func (state *EncryptionAtRestAzure) createResult(result string) error {
 	return nil
 }

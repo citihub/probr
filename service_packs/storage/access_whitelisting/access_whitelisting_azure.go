@@ -57,9 +57,9 @@ func (state *accessWhitelistingAzure) setup() {
 	log.Println("[DEBUG] Setting up 'accessWhitelistingAzure'")
 	state.ctx = context.Background()
 
-	state.policyAssignmentMgmtGroup = os.Getenv(azureutil.PolicyAssignmentManagementGroup)
+	state.policyAssignmentMgmtGroup = azureutil.ManagementGroup()
 	if state.policyAssignmentMgmtGroup == "" {
-		log.Printf("[ERROR] '%v' environment variable is not defined. Policy assignment check against subscription", azureutil.PolicyAssignmentManagementGroup)
+		log.Printf("[NOTICE] Mgmt Group config variable is not defined. Policy assignment check against subscription")
 	}
 
 	state.tags = map[string]*string{

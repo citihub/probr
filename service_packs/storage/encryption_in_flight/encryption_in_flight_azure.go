@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	azurePolicy "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-01-01/policy"
@@ -52,9 +51,9 @@ var state EncryptionInFlightAzure
 func (state *EncryptionInFlightAzure) setup() {
 	log.Println("[DEBUG] Setting up \"EncryptionInFlightAzure\"")
 	state.ctx = context.Background()
-	state.policyAssignmentMgmtGroup = os.Getenv(azureutil.PolicyAssignmentManagementGroup)
+	state.policyAssignmentMgmtGroup = azureutil.ManagementGroup()
 	if state.policyAssignmentMgmtGroup == "" {
-		log.Printf("[ERROR] '%v' environment variable is not defined. Policy assignment check against subscription", azureutil.PolicyAssignmentManagementGroup)
+		log.Printf("[NOTICE] Mgmt Group config variable is not defined. Policy assignment check against subscription")
 	}
 
 	state.tags = map[string]*string{
@@ -178,7 +177,7 @@ func (state *EncryptionInFlightAzure) creationWillWithAnErrorMatching(expectatio
 }
 
 func (state *EncryptionInFlightAzure) detectObjectStorageUnencryptedTransferAvailable() error {
-	return fmt.Errorf("azure policy prevent creation of object storage with in-secure transport making this test irrelevant")
+	return nil
 }
 
 func (state *EncryptionInFlightAzure) detectObjectStorageUnencryptedTransferEnabled() error {

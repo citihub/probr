@@ -9,7 +9,7 @@ Feature: Object Storage Has Network Whitelisting Measures Enforced
   I want to ensure that suitable security controls are applied to Object Storage
   So that my organisation's data can only be accessed from whitelisted IP addresses
 
-  Rule: CHC2-SVD030 - protect cloud service network access by limiting access from the appropriate source network only
+  #Rule: CHC2-SVD030 - protect cloud service network access by limiting access from the appropriate source network only
 
     @probes/storage/access_whitelisting/1.0 @control_type/detective
     Scenario: Check Object Storage is Configured With Network Source Address Whitelisting
