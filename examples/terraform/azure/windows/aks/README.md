@@ -29,6 +29,10 @@ Example: ( az aks get-credentials --resource-group probr-automation-rg --name pr
   
 - Once connected to your AKS cluster, run the command kubectl get pods --all-namespaces, review pods
 
+- Run az acr import -n <Container Registry Name> --source docker.io/citihub/probr-probe to insert the docker.io/citihub/probr-probe image into your container registry
+ (Example: az acr import -n probrautoacr --source docker.io/citihub/probr-probe)
+
+
 
 
 
