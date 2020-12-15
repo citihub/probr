@@ -76,8 +76,10 @@ resource "null_resource" "kubectl" {
 
   provisioner "local-exec" {
     //command     = "${azurerm_kubernetes_cluster.cluster.kube_config_raw} | Out-File  -FilePath  ${var.kube_config_filepath}"
-    //interpreter = ["PowerShell", "-Command"]
-    command     = "echo '${azurerm_kubernetes_cluster.cluster.kube_config_raw}' > ${var.kube_config_filepath}"
+    command     = "Write-Output '${azurerm_kubernetes_cluster.cluster.kube_config_raw}' > config.txt"
+    //Write-Output "Mario Edwards" > C:\Users\medwards\Downloads\config
+    interpreter = ["PowerShell", "-Command"]
+    //command     = "echo '${azurerm_kubernetes_cluster.cluster.kube_config_raw}' > ${var.kube_config_filepath}"
   }
 }
 

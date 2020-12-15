@@ -48,14 +48,20 @@ data "template_file" "azureidentitybinding" {
 resource "null_resource" "azureidentity_apply" {
   //depends_on = [null_resource.kubectl, helm_release.aad-pod-identity]
   provisioner "local-exec" {
-    command     = "kubectl apply -n default --kubeconfig=${var.kube_config_filepath} -f - \n${data.template_file.azureidentity.rendered}\nEOL"
-    
+    //command     = "kubectl apply -n default --kubeconfig=${var.kube_config_filepath} -f - \n${data.template_file.azureidentity.rendered}\nEOL"
+    command =   <<EOT
+    kubectl apply -n default --kubeconfig=${var.kube_config_filepath}-f ${data.template_file.azureidentity.rendered}
+    EOT
   }
 }
 resource "null_resource" "azureidentitybinding_apply" {
   //depends_on = [null_resource.kubectl, helm_release.aad-pod-identity]
-
+ 
  provisioner "local-exec" {
-   command     = "kubectl apply -n default --kubeconfig=${var.kube_config_filepath} -f - \n${data.template_file.azureidentitybinding.rendered}\nEOL"
+   //command     = "kubectl apply -n default --kubeconfig=${var.kube_config_filepath} -f - \n${data.template_file.azureidentitybinding.rendered}\nEOL"
+    command = <<EOT
+    kubectl apply -n default --kubeconfig=${var.kube_config_filepath} -f ${data.template_file.azureidentitybinding.rendered}
+    EOT
+ 
   }
 }
