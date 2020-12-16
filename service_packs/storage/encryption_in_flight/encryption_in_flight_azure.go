@@ -10,12 +10,11 @@ import (
 	azureStorage "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/Azure/go-autorest/autorest"
 	"github.com/Azure/go-autorest/autorest/azure"
-	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/cucumber/godog"
 
 	"github.com/citihub/probr/internal/azureutil"
-	"github.com/citihub/probr/internal/azureutil/group"
 	"github.com/citihub/probr/internal/azureutil/policy"
+	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/service_packs/storage"
@@ -49,30 +48,13 @@ type EncryptionInFlightAzure struct {
 var state EncryptionInFlightAzure
 
 func (state *EncryptionInFlightAzure) setup() {
+
 	log.Println("[DEBUG] Setting up \"EncryptionInFlightAzure\"")
 	state.ctx = context.Background()
-	state.policyAssignmentMgmtGroup = azureutil.ManagementGroup()
-	if state.policyAssignmentMgmtGroup == "" {
-		log.Printf("[NOTICE] Mgmt Group config variable is not defined. Policy assignment check against subscription")
-	}
-
-	state.tags = map[string]*string{
-		"project": to.StringPtr("CICD"),
-		"env":     to.StringPtr("test"),
-		"tier":    to.StringPtr("internal"),
-	}
-
-	_, err := group.CreateWithTags(state.ctx, azureutil.ResourceGroup(), state.tags)
-
-	if err != nil {
-		log.Fatalf("failed to create group: %v\n", err.Error())
-	}
-	log.Printf("[DEBUG] Created Resource Group: '%v'", azureutil.ResourceGroup())
 
 }
 
 func (state *EncryptionInFlightAzure) teardown() {
-	group.Cleanup(state.ctx)
 	log.Println("[DEBUG] Teardown completed")
 }
 
@@ -92,6 +74,22 @@ func (state *EncryptionInFlightAzure) securityControlsThatRestrictDataFromBeingU
 	}
 
 	log.Printf("[DEBUG] Policy assignment check: %v [Step PASSED]", *policyAssignment.Name)
+	return nil
+}
+
+// PENDING IMPLEMENTATION
+func (state *EncryptionInFlightAzure) anAzureResourceGroupExists() error {
+
+	// check the resource group has been configured
+	if config.Vars.CloudProviders.Azure.ResourceGroup == "" {
+		log.Printf("[ERROR] Azure resource group config var not set")
+	} else {
+		log.Printf("[NOTICE] Azure resource group config var is %s", config.Vars.CloudProviders.Azure.ResourceGroup)
+	}
+
+	state.resourceGroupName = config.Vars.CloudProviders.Azure.ResourceGroup
+	// Check the resource group exists in the specified azure subscription
+
 	return nil
 }
 
@@ -219,7 +217,7 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 		beforeScenario(&ps, p.Name(), s)
 	})
 
-	ctx.Step(`^security controls that restrict data from being unencrypted in flight$`, state.securityControlsThatRestrictDataFromBeingUnencryptedInFlight)
+	ctx.Step(`^a specified azure resource group exists$`, state.anAzureResourceGroupExists)
 	ctx.Step(`^we provision an Object Storage bucket$`, state.weProvisionAnObjectStorageBucket)
 	ctx.Step(`^http access is "([^"]*)"$`, state.httpAccessIs)
 	ctx.Step(`^https access is "([^"]*)"$`, state.httpsAccessIs)
