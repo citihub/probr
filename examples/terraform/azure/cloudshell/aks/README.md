@@ -1,6 +1,7 @@
 Azure Terraform
 
-This Terraform code will run in Azure CLI bash in Cloudshell. 
+This Terraform code will run in Azure CLI bash in Cloudshell. This Terraform build is the create a cloudshell version of the AKS for development purposes.
+
 - To install Azure CLI Cloudshell, please follow the directions here https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
 
 - Please navigate your storage account where a fileshare has been created for your.  
@@ -11,7 +12,7 @@ This Terraform code will run in Azure CLI bash in Cloudshell.
 
 - After the directory is created, click Upload, upload the code in cloudshell directory.
 
-- Open cloudshell and navigate to you clouddrive where you will see the you upload code. 
+- Open cloudshell and navigate to you clouddrive where you will see the your uploaded code. 
 
 - Make sure your Cloudshell is configured for bash
 
