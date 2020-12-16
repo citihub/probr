@@ -70,7 +70,7 @@ resource "azurerm_container_registry" "acr" {
 
 resource null_resource "probrimage" {
   provisioner "local-exec" {
-      command = "az acr import -n marioprobr --source docker.io/citihub/probr-probe"
+      command = "az acr import -n ${var.acr_name}  --source docker.io/citihub/probr-probe"
       
   }
 }
