@@ -11,5 +11,22 @@ This Terraform code will run in Azure CLI bash in Cloudshell.
 
 - After the directory is created, click Upload, upload the code in cloudshell directory.
 
-- Open cloudshell and navigate to you clouddrive where you will you upload code. 
+- Open cloudshell and navigate to you clouddrive where you will see the you upload code. 
 
+- Make sure your Cloudshell is configured for bash
+
+- Run az login to login to Azure 
+
+- Run az account list if necessary
+
+- Run az az account set -s <YOUR SUBSCRIPTION>
+
+- Run terraform init
+
+- Run terraform plan
+
+- Run terraform apply -var-file="variables.tfvars" -auto-approve
+
+- Run az aks get-credentials --resource-group <ResourceGroup Name> --name  <AKS Cluster Name>
+
+- Run kubectl get pods --all-namespaces
