@@ -38,7 +38,7 @@ func CreateWithTags(ctx context.Context, name string, tags map[string]*string) (
 // Cleanup deletes the Resource Group created during testing (a test Resource Group name in the form 'test[a-z]{6}resourceGP').
 func Cleanup(ctx context.Context) error {
 	log.Println("[DEBUG] Deleting resources")
-	_, err := client().Delete(ctx, azureutil.ResourceGroup())
+	_, err := client().Delete(ctx, state.resourceGroupName)
 	return err
 }
 

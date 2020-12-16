@@ -43,6 +43,7 @@ type accessWhitelistingAzure struct {
 	bucketName                string
 	storageAccount            azureStorage.Account
 	runningErr                error
+	resourceGroupName         string
 }
 
 var state accessWhitelistingAzure
@@ -120,7 +121,7 @@ func (state *accessWhitelistingAzure) createWithWhitelist(ipRange string) error 
 		}
 	}
 
-	state.storageAccount, state.runningErr = storage.CreateWithNetworkRuleSet(state.ctx, state.bucketName, azureutil.ResourceGroup(), state.tags, true, &networkRuleSet)
+	state.storageAccount, state.runningErr = storage.CreateWithNetworkRuleSet(state.ctx, state.bucketName, state.resourceGroupName, state.tags, true, &networkRuleSet)
 	return nil
 }
 

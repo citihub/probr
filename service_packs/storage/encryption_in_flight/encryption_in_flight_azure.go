@@ -43,6 +43,7 @@ type EncryptionInFlightAzure struct {
 	httpOption                bool
 	httpsOption               bool
 	policyAssignmentMgmtGroup string
+	resourceGroupName         string
 }
 
 var state EncryptionInFlightAzure
@@ -130,15 +131,15 @@ func (state *EncryptionInFlightAzure) creationWillWithAnErrorMatching(expectatio
 	if state.httpsOption && state.httpOption {
 		log.Printf("[DEBUG] Creating Storage Account with HTTPS: %v", false)
 		_, err = storage.CreateWithNetworkRuleSet(state.ctx, accountName,
-			azureutil.ResourceGroup(), state.tags, false, &networkRuleSet)
+			state.resourceGroupName, state.tags, false, &networkRuleSet)
 	} else if state.httpsOption {
 		log.Printf("[DEBUG] Creating Storage Account with HTTPS: %v", state.httpsOption)
 		_, err = storage.CreateWithNetworkRuleSet(state.ctx, accountName,
-			azureutil.ResourceGroup(), state.tags, state.httpsOption, &networkRuleSet)
+			state.resourceGroupName, state.tags, state.httpsOption, &networkRuleSet)
 	} else if state.httpOption {
 		log.Printf("[DEBUG] Creating Storage Account with HTTPS: %v", state.httpsOption)
 		_, err = storage.CreateWithNetworkRuleSet(state.ctx, accountName,
-			azureutil.ResourceGroup(), state.tags, state.httpsOption, &networkRuleSet)
+			state.resourceGroupName, state.tags, state.httpsOption, &networkRuleSet)
 	}
 
 	if expectation == "Fail" {
