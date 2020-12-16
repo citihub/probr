@@ -8,3 +8,4 @@ probr_probe_msi_name = "probr-msi"
 psp_policy_name = "probr psp policy mario"
 restrict_registry_policy_name = "container-restrict"
 namespaces = [ "probr-container-access-test-ns","probr-general-test-ns","probr-network-access-test-ns","probr-pod-security-test-ns","probr-rbac-test-ns"]
+op = "Windows"
