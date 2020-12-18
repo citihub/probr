@@ -35,7 +35,7 @@ type scenarioState struct {
 }
 
 const (
-	Namespace = "probr-probes-ns"
+	Namespace = "probr-general-test-ns"
 )
 
 type PodPayload struct {
