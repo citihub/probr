@@ -76,8 +76,6 @@ func (c PSPProbeCommand) String() string {
 }
 
 const (
-	//default values.  Overrides can be supplied via the environment.
-	defaultPSPProbeNamespace = "probr-pod-security-test-ns"
 	//NOTE: either the above namespace needs to be added to the exclusion list on the
 	//container registry image needs to be available in the allowed (probably internal) registry
 	defaultPSPProbeContainer = "psp-test"

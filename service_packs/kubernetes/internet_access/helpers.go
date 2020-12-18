@@ -32,8 +32,7 @@ func beforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
 }
 
 const (
-	//default values.  Overrides can be set via the environment.
-	defaultNAProbeNamespace = "probr-network-access-test-ns" //this needs to be set up as an exclusion in the image registry policy
+	iaNamespace             = "probr-network-access-test-ns"
 	defaultNAProbeContainer = "na-test"
 	defaultNAProbePodName   = "na-test-pod"
 )
@@ -90,7 +89,7 @@ func (n *NA) ClusterIsDeployed() *bool {
 
 // SetupNetworkAccessProbePod creates a pod with characteristics required for testing network access.
 func (n *NA) SetupNetworkAccessProbePod(probe *summary.Probe) (*apiv1.Pod, *kubernetes.PodAudit, error) {
-	pname, ns, cname, image := kubernetes.GenerateUniquePodName(n.probePodName), kubernetes.Namespace, n.probeContainer, n.probeImage
+	pname, ns, cname, image := kubernetes.GenerateUniquePodName(n.probePodName), iaNamespace, n.probeContainer, n.probeImage
 	//let caller handle result:
 	return n.k.CreatePod(pname, ns, cname, image, true, nil, probe)
 }
@@ -99,7 +98,7 @@ func (n *NA) SetupNetworkAccessProbePod(probe *summary.Probe) (*apiv1.Pod, *kube
 func (n *NA) TeardownNetworkAccessProbePod(p string, e string) error {
 	_, exists := os.LookupEnv("DONT_DELETE")
 	if !exists {
-		err := n.k.DeletePod(p, kubernetes.Namespace, e) //don't worry about waiting
+		err := n.k.DeletePod(p, iaNamespace, e) //don't worry about waiting
 		return err
 	}
 
@@ -111,7 +110,7 @@ func (n *NA) AccessURL(pn *string, url *string) (int, error) {
 
 	//create a curl command to access the supplied url
 	cmd := "curl -s -o /dev/null -I -L -w %{http_code} " + *url
-	res := n.k.ExecCommand(cmd, kubernetes.Namespace, pn)
+	res := n.k.ExecCommand(cmd, iaNamespace, pn)
 	httpCode := res.Stdout
 
 	log.Printf("[INFO] URL: %v HTTP Code: %v Exit Code: %v (error: %v)", *url, httpCode, res.Code, res.Err)
