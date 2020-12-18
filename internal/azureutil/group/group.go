@@ -49,25 +49,25 @@ func client() resources.GroupsClient {
 	envVar = "AZURE_TENANT_ID"
 	value, ok = os.LookupEnv(envVar)
 	if !ok {
-		log.Fatalf("Mandatory env var not set: %v", envVar)
+		log.Printf("[ERROR] Mandatory env var not set: %v", envVar)
 	}
 	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
 	envVar = "AZURE_SUBSCRIPTION_ID"
 	value, ok = os.LookupEnv(envVar)
 	if !ok {
-		log.Fatalf("Mandatory env var not set: %v", envVar)
+		log.Printf("[ERROR] Mandatory env var not set: %v", envVar)
 	}
 	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
 	envVar = "AZURE_CLIENT_ID"
 	value, ok = os.LookupEnv(envVar)
 	if !ok {
-		log.Fatalf("Mandatory env var not set: %v", envVar)
+		log.Printf("[ERROR] Mandatory env var not set: %v", envVar)
 	}
 	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
 	envVar = "AZURE_CLIENT_SECRET"
 	value, ok = os.LookupEnv(envVar)
 	if !ok {
-		log.Fatalf("Mandatory env var not set: %v", envVar)
+		log.Printf("[ERROR] Mandatory env var not set: %v", envVar)
 	}
 	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
 
