@@ -13,13 +13,15 @@ ServicePacks:
     ProbeImage: citihub/probr-probe
     Probes: # allows this pack's probes to be disabled by name
       - Name: pod_security_policy
-        Excluded: "Excluded to demonstrate probe exclusion"
+        Excluded: ""
       - Name: iam
-        Excluded: "yep"
+        Excluded: ""
       - Name: general
-        Excluded: "True"
+        Excluded: ""
       - Name: container_registry_access
-        Excluded: "yah"
+        Excluded: ""
+      - Name: internet_access
+        Excluded: ""
   Storage:
     Excluded: "not required" # "justification" # any non-empty value here will exclude all elements within the service pack
     Probes: # allows this pack's probes to be disabled by name
