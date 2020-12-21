@@ -10,6 +10,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/citihub/probr/internal/azureutil"
+	"github.com/citihub/probr/internal/config"
 )
 
 //
@@ -93,12 +94,33 @@ func getAccountKeys(ctx context.Context, accountName, accountGroupName string) (
 }
 
 func accountClient() storage.AccountsClient {
-	c := storage.NewAccountsClient(azureutil.SubscriptionID())
-	a, err := auth.NewAuthorizerFromEnvironment()
+	c := storage.NewAccountsClient(config.Vars.CloudProviders.Azure.SubscriptionID)
+
+	// Check that connection config vars have been set
+	if config.Vars.CloudProviders.Azure.TenantID == "" {
+		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.TenantID")
+		return c
+	}
+	if config.Vars.CloudProviders.Azure.SubscriptionID == "" {
+		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.SubscriptionID")
+		return c
+	}
+	if config.Vars.CloudProviders.Azure.ClientID == "" {
+		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.ClientID")
+		return c
+	}
+	if config.Vars.CloudProviders.Azure.ClientSecret == "" {
+		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.ClientSecret")
+		return c
+	}
+
+	authorizer := auth.NewClientCredentialsConfig(config.Vars.CloudProviders.Azure.ClientID, config.Vars.CloudProviders.Azure.ClientSecret, config.Vars.CloudProviders.Azure.TenantID)
+
+	authorizerToken, err := authorizer.Authorizer()
 	if err == nil {
-		c.Authorizer = a
+		c.Authorizer = authorizerToken
 	} else {
-		log.Fatalf("Unable to authorise Storage Account accountClient: %v", err)
+		log.Printf("[ERROR] Unable to authorise Storage Account accountClient: %v", err)
 	}
 	return c
 }

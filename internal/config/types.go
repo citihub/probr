@@ -61,6 +61,7 @@ type Azure struct {
 	ClientID        string `yaml:"ClientID"`
 	ClientSecret    string `yaml:"ClientSecret"`
 	ResourceGroup   string `yaml:"ResourceGroup"`
+	Location        string `yaml:"Location"`
 	ManagementGroup string `yaml:"ManagementGroup"`
 	Identity        struct {
 		DefaultNamespaceAI  string `yaml:"DefaultNamespaceAI"`

@@ -13,6 +13,7 @@ import (
 	"github.com/cucumber/godog"
 
 	"github.com/citihub/probr/internal/azureutil"
+	"github.com/citihub/probr/internal/azureutil/group"
 	"github.com/citihub/probr/internal/azureutil/policy"
 	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
@@ -61,22 +62,25 @@ func (state *accessWhitelistingAzure) teardown() {
 	log.Println("[DEBUG] Teardown completed")
 }
 
-// PENDING IMPLEMENTATION
 func (state *accessWhitelistingAzure) anAzureResourceGroupExists() error {
 
+	var err error
 	// check the resource group has been configured
 	if config.Vars.CloudProviders.Azure.ResourceGroup == "" {
 		log.Printf("[ERROR] Azure resource group config var not set")
-		err := errors.New("Azure resource group config var not set")
-		return err
+		err = errors.New("Azure resource group config var not set")
 	} else {
-		log.Printf("[NOTICE] Azure resource group config var is %s", config.Vars.CloudProviders.Azure.ResourceGroup)
+		state.resourceGroupName = config.Vars.CloudProviders.Azure.ResourceGroup
+		log.Printf("[NOTICE] Azure resource group is %s", state.resourceGroupName)
 	}
-	state.resourceGroupName = config.Vars.CloudProviders.Azure.ResourceGroup
-
-	// Check the resource group exists in the specified azure subscription
-
-	return nil
+	if err == nil {
+		// Check the resource group exists in the specified azure subscription
+		_, err = group.Get(state.ctx, state.resourceGroupName)
+		if err != nil {
+			log.Printf("[ERROR] Configured Azure resource group %s does not exists", state.resourceGroupName)
+		}
+	}
+	return err
 }
 
 func (state *accessWhitelistingAzure) checkPolicyAssigned() error {

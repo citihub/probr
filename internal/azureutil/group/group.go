@@ -3,13 +3,13 @@ package group
 import (
 	"context"
 	"log"
-	"os"
 
 	"github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2018-02-01/resources"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/citihub/probr/internal/azureutil"
+	"github.com/citihub/probr/internal/config"
 )
 
 // Create creates a new Resource Group in the default location (configured using the AZURE_LOCATION environment variable).
@@ -43,41 +43,33 @@ func CreateWithTags(ctx context.Context, name string, tags map[string]*string) (
 
 func client() resources.GroupsClient {
 
-	// Check that the env vars required to connect to azure are present
-	var envVar, value string
-	var ok bool
-	envVar = "AZURE_TENANT_ID"
-	value, ok = os.LookupEnv(envVar)
-	if !ok {
-		log.Printf("[ERROR] Mandatory env var not set: %v", envVar)
-	}
-	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
-	envVar = "AZURE_SUBSCRIPTION_ID"
-	value, ok = os.LookupEnv(envVar)
-	if !ok {
-		log.Printf("[ERROR] Mandatory env var not set: %v", envVar)
-	}
-	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
-	envVar = "AZURE_CLIENT_ID"
-	value, ok = os.LookupEnv(envVar)
-	if !ok {
-		log.Printf("[ERROR] Mandatory env var not set: %v", envVar)
-	}
-	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
-	envVar = "AZURE_CLIENT_SECRET"
-	value, ok = os.LookupEnv(envVar)
-	if !ok {
-		log.Printf("[ERROR] Mandatory env var not set: %v", envVar)
-	}
-	log.Printf("[DEBUG] Env var %v value is: %v", envVar, value)
+	c := resources.NewGroupsClient(config.Vars.CloudProviders.Azure.SubscriptionID)
 
-	c := resources.NewGroupsClient(azureutil.SubscriptionID())
+	// Check that connection config vars have been set
+	if config.Vars.CloudProviders.Azure.TenantID == "" {
+		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.TenantID")
+		return c
+	}
+	if config.Vars.CloudProviders.Azure.SubscriptionID == "" {
+		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.SubscriptionID")
+		return c
+	}
+	if config.Vars.CloudProviders.Azure.ClientID == "" {
+		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.ClientID")
+		return c
+	}
+	if config.Vars.CloudProviders.Azure.ClientSecret == "" {
+		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.ClientSecret")
+		return c
+	}
 
-	authorizer, err := auth.NewAuthorizerFromEnvironment()
+	authorizer := auth.NewClientCredentialsConfig(config.Vars.CloudProviders.Azure.ClientID, config.Vars.CloudProviders.Azure.ClientSecret, config.Vars.CloudProviders.Azure.TenantID)
+
+	authorizerToken, err := authorizer.Authorizer()
 	if err == nil {
-		c.Authorizer = authorizer
+		c.Authorizer = authorizerToken
 	} else {
-		log.Fatalf("Unable to authorise Resource Group client: %v", err)
+		log.Printf("[ERROR] Unable to authorise Resource Group client: %v", err)
 	}
 	return c
 }

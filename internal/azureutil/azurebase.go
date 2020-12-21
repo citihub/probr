@@ -24,12 +24,12 @@ func ResourceGroup() string {
 
 //Location returns the location in which the tests should be executed, driven by environment variable AZURE_LOCATION.
 func Location() string {
-	return getFromEnvVar("AZURE_LOCATION")
+	return config.Vars.CloudProviders.Azure.Location
 }
 
 //Location returns the Subscription in which the tests should be executed, driven by environment variable AZURE_SUBSCRIPTION_ID.
 func SubscriptionID() string {
-	return getFromEnvVar("AZURE_SUBSCRIPTION_ID")
+	return config.Vars.CloudProviders.Azure.SubscriptionID
 }
 
 //
