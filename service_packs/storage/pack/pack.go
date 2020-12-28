@@ -1,4 +1,4 @@
-package kubernetes_pack
+package storage_pack
 
 import (
 	"log"

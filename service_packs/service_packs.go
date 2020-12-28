@@ -9,18 +9,17 @@ import (
 	storage_pack "github.com/citihub/probr/service_packs/storage/pack"
 )
 
-var packs map[string][]coreengine.Probe
-
-func init() {
+func packs() (packs map[string][]coreengine.Probe) {
 	packs = make(map[string][]coreengine.Probe)
 
 	// Kubernetes pack requires the following vars:
-	// AuthorisedContainerRegistry, UnauthorisedContainerRegistry
+	//   AuthorisedContainerRegistry, UnauthorisedContainerRegistry
 	packs["kubernetes"] = kubernetes_pack.GetProbes()
 
 	// Storage pack requires the following vars:
-	// Provider
+	//   Provider
 	packs["storage"] = storage_pack.GetProbes()
+	return
 }
 
 func makeGodogProbe(pack string, p coreengine.Probe) *coreengine.GodogProbe {
@@ -38,7 +37,7 @@ func makeGodogProbe(pack string, p coreengine.Probe) *coreengine.GodogProbe {
 func GetAllProbes() []*coreengine.GodogProbe {
 	var allProbes []*coreengine.GodogProbe
 
-	for packName, pack := range packs {
+	for packName, pack := range packs() {
 		for _, probe := range pack {
 			allProbes = append(allProbes, makeGodogProbe(packName, probe))
 		}
