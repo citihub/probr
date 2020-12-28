@@ -14,8 +14,7 @@ import (
 )
 
 func GetProbes() []coreengine.Probe {
-	conf := config.Vars.ServicePacks.Kubernetes
-	if conf.AuthorisedContainerRegistry == "" || conf.UnauthorisedContainerRegistry == "" {
+	if config.Vars.ServicePacks.Kubernetes.IsExcluded() {
 		file, line := utils.CallerFileLine()
 		log.Printf("[WARN] %s:%v: Ignoring Kubernetes service pack due to required vars not being present.", file, line)
 		return nil

@@ -5,7 +5,6 @@ CucumberDir: cucumber_output
 OverwriteHistoricalAudits: true
 ServicePacks:
   Kubernetes:
-    Excluded: # "justification for exclusion" # any non-empty value here will exclude all elements within the service pack
     KubeConfig: 
     KubeContext:
     AuthorisedContainerRegistry: citihubprod.azurecr.io # required
