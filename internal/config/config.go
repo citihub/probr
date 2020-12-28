@@ -105,16 +105,8 @@ func AuditDir() string {
 }
 
 func (ctx *ConfigVars) handleConfigFileExclusions() {
-	if ctx.ServicePacks.Kubernetes.IsExcluded() {
-		ctx.addExclusion("probes/kubernetes")
-	} else {
-		ctx.handleProbeExclusions("kubernetes", ctx.ServicePacks.Kubernetes.Probes)
-	}
-	if ctx.ServicePacks.Storage.IsExcluded() {
-		ctx.addExclusion("probes/storage")
-	} else {
-		ctx.handleProbeExclusions("storage", ctx.ServicePacks.Storage.Probes)
-	}
+	ctx.handleProbeExclusions("kubernetes", ctx.ServicePacks.Kubernetes.Probes)
+	ctx.handleProbeExclusions("storage", ctx.ServicePacks.Storage.Probes)
 }
 
 func (ctx *ConfigVars) handleProbeExclusions(packName string, probes []Probe) {
@@ -142,9 +134,8 @@ func (ctx *ConfigVars) addExclusion(tag string) {
 func (k Kubernetes) IsExcluded() bool {
 	if k.AuthorisedContainerRegistry == "" || k.UnauthorisedContainerRegistry == "" {
 		if !k.exclusionLogged {
-			file, line := utils.CallerFileLine()
-			log.Printf("[WARN] %s:%v: Ignoring Kubernetes service pack due to required vars not being present.", file, line)
-
+			log.Printf("[WARN] Ignoring Kubernetes service pack due to required vars not being present.")
+			k.exclusionLogged = true
 		}
 		return true
 	}
@@ -156,9 +147,8 @@ func (k Kubernetes) IsExcluded() bool {
 func (s Storage) IsExcluded() bool {
 	if s.Provider == "" {
 		if !s.exclusionLogged {
-			file, line := utils.CallerFileLine()
-			log.Printf("[WARN] %s:%v: Ignoring Storage service pack due to required vars not being present.", file, line)
-
+			log.Printf("[WARN] Ignoring Storage service pack due to required vars not being present.")
+			s.exclusionLogged = true
 		}
 		return true
 	}
