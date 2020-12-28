@@ -36,6 +36,7 @@ type Kubernetes struct {
 
 type Storage struct {
 	Excluded string  `yaml:"Excluded"`
+	Provider string  `yaml:"Provider"` // Placeholder!
 	Probes   []Probe `yaml:"Probes"`
 }
 
