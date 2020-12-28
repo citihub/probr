@@ -39,8 +39,6 @@ The following elements are required to get started with Probr:
     - Additional options can be seen via `./probr --help`
     - Review required variables via `./probr show-required <SERVICE PACK NAME>`
 
-*Note: Feature files are not included in the binary. In this present state, Probr must be executed from the top level directory of the source code.*
-
 ## Configuration
 
 ### How the Config Works
