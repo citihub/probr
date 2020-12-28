@@ -15,6 +15,7 @@ func HandleRequestForRequiredVars() {
 		default:
 			fmt.Printf("Unknown service pack specified, cannot get required variables")
 		}
+		os.Exit(0) // Don't continue if this option is called
 	}
 }
 
