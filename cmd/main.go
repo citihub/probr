@@ -56,7 +56,7 @@ func showIndicator() bool {
 }
 
 func exit(status int) {
-	if config.Vars.LogLevel == "ERROR" {
+	if showIndicator() {
 		config.Spinner.Stop()
 	}
 	os.Exit(status)
