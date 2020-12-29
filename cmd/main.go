@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -14,10 +13,6 @@ import (
 	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/service_packs/kubernetes"
-)
-
-var (
-	integrationTest = flag.Bool("integrationTest", false, "run integration tests")
 )
 
 //TODO: revise when interface this bit up ...
