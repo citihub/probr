@@ -37,7 +37,6 @@ func (ctx *ConfigVars) handleTagExclusions() {
 
 // Init will override config.Vars with the content retrieved from a filepath
 func Init(configPath string) error {
-	log.Printf("[NOTICE] Initialized by %s", utils.CallerName(1))
 	config, err := NewConfig(configPath)
 
 	if err != nil {
@@ -48,6 +47,8 @@ func Init(configPath string) error {
 	setFromEnvOrDefaults(&Vars) // Set any values not retrieved from file
 
 	SetLogFilter(Vars.LogLevel, os.Stderr) // Set the minimum log level obtained from Vars
+	log.Printf("[DEBUG] Config initialized by %s", utils.CallerName(1))
+
 	Vars.handleConfigFileExclusions()
 
 	return nil
@@ -105,25 +106,17 @@ func AuditDir() string {
 }
 
 func (ctx *ConfigVars) handleConfigFileExclusions() {
-	if ctx.ServicePacks.Kubernetes.isExcluded() {
-		ctx.addExclusion("probes/kubernetes")
-	} else {
-		ctx.handleProbeExclusions("kubernetes", ctx.ServicePacks.Kubernetes.Probes)
-	}
-	if ctx.ServicePacks.Storage.isExcluded() {
-		ctx.addExclusion("probes/storage")
-	} else {
-		ctx.handleProbeExclusions("storage", ctx.ServicePacks.Storage.Probes)
-	}
+	ctx.handleProbeExclusions("kubernetes", ctx.ServicePacks.Kubernetes.Probes)
+	ctx.handleProbeExclusions("storage", ctx.ServicePacks.Storage.Probes)
 }
 
 func (ctx *ConfigVars) handleProbeExclusions(packName string, probes []Probe) {
 	for _, probe := range probes {
-		if probe.isExcluded() {
+		if probe.IsExcluded() {
 			ctx.addExclusion(fmt.Sprintf("probes/%s/%s", packName, probe.Name))
 		} else {
 			for _, scenario := range probe.Scenarios {
-				if scenario.isExcluded() {
+				if scenario.IsExcluded() {
 					ctx.addExclusion(fmt.Sprintf("probes/%s/%s/%s", packName, probe.Name, scenario.Name))
 				}
 			}
@@ -139,9 +132,12 @@ func (ctx *ConfigVars) addExclusion(tag string) {
 }
 
 // Log and return exclusion configuration
-func (k Kubernetes) isExcluded() bool {
-	if k.Excluded != "" {
-		log.Printf("[NOTICE] Excluding Kubernetes service pack. Justification: %s", k.Excluded)
+func (k Kubernetes) IsExcluded() bool {
+	if k.AuthorisedContainerRegistry == "" || k.UnauthorisedContainerRegistry == "" {
+		if !k.exclusionLogged {
+			log.Printf("[WARN] Ignoring Kubernetes service pack due to required vars not being present.")
+			k.exclusionLogged = true
+		}
 		return true
 	}
 	log.Printf("[NOTICE] Kubernetes service pack included.")
@@ -149,9 +145,12 @@ func (k Kubernetes) isExcluded() bool {
 }
 
 // Log and return exclusion configuration
-func (k Storage) isExcluded() bool {
-	if k.Excluded != "" {
-		log.Printf("[NOTICE] Excluding Storage service pack. Justification: %s", k.Excluded)
+func (s Storage) IsExcluded() bool {
+	if s.Provider == "" {
+		if !s.exclusionLogged {
+			log.Printf("[WARN] Ignoring Storage service pack due to required vars not being present.")
+			s.exclusionLogged = true
+		}
 		return true
 	}
 	log.Printf("[NOTICE] Storage service pack included.")
@@ -159,7 +158,7 @@ func (k Storage) isExcluded() bool {
 }
 
 // Log and return exclusion configuration
-func (p Probe) isExcluded() bool {
+func (p Probe) IsExcluded() bool {
 	if p.Excluded != "" {
 		log.Printf("[NOTICE] Excluding %s probe. Justification: %s", strings.Replace(p.Name, "_", " ", -1), p.Excluded)
 		return true
@@ -168,7 +167,7 @@ func (p Probe) isExcluded() bool {
 }
 
 // Log and return exclusion configuration
-func (s Scenario) isExcluded() bool {
+func (s Scenario) IsExcluded() bool {
 	if s.Excluded != "" {
 		log.Printf("[NOTICE] Excluding scenario '%s'. Justification: %s", s.Name, s.Excluded)
 		return true
