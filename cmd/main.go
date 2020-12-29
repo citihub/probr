@@ -21,7 +21,8 @@ var kube = kubernetes.GetKubeInstance()
 func main() {
 	err := config.Init("") // Create default config
 	if err != nil {
-		log.Fatalf("[ERROR] error returned from config.Init: %v", err)
+		log.Printf("[ERROR] error returned from config.Init: %v", err)
+		exit(2)
 	}
 
 	if len(os.Args[1:]) > 0 {
@@ -37,23 +38,20 @@ func main() {
 		config.Spinner.Start()
 	}
 
-	//exec 'em all (for now!)
 	s, ts, err := probr.RunAllProbes()
 	if err != nil {
 		log.Printf("[ERROR] Error executing tests %v", err)
-		exit(2) // Error code 1 is reserved for probe test failures, and should not fail in CI
+		exit(2) // Exit 2+ is for logic/functional errors
 	}
 	log.Printf("[NOTICE] Overall test completion status: %v", s)
 	summary.State.SetProbrStatus()
 
-	if config.Vars.OutputType == "IO" {
-		out := probr.GetAllProbeResults(ts)
-		if out == nil || len(out) == 0 {
-			summary.State.Meta["cucumber directory error"] = fmt.Sprintf(
-				"Test results not written to file, possibly due to permissions on the specified output directory: %s",
-				config.Vars.CucumberDir,
-			)
-		}
+	out := probr.GetAllProbeResults(ts)
+	if out == nil || len(out) == 0 {
+		summary.State.Meta["no probes completed"] = fmt.Sprintf(
+			"Probe results not written to file, possibly due to permissions on the specified output directory: %s",
+			config.Vars.CucumberDir,
+		)
 	}
 	summary.State.PrintSummary()
 	exit(s)
