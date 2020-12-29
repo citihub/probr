@@ -19,8 +19,16 @@ import (
 var kube = kubernetes.GetKubeInstance()
 
 func main() {
-	cli_flags.HandleRequestForRequiredVars()
-	cli_flags.HandleFlags()
+	err := config.Init("") // Create default config
+	if err != nil {
+		log.Fatalf("[ERROR] error returned from config.Init: %v", err)
+	}
+
+	if len(os.Args[1:]) > 0 {
+		cli_flags.HandleRequestForRequiredVars()
+		cli_flags.HandleFlags()
+	}
+
 	config.LogConfigState()
 
 	if showIndicator() {
