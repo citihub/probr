@@ -13,7 +13,7 @@ This directory contains the feature file and code realted to the probing of encr
 
 ## Azure Policy prerequiste
 
-A policy which denies the creation of storage accounts with non-secure http access enabled, should be assigned to the azure subscription or resource group. The applicable built-in azure policy is:
+A policy which denies the creation of storage accounts with non-secure http access enabled, should be assigned to the azure subscription or azure management group. The applicable built-in azure policy is:
 `Secure transfer to storage accounts should be enabled`. However, the policy needs to be copied and amended, so its 'Default Value' is Deny (the built-in policy has this set to Audit).
 
 ## Preventative scenario outline
