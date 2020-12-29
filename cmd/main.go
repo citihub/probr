@@ -12,11 +12,7 @@ import (
 	"github.com/citihub/probr/cmd/cli_flags"
 	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/summary"
-	"github.com/citihub/probr/service_packs/kubernetes"
 )
-
-//TODO: revise when interface this bit up ...
-var kube = kubernetes.GetKubeInstance()
 
 func main() {
 	err := config.Init("") // Create default config
@@ -49,7 +45,7 @@ func main() {
 	out := probr.GetAllProbeResults(ts)
 	if out == nil || len(out) == 0 {
 		summary.State.Meta["no probes completed"] = fmt.Sprintf(
-			"Probe results not written to file, possibly due to permissions on the specified output directory: %s",
+			"Probe results not written to file, possibly due to all being excluded or permissions on the specified output directory: %s",
 			config.Vars.CucumberDir,
 		)
 	}
