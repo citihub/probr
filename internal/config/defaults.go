@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/citihub/probr/internal/utils"
 )
 
 // setEnvOrDefaults will set value from os.Getenv and default to the specified value
@@ -50,7 +52,8 @@ func homeDir() string {
 func (e *ConfigVars) set(field interface{}, varName string, defaultValue interface{}) {
 	switch v := field.(type) {
 	default:
-		log.Fatalf("unexpected type for %v, %T", varName, v)
+		log.Printf("unexpected type for %v, %T", varName, v)
+		utils.Exit(2)
 	case *string:
 		if *field.(*string) == "" {
 			*field.(*string) = os.Getenv(varName)

@@ -4,10 +4,12 @@ package utils
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
 
+	"github.com/citihub/probr/internal/config"
 	"github.com/gobuffalo/packr/v2"
 )
 
@@ -15,6 +17,13 @@ var boxes map[string]*packr.Box
 
 func init() {
 	boxes = make(map[string]*packr.Box)
+}
+
+func Exit(status int) {
+	if config.Spinner != nil {
+		config.Spinner.Stop()
+	}
+	os.Exit(status)
 }
 
 // BoolPtr returns a pointer to a bool

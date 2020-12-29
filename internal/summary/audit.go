@@ -42,7 +42,8 @@ func (e *ProbeAudit) Write() {
 		_, err := os.Stat(e.path)
 		if err == nil && config.Vars.OverwriteHistoricalAudits == "false" {
 			// Historical audits are preserved by default
-			log.Fatalf("[ERROR] AuditEnabled is set to true, but audit file already exists or Probr could not open: '%s'", e.path)
+			log.Printf("[ERROR] Consider disabling historical audits; AuditEnabled is set to true, but audit file already exists or Probr could not open: '%s'", e.path)
+			utils.Exit(2)
 		}
 
 		json, _ := json.MarshalIndent(e, "", "  ")
@@ -50,7 +51,8 @@ func (e *ProbeAudit) Write() {
 		err = ioutil.WriteFile(e.path, data, 0755)
 
 		if err != nil {
-			log.Fatalf("[ERROR] AuditEnabled is set to true, but Probr could not write audit to file: '%s'", e.path)
+			log.Printf("[ERROR] Review file or directory permissions; AuditEnabled is set to true, but Probr could not write audit to file: '%s'", e.path)
+			utils.Exit(2)
 		}
 	}
 }

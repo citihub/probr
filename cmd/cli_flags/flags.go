@@ -65,7 +65,8 @@ func boolFlag(name string, usage string, handler flagHandlerFunc) {
 func varsFileHandler(v interface{}) {
 	err := config.Init(*v.(*string))
 	if err != nil {
-		log.Fatalf("[ERROR] error returned from config.Init: %v", err)
+		log.Printf("[ERROR] error returned from config.Init: %v", err)
+		utils.Exit(2)
 	} else if len(*v.(*string)) > 0 {
 		config.Vars.VarsFile = *v.(*string)
 		log.Printf("[NOTICE] Config read from file '%v', but may still be overridden by CLI flags.", v.(*string))
@@ -88,7 +89,8 @@ func loglevelHandler(v interface{}) {
 		levels := []string{"DEBUG", "INFO", "NOTICE", "WARN", "ERROR"}
 		_, found := utils.FindString(levels, *v.(*string))
 		if !found {
-			log.Fatalf("[ERROR] Unknown loglevel specified: '%s'. Must be one of %v", *v.(*string), levels)
+			log.Printf("[ERROR] Unknown loglevel specified: '%s'. Must be one of %v", *v.(*string), levels)
+			utils.Exit(2)
 		} else {
 			config.Vars.LogLevel = *v.(*string)
 			config.SetLogFilter(config.Vars.LogLevel, os.Stderr)

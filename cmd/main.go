@@ -12,13 +12,14 @@ import (
 	"github.com/citihub/probr/cmd/cli_flags"
 	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/summary"
+	"github.com/citihub/probr/internal/utils"
 )
 
 func main() {
 	err := config.Init("") // Create default config
 	if err != nil {
 		log.Printf("[ERROR] error returned from config.Init: %v", err)
-		exit(2)
+		utils.Exit(2)
 	}
 
 	if len(os.Args[1:]) > 0 {
@@ -37,7 +38,7 @@ func main() {
 	s, ts, err := probr.RunAllProbes()
 	if err != nil {
 		log.Printf("[ERROR] Error executing tests %v", err)
-		exit(2) // Exit 2+ is for logic/functional errors
+		utils.Exit(2) // Exit 2+ is for logic/functional errors
 	}
 	log.Printf("[NOTICE] Overall test completion status: %v", s)
 	summary.State.SetProbrStatus()
@@ -50,16 +51,9 @@ func main() {
 		)
 	}
 	summary.State.PrintSummary()
-	exit(s)
+	utils.Exit(s)
 }
 
 func showIndicator() bool {
 	return config.Vars.LogLevel == "ERROR" && !config.Vars.Silent
-}
-
-func exit(status int) {
-	if showIndicator() {
-		config.Spinner.Stop()
-	}
-	os.Exit(status)
 }
