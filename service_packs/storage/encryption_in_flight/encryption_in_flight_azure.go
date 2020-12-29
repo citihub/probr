@@ -16,7 +16,6 @@ import (
 	"github.com/citihub/probr/internal/azureutil"
 	"github.com/citihub/probr/internal/azureutil/group"
 	"github.com/citihub/probr/internal/azureutil/policy"
-	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/service_packs/storage"
@@ -45,7 +44,6 @@ type EncryptionInFlightAzure struct {
 	httpOption                bool
 	httpsOption               bool
 	policyAssignmentMgmtGroup string
-	resourceGroupName         string
 	storageAccounts           []string
 }
 
@@ -61,7 +59,7 @@ func (state *EncryptionInFlightAzure) setup() {
 func (state *EncryptionInFlightAzure) teardown() {
 	for _, account := range state.storageAccounts {
 		log.Printf("[DEBUG] need to delete the storageAccount: %s", account)
-		err := storage.DeleteAccount(state.ctx, state.resourceGroupName, account)
+		err := storage.DeleteAccount(state.ctx, azureutil.ResourceGroup(), account)
 
 		if err != nil {
 			log.Printf("[ERROR] error deleting the storageAccount: %v", err)
@@ -94,18 +92,15 @@ func (state *EncryptionInFlightAzure) anAzureResourceGroupExists() error {
 
 	var err error
 	// check the resource group has been configured
-	if config.Vars.CloudProviders.Azure.ResourceGroup == "" {
+	if azureutil.ResourceGroup() == "" {
 		log.Printf("[ERROR] Azure resource group config var not set")
 		err = errors.New("Azure resource group config var not set")
-	} else {
-		state.resourceGroupName = config.Vars.CloudProviders.Azure.ResourceGroup
-		log.Printf("[NOTICE] Azure resource group is %s", state.resourceGroupName)
 	}
 	if err == nil {
 		// Check the resource group exists in the specified azure subscription
-		_, err = group.Get(state.ctx, state.resourceGroupName)
+		_, err = group.Get(state.ctx, azureutil.ResourceGroup())
 		if err != nil {
-			log.Printf("[ERROR] Configured Azure resource group %s does not exists", state.resourceGroupName)
+			log.Printf("[ERROR] Configured Azure resource group %s does not exists", azureutil.ResourceGroup())
 		}
 	}
 	return err
@@ -148,15 +143,15 @@ func (state *EncryptionInFlightAzure) creationWillWithAnErrorMatching(expectatio
 	if state.httpsOption && state.httpOption {
 		log.Printf("[DEBUG] Creating Storage Account with HTTPS: %v", false)
 		_, err = storage.CreateWithNetworkRuleSet(state.ctx, accountName,
-			state.resourceGroupName, state.tags, false, &networkRuleSet)
+			azureutil.ResourceGroup(), state.tags, false, &networkRuleSet)
 	} else if state.httpsOption {
 		log.Printf("[DEBUG] Creating Storage Account with HTTPS: %v", state.httpsOption)
 		_, err = storage.CreateWithNetworkRuleSet(state.ctx, accountName,
-			state.resourceGroupName, state.tags, state.httpsOption, &networkRuleSet)
+			azureutil.ResourceGroup(), state.tags, state.httpsOption, &networkRuleSet)
 	} else if state.httpOption {
 		log.Printf("[DEBUG] Creating Storage Account with HTTPS: %v", state.httpsOption)
 		_, err = storage.CreateWithNetworkRuleSet(state.ctx, accountName,
-			state.resourceGroupName, state.tags, state.httpsOption, &networkRuleSet)
+			azureutil.ResourceGroup(), state.tags, state.httpsOption, &networkRuleSet)
 	}
 	if err == nil {
 		// storage account created so add to state

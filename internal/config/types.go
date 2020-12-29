@@ -55,15 +55,15 @@ type CloudProviders struct {
 }
 
 type Azure struct {
-	Excluded        string `yaml:"Excluded"`
-	TenantID        string `yaml:"TenantID"`
-	SubscriptionID  string `yaml:"SubscriptionID"`
-	ClientID        string `yaml:"ClientID"`
-	ClientSecret    string `yaml:"ClientSecret"`
-	ResourceGroup   string `yaml:"ResourceGroup"`
-	Location        string `yaml:"Location"`
-	ManagementGroup string `yaml:"ManagementGroup"`
-	Identity        struct {
+	Excluded         string `yaml:"Excluded"`
+	TenantID         string `yaml:"TenantID"`
+	SubscriptionID   string `yaml:"SubscriptionID"`
+	ClientID         string `yaml:"ClientID"`
+	ClientSecret     string `yaml:"ClientSecret"`
+	ResourceGroup    string `yaml:"ResourceGroup"`
+	ResourceLocation string `yaml:"ResourceLocation"`
+	ManagementGroup  string `yaml:"ManagementGroup"`
+	Identity         struct {
 		DefaultNamespaceAI  string `yaml:"DefaultNamespaceAI"`
 		DefaultNamespaceAIB string `yaml:"DefaultNamespaceAIB"`
 	}

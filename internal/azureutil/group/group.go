@@ -9,17 +9,16 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/citihub/probr/internal/azureutil"
-	"github.com/citihub/probr/internal/config"
 )
 
 // Create creates a new Resource Group in the default location (configured using the AZURE_LOCATION environment variable).
 func Create(ctx context.Context, name string) (resources.Group, error) {
-	log.Printf("[DEBUG] creating Resource Group '%s' in location: %v", name, azureutil.Location())
+	log.Printf("[DEBUG] creating Resource Group '%s' in location: %v", name, azureutil.ResourceLocation())
 	return client().CreateOrUpdate(
 		ctx,
 		name,
 		resources.Group{
-			Location: to.StringPtr(azureutil.Location()),
+			Location: to.StringPtr(azureutil.ResourceLocation()),
 		})
 }
 
@@ -31,39 +30,23 @@ func Get(ctx context.Context, name string) (resources.Group, error) {
 
 // CreateWithTags creates a new Resource Group in the default location (configured using the AZURE_LOCATION environment variable) and sets the supplied tags.
 func CreateWithTags(ctx context.Context, name string, tags map[string]*string) (resources.Group, error) {
-	log.Printf("[DEBUG] creating Resource Group '%s' on location: '%v'", name, azureutil.Location())
+	log.Printf("[DEBUG] creating Resource Group '%s' on location: '%v'", name, azureutil.ResourceLocation())
 	return client().CreateOrUpdate(
 		ctx,
 		name,
 		resources.Group{
-			Location: to.StringPtr(azureutil.Location()),
+			Location: to.StringPtr(azureutil.ResourceLocation()),
 			Tags:     tags,
 		})
 }
 
 func client() resources.GroupsClient {
 
-	c := resources.NewGroupsClient(config.Vars.CloudProviders.Azure.SubscriptionID)
+	// Create an azure resource group client object via the connection config vars
+	c := resources.NewGroupsClient(azureutil.SubscriptionID())
 
-	// Check that connection config vars have been set
-	if config.Vars.CloudProviders.Azure.TenantID == "" {
-		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.TenantID")
-		return c
-	}
-	if config.Vars.CloudProviders.Azure.SubscriptionID == "" {
-		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.SubscriptionID")
-		return c
-	}
-	if config.Vars.CloudProviders.Azure.ClientID == "" {
-		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.ClientID")
-		return c
-	}
-	if config.Vars.CloudProviders.Azure.ClientSecret == "" {
-		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.ClientSecret")
-		return c
-	}
-
-	authorizer := auth.NewClientCredentialsConfig(config.Vars.CloudProviders.Azure.ClientID, config.Vars.CloudProviders.Azure.ClientSecret, config.Vars.CloudProviders.Azure.TenantID)
+	// Create an authorization object via the connection config vars
+	authorizer := auth.NewClientCredentialsConfig(azureutil.ClientID(), azureutil.ClientSecret(), azureutil.TenantID())
 
 	authorizerToken, err := authorizer.Authorizer()
 	if err == nil {

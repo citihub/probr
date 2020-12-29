@@ -10,10 +10,9 @@ import (
 	"github.com/Azure/go-autorest/autorest/to"
 
 	"github.com/citihub/probr/internal/azureutil"
-	"github.com/citihub/probr/internal/config"
 )
 
-//
+// DeleteAccount - deletes a storage account given the azure contect, resource group and account name
 func DeleteAccount(ctx context.Context, resourceGroupName, accountName string) error {
 
 	c := accountClient()
@@ -58,7 +57,7 @@ func CreateWithNetworkRuleSet(ctx context.Context, accountName, accountGroupName
 			Sku: &storage.Sku{
 				Name: storage.StandardLRS},
 			Kind:                              storage.Storage,
-			Location:                          to.StringPtr(azureutil.Location()),
+			Location:                          to.StringPtr(azureutil.ResourceLocation()),
 			AccountPropertiesCreateParameters: networkRuleSetParam,
 			Tags:                              tags,
 		})
@@ -94,27 +93,12 @@ func getAccountKeys(ctx context.Context, accountName, accountGroupName string) (
 }
 
 func accountClient() storage.AccountsClient {
-	c := storage.NewAccountsClient(config.Vars.CloudProviders.Azure.SubscriptionID)
 
-	// Check that connection config vars have been set
-	if config.Vars.CloudProviders.Azure.TenantID == "" {
-		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.TenantID")
-		return c
-	}
-	if config.Vars.CloudProviders.Azure.SubscriptionID == "" {
-		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.SubscriptionID")
-		return c
-	}
-	if config.Vars.CloudProviders.Azure.ClientID == "" {
-		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.ClientID")
-		return c
-	}
-	if config.Vars.CloudProviders.Azure.ClientSecret == "" {
-		log.Printf("[ERROR] Mandatory azure connection config var not set: config.Vars.CloudProviders.Azure.ClientSecret")
-		return c
-	}
+	// Create an azure storage account client object via the connection config vars
+	c := storage.NewAccountsClient(azureutil.SubscriptionID())
 
-	authorizer := auth.NewClientCredentialsConfig(config.Vars.CloudProviders.Azure.ClientID, config.Vars.CloudProviders.Azure.ClientSecret, config.Vars.CloudProviders.Azure.TenantID)
+	// Create an authorization object via the connection config vars
+	authorizer := auth.NewClientCredentialsConfig(azureutil.ClientID(), azureutil.ClientSecret(), azureutil.TenantID())
 
 	authorizerToken, err := authorizer.Authorizer()
 	if err == nil {

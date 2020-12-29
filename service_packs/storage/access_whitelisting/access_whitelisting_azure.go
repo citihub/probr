@@ -15,7 +15,6 @@ import (
 	"github.com/citihub/probr/internal/azureutil"
 	"github.com/citihub/probr/internal/azureutil/group"
 	"github.com/citihub/probr/internal/azureutil/policy"
-	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/service_packs/storage"
@@ -45,7 +44,6 @@ type accessWhitelistingAzure struct {
 	bucketName                string
 	storageAccount            azureStorage.Account
 	runningErr                error
-	resourceGroupName         string
 }
 
 var state accessWhitelistingAzure
@@ -66,18 +64,15 @@ func (state *accessWhitelistingAzure) anAzureResourceGroupExists() error {
 
 	var err error
 	// check the resource group has been configured
-	if config.Vars.CloudProviders.Azure.ResourceGroup == "" {
+	if azureutil.ResourceGroup() == "" {
 		log.Printf("[ERROR] Azure resource group config var not set")
 		err = errors.New("Azure resource group config var not set")
-	} else {
-		state.resourceGroupName = config.Vars.CloudProviders.Azure.ResourceGroup
-		log.Printf("[NOTICE] Azure resource group is %s", state.resourceGroupName)
 	}
 	if err == nil {
 		// Check the resource group exists in the specified azure subscription
-		_, err = group.Get(state.ctx, state.resourceGroupName)
+		_, err = group.Get(state.ctx, azureutil.ResourceGroup())
 		if err != nil {
-			log.Printf("[ERROR] Configured Azure resource group %s does not exists", state.resourceGroupName)
+			log.Printf("[ERROR] Configured Azure resource group %s does not exists", azureutil.ResourceGroup())
 		}
 	}
 	return err
@@ -128,7 +123,7 @@ func (state *accessWhitelistingAzure) createWithWhitelist(ipRange string) error 
 		}
 	}
 
-	state.storageAccount, state.runningErr = storage.CreateWithNetworkRuleSet(state.ctx, state.bucketName, state.resourceGroupName, state.tags, true, &networkRuleSet)
+	state.storageAccount, state.runningErr = storage.CreateWithNetworkRuleSet(state.ctx, state.bucketName, azureutil.ResourceGroup(), state.tags, true, &networkRuleSet)
 	return nil
 }
 
