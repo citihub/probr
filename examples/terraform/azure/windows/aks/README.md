@@ -26,7 +26,7 @@ https://kubernetes.io/docs/tasks/tools/install-kubectl/
  ~~~
 <terraform apply -var-file="terraform.tfvars" -auto-approve>.Make sure there are no errors.
  ~~~
-- Run get
+- Run
  ~~~
 <az aks get-credentials --resource-group <ResourceGroup Name> --name  <AKS Cluster Name> --overwrite-existing>
  ~~~ 
@@ -35,7 +35,10 @@ https://kubernetes.io/docs/tasks/tools/install-kubectl/
 <Example: ( az aks get-credentials --resource-group probr-automation-rg --name probr-automation-cluster --overwrite-existing )>
  ~~~
   
-- Once connected to your AKS cluster, run the command kubectl get pods --all-namespaces, review pods
+- Once connected to your AKS cluster, run the command:
+ ~~~
+ <kubectl get pods --all-namespaces, review pods>
+ ~~~
 
 
 
