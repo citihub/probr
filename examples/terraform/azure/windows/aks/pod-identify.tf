@@ -40,8 +40,12 @@ data "template_file" "azureidentity" {
   }
 }
 
+
 data "template_file" "azureidentitybinding" {
   template = pathexpand("azure-identity-binding.yaml")
+}
+data "template_file" "config" {
+  template = pathexpand("${var.kube_config_filepath}")
 }
 
 
@@ -49,7 +53,7 @@ resource "null_resource" "azureidentity_apply" {
   //depends_on = [null_resource.kubectl, helm_release.aad-pod-identity]
   provisioner "local-exec" {
    command =   <<EOT
-    kubectl apply -n default --kubeconfig=${var.kube_config_filepath}-f ${data.template_file.azureidentity.rendered}
+    kubectl apply -n default --kubeconfig=${data.template_file.config.rendered} -f ${data.template_file.azureidentity.rendered}
     EOT
   }
 }
@@ -58,7 +62,7 @@ resource "null_resource" "azureidentitybinding_apply" {
  
  provisioner "local-exec" {
   command = <<EOT
-    kubectl apply -n default --kubeconfig=${var.kube_config_filepath} -f ${data.template_file.azureidentitybinding.rendered}
+    kubectl apply -n default --kubeconfig=${data.template_file.config.rendered} -f ${data.template_file.azureidentitybinding.rendered}
     EOT
   }
 }

@@ -76,18 +76,12 @@ resource null_resource "probrimage" {
   }
 }
 
-resource "null_resource" "kubectl" {
-  triggers = {
-    always_run = timestamp()
-  }
 
-  provisioner "local-exec" {
-    
-    command     = "Write-Output '${azurerm_kubernetes_cluster.cluster.kube_config_raw}' > config.txt"
-  
-  }
+resource "local_file" "config" {
+    //content     = "${data.template_file.config.rendered}"
+    content     = pathexpand("${azurerm_kubernetes_cluster.cluster.kube_config_raw}")
+    filename = pathexpand("${var.kube_config_filepath}")
 }
-
 output "client_certificate" {
   value = azurerm_kubernetes_cluster.cluster.kube_config.0.client_certificate
 }
