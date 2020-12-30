@@ -16,7 +16,7 @@ This Terraform code will run in Azure CLI bash in Cloudshell. This Terraform bui
 
 - Make sure your Cloudshell is configured for bash
 
-- Run az login to login to Azure 
+- Run ~~~az login ~~ to login to Azure 
 
 - Run az account list if necessary
 
