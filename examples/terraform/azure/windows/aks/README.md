@@ -24,8 +24,9 @@ https://kubernetes.io/docs/tasks/tools/install-kubectl/
 
 - Run the command 
  ~~~
-<terraform apply -var-file="terraform.tfvars" -auto-approve>.Make sure there are no errors.
+ terraform apply -var-file="terraform.tfvars" -auto-approve.Make sure there are no errors.
  ~~~
+ Make sure there are no errors.
 - Run
  ~~~
 <az aks get-credentials --resource-group <ResourceGroup Name> --name  <AKS Cluster Name> --overwrite-existing>
