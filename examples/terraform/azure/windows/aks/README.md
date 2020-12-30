@@ -11,7 +11,7 @@ https://kubernetes.io/docs/tasks/tools/install-kubectl/
 
 - Download code to your local machine. 
 
-#Running Terraform
+Running Terraform modules
 - Navigate to probr/examples/terraform/azure/windows/aks/
 
 - Open the terraform.tfvars configuration file
@@ -32,7 +32,7 @@ https://kubernetes.io/docs/tasks/tools/install-kubectl/
  ~~~
  az aks get-credentials --resource-group <ResourceGroup Name> --name  <AKS Cluster Name> --overwrite-existing
  ~~~ 
- to get credentials for AKS cluster.
+ this will allow to login to your AKS cluster.
  ~~~
  Example: az aks get-credentials --resource-group probr-automation-rg --name probr-automation-cluster --overwrite-existing
  ~~~
