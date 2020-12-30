@@ -17,19 +17,38 @@ This Terraform code will run in Azure CLI bash in Cloudshell. This Terraform bui
 - Make sure your Cloudshell is configured for bash
 
 - Run 
-  ~~~az login~~~
+  ~~~
+  az login
+  ~~~
   to login to Azure 
 
-- Run az account list if necessary
+- Run 
+  ~~~
+  az account list
+  ~~~
+  to list subscriptions if necessary
 
-- Run az az account set -s <YOUR SUBSCRIPTION>
-
-- Run terraform init
-
-- Run terraform plan
-
-- Run terraform apply -var-file="variables.tfvars" -auto-approve
-
-- Run az aks get-credentials --resource-group <ResourceGroup Name> --name  <AKS Cluster Name>
-
-- Run kubectl get pods --all-namespaces
+- Run 
+  ~~~
+  az account set -s <YOUR SUBSCRIPTION>
+  ~~~
+- Run 
+  ~~~
+  terraform init
+  ~~~
+- Run 
+  ~~~
+  terraform plan
+  ~~~
+- Run
+  ~~~
+  terraform apply -var-file="variables.tfvars" -auto-approve
+  ~~~
+- Run 
+  ~~~
+  az aks get-credentials --resource-group <ResourceGroup Name> --name  <AKS Cluster Name>
+  ~~~
+- Run 
+  ~~~
+  kubectl get pods --all-namespaces
+  ~~~
