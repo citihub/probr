@@ -22,8 +22,10 @@ https://kubernetes.io/docs/tasks/tools/install-kubectl/
 
 - Run the command terraform plan, review plan
 
-- Run the command terraform apply -var-file="terraform.tfvars" -auto-approve.Make sure there are no errors.
-
+- Run the command 
+ ~~~
+<terraform apply -var-file="terraform.tfvars" -auto-approve>.Make sure there are no errors.
+ ~~~
 - Run to get az aks get-credentials --resource-group <ResourceGroup Name> --name  <AKS Cluster Name> --overwrite-existing to get credentials for AKS cluster.
 Example: ( az aks get-credentials --resource-group probr-automation-rg --name probr-automation-cluster --overwrite-existing )
   
