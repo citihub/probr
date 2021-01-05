@@ -258,7 +258,7 @@ func (k *Kube) CreatePodFromObject(pod *apiv1.Pod, podName string, ns string, wa
 			//return it and nil out err
 			return res, nil
 		} else if isForbidden(err) {
-			log.Printf("[INFO] Creation of POD %v is forbidden: %v", podName, err)
+			log.Printf("[NOTICE] Creation of POD %v is forbidden: %v", podName, err)
 			//return a specific error:
 			return nil, &PodCreationError{err, *k.toPodCreationErrorCode(err)}
 		}

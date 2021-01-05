@@ -138,7 +138,7 @@ func (az *AzK8sConstraintTemplate) hasConstraint(cst string) (*bool, error) {
 
 	_, b := (*c)[cst]
 
-	log.Printf("[DEBUG] Azure Contraint template %q. Result %t.", cst, b)
+	log.Printf("[DEBUG] Azure Constraint template %q. Result %t.", cst, b)
 	return &b, nil
 }
 

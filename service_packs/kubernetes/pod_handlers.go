@@ -147,7 +147,7 @@ func waitForDelete(c *k8s.Clientset, ns string, n string) error {
 			log.Printf("[WARN] Unexpected Watch Probe Type received for pod %v - skipping", p.GetObjectMeta().GetName())
 			break
 		}
-		log.Printf("[DEBUG] Watch Container phase: %v", p.Status.Phase)
+		log.Printf("[INFO] Watch Container phase: %v", p.Status.Phase)
 		log.Printf("[DEBUG] Watch Container status: %+v", p.Status.ContainerStatuses)
 
 		if e.Type == "DELETED" {

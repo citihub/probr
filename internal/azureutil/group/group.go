@@ -24,7 +24,7 @@ func Create(ctx context.Context, name string) (resources.Group, error) {
 
 // Get an existing Resource Group by name
 func Get(ctx context.Context, name string) (resources.Group, error) {
-	log.Printf("[INFO] getting a Resource Group '%s'", name)
+	log.Printf("[DEBUG] getting a Resource Group '%s'", name)
 	return client().Get(ctx, name)
 }
 
