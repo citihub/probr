@@ -168,7 +168,7 @@ func (p *AZSecurityPolicyProvider) getPolicies() (*map[string]*azPolicy, error) 
 	log.Printf("[INFO] Using Azure Sub: %v", s)
 
 	scope := "/subscriptions/" + s
-	log.Printf("[DEBUG] Getting Policy Assignment with subscriptionID: %v", scope)
+	log.Printf("[INFO] Getting Policy Assignment with subscriptionID: %v", scope)
 
 	ac := assignmentClient(s)
 
@@ -192,7 +192,7 @@ func (p *AZSecurityPolicyProvider) getPolicies() (*map[string]*azPolicy, error) 
 		azp.displayName = r.AssignmentProperties.DisplayName //display name == 'name'
 		azp.scope = r.AssignmentProperties.Scope
 
-		log.Printf("[DEBUG] azPolicy %v %v %v", *azp.uuid, *azp.displayName, *azp.scope)
+		log.Printf("[INFO] azPolicy %v %v %v", *azp.uuid, *azp.displayName, *azp.scope)
 
 		//look up the "type" based on the uuid of the policy
 		t, exists := azPolicyUUIDToProbrPolicy[*azp.uuid]

@@ -88,7 +88,7 @@ func getPods(c *k8s.Clientset, ns string) (*apiv1.PodList, error) {
 		return nil, fmt.Errorf("pod list returned nil")
 	}
 
-	log.Printf("[INFO] There are %d pods in the cluster\n", len(pods.Items))
+	log.Printf("[DEBUG] There are %d pods in the cluster\n", len(pods.Items))
 
 	for i := 0; i < len(pods.Items); i++ {
 		log.Printf("[DEBUG] Pod: %v %v\n", pods.Items[i].GetNamespace(), pods.Items[i].GetName())
@@ -147,11 +147,11 @@ func waitForDelete(c *k8s.Clientset, ns string, n string) error {
 			log.Printf("[WARN] Unexpected Watch Probe Type received for pod %v - skipping", p.GetObjectMeta().GetName())
 			break
 		}
-		log.Printf("[INFO] Watch Container phase: %v", p.Status.Phase)
+		log.Printf("[DEBUG] Watch Container phase: %v", p.Status.Phase)
 		log.Printf("[DEBUG] Watch Container status: %+v", p.Status.ContainerStatuses)
 
 		if e.Type == "DELETED" {
-			log.Printf("[INFO] DELETED probe received for pod %v", p.GetObjectMeta().GetName())
+			log.Printf("[DEBUG] DELETED probe received for pod %v", p.GetObjectMeta().GetName())
 			break
 		}
 
