@@ -40,7 +40,7 @@ func TestFindString(t *testing.T) {
 
 	for _, c := range tests {
 
-		testName := fmt.Sprintf("%q,%q", c.slice, c.val)
+		testName := fmt.Sprintf("FindString(%q,%q) - Expected:%d,%v", c.slice, c.val, c.expectedIndex, c.expectedFound)
 
 		t.Run(testName, func(t *testing.T) {
 			actualPosition, actualFound := FindString(c.slice, c.val)
@@ -71,13 +71,13 @@ func TestReplaceBytesValue(t *testing.T) {
 
 	for _, c := range tests {
 
-		testName := fmt.Sprintf("ReplaceBytesValue(%q,%q,%q)", string(c.bytes), c.oldValue, c.newValue)
+		testName := fmt.Sprintf("ReplaceBytesValue(%q,%q,%q) - Expected:%q", string(c.bytes), c.oldValue, c.newValue, string(c.expectedResult))
 
 		t.Run(testName, func(t *testing.T) {
 			actualResult := ReplaceBytesValue(c.bytes, c.oldValue, c.newValue)
 
 			if string(actualResult) != string(c.expectedResult) {
-				t.Errorf("\nCall: ReplaceBytesValue(%q,%q,%q)\nResult: %v\nExpected: %v", string(c.bytes), c.oldValue, c.newValue, string(actualResult), string(c.expectedResult))
+				t.Errorf("\nCall: ReplaceBytesValue(%q,%q,%q)\nResult: %q\nExpected: %q", string(c.bytes), c.oldValue, c.newValue, string(actualResult), string(c.expectedResult))
 			}
 		})
 	}
