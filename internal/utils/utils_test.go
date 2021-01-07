@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -39,11 +40,15 @@ func TestFindString(t *testing.T) {
 
 	for _, c := range tests {
 
-		actualPosition, actualFound := FindString(c.slice, c.val)
+		testName := fmt.Sprintf("%q,%q", c.slice, c.val)
 
-		if actualPosition != c.expectedIndex || actualFound != c.expectedFound {
-			t.Errorf("\nCall: FindString(%q,%q)\nResult: %d,%v\nExpected: %d,%v", c.slice, c.val, actualPosition, actualFound, c.expectedIndex, c.expectedFound)
-		}
+		t.Run(testName, func(t *testing.T) {
+			actualPosition, actualFound := FindString(c.slice, c.val)
+
+			if actualPosition != c.expectedIndex || actualFound != c.expectedFound {
+				t.Errorf("\nCall: FindString(%q,%q)\nResult: %d,%v\nExpected: %d,%v", c.slice, c.val, actualPosition, actualFound, c.expectedIndex, c.expectedFound)
+			}
+		})
 	}
 }
 
@@ -66,10 +71,14 @@ func TestReplaceBytesValue(t *testing.T) {
 
 	for _, c := range tests {
 
-		actualResult := ReplaceBytesValue(c.bytes, c.oldValue, c.newValue)
+		testName := fmt.Sprintf("ReplaceBytesValue(%q,%q,%q)", string(c.bytes), c.oldValue, c.newValue)
 
-		if string(actualResult) != string(c.expectedResult) {
-			t.Errorf("\nCall: ReplaceBytesValue(%v,%q,%q)\nResult: %v\nExpected: %v", string(c.bytes), c.oldValue, c.newValue, string(actualResult), string(c.expectedResult))
-		}
+		t.Run(testName, func(t *testing.T) {
+			actualResult := ReplaceBytesValue(c.bytes, c.oldValue, c.newValue)
+
+			if string(actualResult) != string(c.expectedResult) {
+				t.Errorf("\nCall: ReplaceBytesValue(%q,%q,%q)\nResult: %v\nExpected: %v", string(c.bytes), c.oldValue, c.newValue, string(actualResult), string(c.expectedResult))
+			}
+		})
 	}
 }
