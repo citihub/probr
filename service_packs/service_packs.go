@@ -1,8 +1,10 @@
 package service_packs
 
 import (
+	"log"
 	"path/filepath"
 
+	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/utils"
 	kubernetes_pack "github.com/citihub/probr/service_packs/kubernetes/pack"
@@ -12,13 +14,15 @@ import (
 func packs() (packs map[string][]coreengine.Probe) {
 	packs = make(map[string][]coreengine.Probe)
 
-	// Kubernetes pack requires the following vars:
-	//   AuthorisedContainerRegistry, UnauthorisedContainerRegistry
 	packs["kubernetes"] = kubernetes_pack.GetProbes()
-
-	// Storage pack requires the following vars:
-	//   Provider
 	packs["storage"] = storage_pack.GetProbes()
+
+	if config.Vars.Meta.RunOnly != "" {
+		log.Printf("[INFO] Running only the %s service pack", config.Vars.Meta.RunOnly)
+		pack := packs[config.Vars.Meta.RunOnly]          // store desired pack
+		packs = make(map[string][]coreengine.Probe) // clear all unspecified packs
+		packs[config.Vars.Meta.RunOnly] = pack           // queue only the specified pack
+	}
 	return
 }
 

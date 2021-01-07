@@ -22,7 +22,9 @@ func main() {
 	}
 
 	if len(os.Args[1:]) > 0 {
+		log.Printf("[DEBUG] Checking for CLI options or flags")
 		cli_flags.HandleRequestForRequiredVars()
+		cli_flags.HandlePackOption()
 		cli_flags.HandleFlags()
 	}
 

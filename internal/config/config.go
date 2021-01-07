@@ -44,6 +44,7 @@ func Init(configPath string) error {
 		log.Printf("[ERROR] %v", err)
 		return err
 	}
+	config.Meta = Vars.Meta // Persist any existing Meta data
 	Vars = config
 	setFromEnvOrDefaults(&Vars) // Set any values not retrieved from file
 
@@ -166,10 +167,21 @@ func validatePackRequirements(name string, object interface{}) bool {
 
 	for i, requirement := range Requirements[name] {
 		if storage.FieldByName(requirement).String() == "" {
-			log.Printf("[WARN] Ignoring %s service pack due to required var '%s' not being present.", name, Requirements[name][i])
+			if Vars.Meta.RunOnly == "" || strings.ToLower(Vars.Meta.RunOnly) == strings.ToLower(name) {
+				// Warn if the pack may have been expected to run
+				log.Printf("[WARN] Ignoring %s service pack due to required var '%s' not being present.", name, Requirements[name][i])
+			}
 			return true
 		}
 	}
 	log.Printf("[NOTICE] Storage service pack included.")
 	return false
+}
+
+// Returns a list of pack names (as specified by internal/config/requirements.go)
+func GetPacks() (keys []string) {
+	for value := range Requirements {
+		keys = append(keys, value)
+	}
+	return keys
 }
