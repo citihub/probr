@@ -174,7 +174,7 @@ func validatePackRequirements(name string, object interface{}) bool {
 			return true
 		}
 	}
-	if strings.ToLower(Vars.Meta.RunOnly) != strings.ToLower(name) {
+	if Vars.Meta.RunOnly != "" && strings.ToLower(Vars.Meta.RunOnly) != strings.ToLower(name) {
 		// If another pack is specified as RunOnly, this should be excluded
 		log.Printf("[NOTICE] Ignoring %s service pack due to %s being specified by 'probr run <SERVICE-PACK-NAME>'", name, Vars.Meta.RunOnly)
 		return true
