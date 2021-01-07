@@ -36,7 +36,6 @@ func respond(pack string, vars ...string) {
 }
 
 func HandlePackOption() {
-	// TODO: Find a way to get loglevel handling to work at this point. Currently only ERROR will print.
 	if os.Args[1] == "run" {
 		log.Printf("[DEBUG] CLI option 'run' was found. Args: %s", os.Args)
 		for _, pack := range config.GetPacks() {
@@ -53,6 +52,6 @@ func HandlePackOption() {
 		// Remove the "run" and "PACK-NAME" arguments to prevent interference with flag handling
 		copy(os.Args[1:], os.Args[3:])
 		os.Args = os.Args[:len(os.Args)-2]
-		log.Printf("[ERROR] Args after 'run %s': %s", config.Vars.Meta.RunOnly, os.Args)
+		log.Printf("[DEBUG] Args after 'run %s': %s", config.Vars.Meta.RunOnly, os.Args)
 	}
 }
