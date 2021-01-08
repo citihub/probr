@@ -45,7 +45,8 @@ func (s *scenarioState) iInspectTheThatAreConfigured(roleLevel string) error {
 	}
 
 	description := fmt.Sprintf("Ensures that %s are configured. Retains wildcard roles in state for following steps. Passes if retrieval command does not have error.", roleLevel)
-	s.audit.AuditScenarioStep(description, s, err)
+	payload := struct{ roleLevel string }{roleLevel}
+	s.audit.AuditScenarioStep(description, payload, err)
 	return err
 }
 
@@ -68,8 +69,9 @@ func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfiguratio
 		err = utils.ReformatError("roles exist with wildcarded resources")
 	}
 
-	description := "Examines scenario state's wildcard roles. Passes if no wildcard roles are found."
-	s.audit.AuditScenarioStep(description, s, err)
+	description := fmt.Sprintf("Examines scenario state's wildcard roles count is %d. Passes if no wildcard roles are found.", wildcardCount)
+	payload := struct{ wildCardRolesCount int }{wildcardCount}
+	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
 }
@@ -99,7 +101,8 @@ func (s *scenarioState) theDeploymentIsRejected() error {
 	}
 
 	description := "Looks for a creation error on the current scenario state. Passes if error is found, because it should have been rejected."
-	s.audit.AuditScenarioStep(description, nil, err)
+	payload := struct{ podName string }{s.podState.PodName}
+	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
 }
@@ -119,7 +122,7 @@ func (s *scenarioState) iShouldNotBeAbleToAccessTheKubernetesWebUI() error {
 func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 	//look for the dashboard pod in the kube-system ns
 	pl, err := kubernetes.GetKubeInstance().GetPods("kube-system")
-
+	var name string
 	if err != nil {
 		err = utils.ReformatError("Probe step not run. Error raised when trying to retrieve pods: %v", err)
 	} else {
@@ -127,12 +130,14 @@ func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 		for _, v := range pl.Items {
 			if strings.HasPrefix(v.Name, "kubernetes-dashboard") {
 				err = utils.ReformatError("kubernetes-dashboard pod found (%v) - test fail", v.Name)
+				name = v.Name
 			}
 		}
 	}
 
 	description := "Attempts to find a pod in the 'kube-system' namespace with the prefix 'kubernetes-dashboard'. Passes if no pod is returned."
-	s.audit.AuditScenarioStep(description, nil, err)
+	payload := struct{ podDashBoardName string }{name}
+	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
 }
