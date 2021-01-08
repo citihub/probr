@@ -82,3 +82,71 @@ func TestReplaceBytesValue(t *testing.T) {
 		})
 	}
 }
+
+func TestCallerPath(t *testing.T) {
+	type args struct {
+		up int
+	}
+	tests := []struct {
+		testName       string
+		testArgs       args
+		expectedResult string
+	}{
+		{"CallerPath(%v) - Expected: %q", args{up: 0}, "github.com/citihub/probr/internal/utils.TestCallerPath.func1"},
+		{"CallerPath(%v) - Expected: %q", args{up: 1}, "testing.tRunner"},
+	}
+
+	for _, tt := range tests {
+		tt.testName = fmt.Sprintf(tt.testName, tt.testArgs, tt.expectedResult)
+		t.Run(tt.testName, func(t *testing.T) {
+			if got := CallerPath(tt.testArgs.up); got != tt.expectedResult {
+				t.Errorf("CallerPath(%v) = %v, Expected: %v", tt.testArgs.up, got, tt.expectedResult)
+			}
+		})
+	}
+}
+
+func TestCallerName(t *testing.T) {
+	type args struct {
+		up int
+	}
+	tests := []struct {
+		testName       string
+		testArgs       args
+		expectedResult string
+	}{
+		{"CallerName(%v) - Expected: %q", args{up: 0}, "func1"},
+		{"CallerName(%v) - Expected: %q", args{up: 1}, "tRunner"},
+		{"CallerName(%v) - Expected: %q", args{up: 2}, "goexit"},
+	}
+	for _, tt := range tests {
+		tt.testName = fmt.Sprintf(tt.testName, tt.testArgs, tt.expectedResult)
+		t.Run(tt.testName, func(t *testing.T) {
+			if got := CallerName(tt.testArgs.up); got != tt.expectedResult {
+				t.Errorf("CallerName(%v) = %v, Expected: %v", tt.testArgs.up, got, tt.expectedResult)
+			}
+		})
+	}
+}
+
+func TestCallerFileLine(t *testing.T) {
+	tests := []struct {
+		testName        string
+		expectedResult1 string
+		expectedResult2 int
+	}{
+		{"CallerFileLine() - Expected: %q, %d", "c:/go/src/testing/testing.go", 0}, //TODO: Fix - Path for testing.go is local and may break in a diff environment. Get installation path for testing.go tool. Or remove this test if not required.
+	}
+	for _, tt := range tests {
+		tt.testName = fmt.Sprintf(tt.testName, tt.expectedResult1, tt.expectedResult2)
+		t.Run(tt.testName, func(t *testing.T) {
+			got, _ := CallerFileLine()
+			if got != tt.expectedResult1 {
+				t.Errorf("CallerFileLine() got = %v, want %v", got, tt.expectedResult1)
+			}
+			// if got1 != tt.expectedResult2 {
+			// 	t.Errorf("CallerFileLine() got1 = %v, want %v", got1, tt.expectedResult2)
+			// }
+		})
+	}
+}

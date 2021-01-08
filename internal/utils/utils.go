@@ -32,7 +32,7 @@ func Int64Ptr(i int64) *int64 {
 	return &i
 }
 
-// Searches a []string for a specific value.
+// FindString searches a []string for a specific value.
 // If found, returns the index of first occurrence, and True. If not found, returns -1 and False.
 func FindString(slice []string, val string) (int, bool) {
 	for i, item := range slice {
@@ -49,6 +49,9 @@ func CallerName(up int) string {
 	return s[len(s)-1]                        // select last element from caller path
 }
 
+// CallerPath checks the goroutine's stack of function invocation and returns the following:
+// For up=0, return full caller path for caller function
+// For up=1, returns full caller path for caller of caller
 func CallerPath(up int) string {
 	f := make([]uintptr, 1)
 	runtime.Callers(up+2, f)                  // add full caller path to empty object
@@ -60,7 +63,7 @@ func CallerFileLine() (string, int) {
 	return file, line
 }
 
-// utils.ReformatError prefixes the error string ready for logging and/or output
+// ReformatError prefixes the error string ready for logging and/or output
 func ReformatError(e string, v ...interface{}) error {
 	var b strings.Builder
 	b.WriteString("[ERROR] ")
@@ -86,7 +89,7 @@ func BoxStaticFile(boxName string, path ...string) *packr.Box {
 	return packr.New(boxName, filepath.Join(path...)) // Establish static files for binary build
 }
 
-// For a given string in bytes, replaces a substring with a new value
+// ReplaceBytesValue replaces a substring with a new value for a given string in bytes
 func ReplaceBytesValue(b []byte, old string, new string) []byte {
 	newString := strings.Replace(string(b), old, new, -1)
 	return []byte(newString)
