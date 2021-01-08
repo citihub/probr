@@ -22,7 +22,12 @@ func main() {
 	}
 
 	if len(os.Args[1:]) > 0 {
+		log.Printf("[DEBUG] Checking for CLI options or flags")
 		cli_flags.HandleRequestForRequiredVars()
+		cli_flags.HandlePackOption()
+		// TODO: Find a way to get loglevel handling to work ABOVE this point,
+		// or to move the Options handlers below the flags handler
+		// Currently only ERROR will print prior to HandleFlags()
 		cli_flags.HandleFlags()
 	}
 
@@ -53,8 +58,9 @@ func main() {
 	exit(s)
 }
 
+// --silent disables, and otherwise only shows on ERROR/WARN
 func showIndicator() bool {
-	return config.Vars.LogLevel == "ERROR" && !config.Vars.Silent
+	return (config.Vars.LogLevel == "ERROR" || config.Vars.LogLevel == "WARN") && !config.Vars.Silent
 }
 
 func exit(status int) {
