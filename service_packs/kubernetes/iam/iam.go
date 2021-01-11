@@ -56,7 +56,7 @@ func (s *scenarioState) azureIdentitySetupCheck(f func(arg1 string, arg2 string)
 func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 	description, payload, error := kubernetes.ClusterIsDeployed()
 	s.audit.AuditScenarioStep(description, payload, error)
-	return error // ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
+	return error //  ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
 }
 
 //AZ-AAD-AI-1.0

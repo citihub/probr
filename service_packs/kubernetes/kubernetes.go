@@ -150,7 +150,7 @@ type ClusterPayload struct {
 	KubeContext    string
 }
 
-//general feature steps:
+// general feature steps:
 func ClusterIsDeployed() (string, ClusterPayload, error) {
 	var err error
 	b := GetKubeInstance().ClusterIsDeployed()
