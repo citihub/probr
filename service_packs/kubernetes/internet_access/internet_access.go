@@ -1,6 +1,7 @@
 package internet_access
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/cucumber/godog"
@@ -32,9 +33,9 @@ func SetNetworkAccess(n NetworkAccess) {
 
 // General
 func (s *scenarioState) aKubernetesClusterIsDeployed() error {
-	description, payload := kubernetes.ClusterIsDeployed()
-	s.audit.AuditScenarioStep(description, payload, nil)
-	return nil // ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
+	description, payload, error := kubernetes.ClusterIsDeployed()
+	s.audit.AuditScenarioStep(description, payload, error)
+	return error // ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
 }
 
 func (s *scenarioState) aPodIsDeployedInTheCluster() error {
@@ -58,7 +59,7 @@ func (s *scenarioState) aPodIsDeployedInTheCluster() error {
 		}
 	}
 
-	description := ""
+	description := fmt.Sprintf("The Pod %s deployed in the cluster", s.podState.PodName)
 	payload := kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
 	s.audit.AuditScenarioStep(description, payload, err)
 
@@ -76,8 +77,11 @@ func (s *scenarioState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(
 	//hold on to the code
 	s.httpStatusCode = code
 
-	description := ""
-	var payload interface{}
+	description := fmt.Sprintf("Proces inside the pod established http connection with url %s,", url)
+	payload := struct {
+		PodState kubernetes.PodState
+		PodName  string
+	}{s.podState, s.podState.PodName}
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
@@ -93,8 +97,11 @@ func (s *scenarioState) accessIs(accessResult string) error {
 		}
 	}
 
-	description := ""
-	var payload interface{}
+	description := fmt.Sprintf("The access result is %s,", accessResult)
+	payload := struct {
+		PodState kubernetes.PodState
+		PodName  string
+	}{s.podState, s.podState.PodName}
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err

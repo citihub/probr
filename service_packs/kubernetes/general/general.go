@@ -23,9 +23,9 @@ var Probe ProbeStruct
 
 // General
 func (s *scenarioState) aKubernetesClusterIsDeployed() error {
-	description, payload := kubernetes.ClusterIsDeployed()
-	s.audit.AuditScenarioStep(description, payload, nil)
-	return nil // ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
+	description, payload, error := kubernetes.ClusterIsDeployed()
+	s.audit.AuditScenarioStep(description, payload, error)
+	return error // ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
 }
 
 //@CIS-5.1.3
@@ -45,7 +45,7 @@ func (s *scenarioState) iInspectTheThatAreConfigured(roleLevel string) error {
 	}
 
 	description := fmt.Sprintf("Ensures that %s are configured. Retains wildcard roles in state for following steps. Passes if retrieval command does not have error.", roleLevel)
-	payload := struct{ roleLevel string }{roleLevel}
+	payload := struct{ RoleLevel string }{roleLevel}
 	s.audit.AuditScenarioStep(description, payload, err)
 	return err
 }
@@ -70,7 +70,7 @@ func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfiguratio
 	}
 
 	description := fmt.Sprintf("Examines scenario state's wildcard roles count is %d. Passes if no wildcard roles are found.", wildcardCount)
-	payload := struct{ wildCardRolesCount int }{wildcardCount}
+	payload := struct{ WildCardRolesCount int }{wildcardCount}
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
@@ -101,7 +101,7 @@ func (s *scenarioState) theDeploymentIsRejected() error {
 	}
 
 	description := "Looks for a creation error on the current scenario state. Passes if error is found, because it should have been rejected."
-	payload := struct{ podName string }{s.podState.PodName}
+	payload := struct{ PodName string }{s.podState.PodName}
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
@@ -136,7 +136,7 @@ func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 	}
 
 	description := "Attempts to find a pod in the 'kube-system' namespace with the prefix 'kubernetes-dashboard'. Passes if no pod is returned."
-	payload := struct{ podDashBoardName string }{name}
+	payload := struct{ PodDashBoardName string }{name}
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err

@@ -37,6 +37,7 @@ func (state *scenarioState) securityControlsThatRestrictDataFromBeingUnencrypted
 // PENDING IMPLEMENTATION
 func (state *scenarioState) weProvisionAnObjectStorageBucket() error {
 	return nil
+
 }
 
 // PENDING IMPLEMENTATION

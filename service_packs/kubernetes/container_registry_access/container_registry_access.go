@@ -29,9 +29,9 @@ func SetContainerRegistryAccess(c ContainerRegistryAccess) {
 
 // General
 func (s *scenarioState) aKubernetesClusterIsDeployed() error {
-	description, payload := kubernetes.ClusterIsDeployed()
-	s.audit.AuditScenarioStep(description, payload, nil)
-	return nil // ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
+	description, payload, error := kubernetes.ClusterIsDeployed()
+	s.audit.AuditScenarioStep(description, payload, error)
+	return error // ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
 }
 
 // CIS-6.1.3
@@ -76,7 +76,7 @@ func (s *scenarioState) theDeploymentAttemptIsAllowed() error {
 	err := kubernetes.AssertResult(&s.podState, "allowed", "")
 
 	description := fmt.Sprintf("Asserts pod creation result in scenario state is denied. pod state %v", s.podState)
-	payload := struct{ podState kubernetes.PodState }{s.podState}
+	payload := struct{ PodState kubernetes.PodState }{s.podState}
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
@@ -100,7 +100,7 @@ func (s *scenarioState) theDeploymentAttemptIsDenied() error {
 	err := kubernetes.AssertResult(&s.podState, "denied", "")
 
 	description := fmt.Sprintf("Asserts pod creation result in scenario state is denied. Pod state is %v", s.podState)
-	payload := struct{ podState kubernetes.PodState }{s.podState}
+	payload := struct{ PodState kubernetes.PodState }{s.podState}
 	s.audit.AuditScenarioStep(description, payload, err)
 
 	return err
