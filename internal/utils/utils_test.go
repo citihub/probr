@@ -130,26 +130,5 @@ func TestCallerName(t *testing.T) {
 }
 
 func TestCallerFileLine(t *testing.T) {
-
-	t.Skip("Skip until we can figure out test criteria. Expected result below will fail in CI server")
-
-	tests := []struct {
-		testName        string
-		expectedResult1 string
-		expectedResult2 int
-	}{
-		{"CallerFileLine() - Expected: %q, %d", "c:/go/src/testing/testing.go", 0}, //TODO: Fix - Path for testing.go is local and may break in a diff environment. Get installation path for testing.go tool. Or remove this test if not required.
-	}
-	for _, tt := range tests {
-		tt.testName = fmt.Sprintf(tt.testName, tt.expectedResult1, tt.expectedResult2)
-		t.Run(tt.testName, func(t *testing.T) {
-			got, _ := CallerFileLine()
-			if got != tt.expectedResult1 {
-				t.Errorf("CallerFileLine() got = %v, want %v", got, tt.expectedResult1)
-			}
-			// if got1 != tt.expectedResult2 {
-			// 	t.Errorf("CallerFileLine() got1 = %v, want %v", got1, tt.expectedResult2)
-			// }
-		})
-	}
+	t.Skip("Skip for now since it is used for internal testing only")
 }

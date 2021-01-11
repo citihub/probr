@@ -44,6 +44,9 @@ func FindString(slice []string, val string) (int, bool) {
 }
 
 // CallerName retrieves the name of the function prior to the location it is called
+// If using CallerName(0), the current function's name will be returned
+// If using CallerName(1), the current function's parent name will be returned
+// If using CallerName(2), the current function's parent's parent name will be returned
 func CallerName(up int) string {
 	s := strings.Split(CallerPath(up+1), ".") // split full caller path
 	return s[len(s)-1]                        // select last element from caller path
@@ -58,6 +61,8 @@ func CallerPath(up int) string {
 	return runtime.FuncForPC(f[0] - 1).Name() // get full caller path in string form
 }
 
+// CallerFileLine returns file name and line of invoker
+// Similar to CallerName(1), but with file and line returned
 func CallerFileLine() (string, int) {
 	_, file, line, _ := runtime.Caller(2)
 	return file, line
