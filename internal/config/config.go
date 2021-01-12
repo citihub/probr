@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/briandowns/spinner"
@@ -43,6 +44,7 @@ func Init(configPath string) error {
 		log.Printf("[ERROR] %v", err)
 		return err
 	}
+	config.Meta = Vars.Meta // Persist any existing Meta data
 	Vars = config
 	setFromEnvOrDefaults(&Vars) // Set any values not retrieved from file
 
@@ -133,28 +135,12 @@ func (ctx *ConfigVars) addExclusion(tag string) {
 
 // Log and return exclusion configuration
 func (k Kubernetes) IsExcluded() bool {
-	if k.AuthorisedContainerRegistry == "" || k.UnauthorisedContainerRegistry == "" {
-		if !k.exclusionLogged {
-			log.Printf("[WARN] Ignoring Kubernetes service pack due to required vars not being present.")
-			k.exclusionLogged = true
-		}
-		return true
-	}
-	log.Printf("[NOTICE] Kubernetes service pack included.")
-	return false
+	return validatePackRequirements("Kubernetes", k)
 }
 
 // Log and return exclusion configuration
 func (s Storage) IsExcluded() bool {
-	if s.Provider == "" {
-		if !s.exclusionLogged {
-			log.Printf("[WARN] Ignoring Storage service pack due to required vars not being present.")
-			s.exclusionLogged = true
-		}
-		return true
-	}
-	log.Printf("[NOTICE] Storage service pack included.")
-	return false
+	return validatePackRequirements("Storage", s)
 }
 
 // Log and return exclusion configuration
@@ -173,4 +159,34 @@ func (s Scenario) IsExcluded() bool {
 		return true
 	}
 	return false
+}
+
+func validatePackRequirements(name string, object interface{}) bool {
+	// reflect for dynamic type querying
+	storage := reflect.Indirect(reflect.ValueOf(object))
+
+	for i, requirement := range Requirements[name] {
+		if storage.FieldByName(requirement).String() == "" {
+			if Vars.Meta.RunOnly == "" || strings.ToLower(Vars.Meta.RunOnly) == strings.ToLower(name) {
+				// Warn if the pack may have been expected to run
+				log.Printf("[WARN] Ignoring %s service pack due to required var '%s' not being present.", name, Requirements[name][i])
+			}
+			return true
+		}
+	}
+	if Vars.Meta.RunOnly != "" && strings.ToLower(Vars.Meta.RunOnly) != strings.ToLower(name) {
+		// If another pack is specified as RunOnly, this should be excluded
+		log.Printf("[NOTICE] Ignoring %s service pack due to %s being specified by 'probr run <SERVICE-PACK-NAME>'", name, Vars.Meta.RunOnly)
+		return true
+	}
+	log.Printf("[NOTICE] %s service pack included.", name)
+	return false
+}
+
+// Returns a list of pack names (as specified by internal/config/requirements.go)
+func GetPacks() (keys []string) {
+	for value := range Requirements {
+		keys = append(keys, value)
+	}
+	return keys
 }
