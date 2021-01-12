@@ -79,9 +79,20 @@ func ReformatError(e string, v ...interface{}) error {
 	return fmt.Errorf(s)
 }
 
+// ReadStaticFile returns the bytes for a given static file
+// If the static asset has not been added to packer, it adds it using full dir path as the box name.
+// Path:
+//  In most cases it will be ReadStaticFile(assetDir, fileName).
+//  It could also be used as ReadStaticFile(assetDir, subfolder, filename)
 func ReadStaticFile(path ...string) ([]byte, error) {
-	filename := path[len(path)-1]
-	dirpath := path[0:(len(path) - 1)]
+
+	// Validation for empty path
+	if path != nil && len(path) == 0 {
+		return nil, ReformatError("Path argument cannot be empty")
+	}
+
+	filename := path[len(path)-1]      // file name is the last string argument
+	dirpath := path[0:(len(path) - 1)] // folder path
 	boxName := strings.Join(dirpath[:], ".")
 	if boxes[boxName] == nil {
 		boxes[boxName] = BoxStaticFile(boxName, dirpath...) // Name the box after the file being read
