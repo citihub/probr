@@ -87,7 +87,7 @@ func ReformatError(e string, v ...interface{}) error {
 func ReadStaticFile(path ...string) ([]byte, error) {
 
 	// Validation for empty path
-	if path != nil && len(path) == 0 {
+	if path == nil || len(path) == 0 {
 		return nil, ReformatError("Path argument cannot be empty")
 	}
 
