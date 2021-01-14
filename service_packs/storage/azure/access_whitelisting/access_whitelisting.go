@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	azurePolicy "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-01-01/policy"
 	azureStorage "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
@@ -60,18 +61,30 @@ func (state *scenarioState) teardown() {
 func (state *scenarioState) anAzureResourceGroupExists() error {
 
 	var err error
-	// check the resource group has been configured
+
+	var stepTrace strings.Builder
+
+	stepTrace.WriteString("Check if value for Azure resource group is set in config file;")
 	if azureutil.ResourceGroup() == "" {
 		log.Printf("[ERROR] Azure resource group config var not set")
 		err = errors.New("Azure resource group config var not set")
 	}
 	if err == nil {
-		// Check the resource group exists in the specified azure subscription
+		stepTrace.WriteString("Check the resource group exists in the specified azure subscription;")
 		_, err = group.Get(state.ctx, azureutil.ResourceGroup())
 		if err != nil {
 			log.Printf("[ERROR] Configured Azure resource group %s does not exists", azureutil.ResourceGroup())
 		}
 	}
+
+	description := stepTrace.String()
+	payload := struct {
+		AzureResourceGroup string
+	}{
+		AzureResourceGroup: azureutil.ResourceGroup(),
+	}
+	state.audit.AuditScenarioStep(description, payload, err)
+
 	return err
 }
 
@@ -140,7 +153,21 @@ func (state *scenarioState) creationWill(expectation string) error {
 }
 
 func (state *scenarioState) cspSupportsWhitelisting() error {
-	return nil
+
+	var err error
+
+	err = fmt.Errorf("Not Implemented")
+
+	var stepTrace strings.Builder
+	stepTrace.WriteString("TODO: Pending implementation;")
+
+	description := stepTrace.String()
+	payload := struct {
+	}{}
+	state.audit.AuditScenarioStep(description, payload, err)
+
+	//return err
+	return nil //TODO: Remove this line. This is temporary to ensure test doesn't halt and other steps are not skipped
 }
 
 func (state *scenarioState) examineStorageContainer(containerNameEnvVar string) error {
