@@ -28,10 +28,10 @@ ServicePacks:
       # Provider: # if object OR required vars within it are omitted, pack will not be included
 CloudProviders:
   Azure:
-    TenantID: "8c739bb2-3e1e-494a-9f5a-22e154c876d0"
-    SubscriptionID: "27cc841d-bab8-4080-b103-d89e00dc8c45"
-    ClientID: "4c97ad17-0235-49cf-aa72-4ba445422a65"
-    ClientSecret: ".~~Xcz0.GDegJCSX22X-18~JB6_AaJ9tM6"
+    TenantID: ""
+    SubscriptionID: ""
+    ClientID: ""
+    ClientSecret: ""
     ManagementGroup:
     ResourceGroup: ProbrRG
     ResourceLocation: "westeurope"
