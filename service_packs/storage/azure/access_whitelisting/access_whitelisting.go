@@ -8,12 +8,14 @@ import (
 	"os"
 	"strings"
 
+	azurePolicy "github.com/Azure/azure-sdk-for-go/services/resources/mgmt/2019-01-01/policy"
 	azureStorage "github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/Azure/go-autorest/autorest/to"
 	"github.com/cucumber/godog"
 
 	"github.com/citihub/probr/internal/azureutil"
 	"github.com/citihub/probr/internal/azureutil/group"
+	"github.com/citihub/probr/internal/azureutil/policy"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/internal/summary"
 	"github.com/citihub/probr/internal/utils"
@@ -21,7 +23,7 @@ import (
 )
 
 const (
-	policyAssignmentName = "deny_storage_wo_net_acl"
+	policyAssignmentName = "deny_storage_wo_net_acl" // TODO: Should this be in config?
 	storageRgEnvVar      = "STORAGE_ACCOUNT_RESOURCE_GROUP"
 )
 
@@ -77,9 +79,11 @@ func (state *scenarioState) anAzureResourceGroupExists() error {
 
 	description := stepTrace.String()
 	payload := struct {
-		AzureResourceGroup string
+		AzureSubscriptionID string
+		AzureResourceGroup  string
 	}{
-		AzureResourceGroup: azureutil.ResourceGroup(),
+		AzureSubscriptionID: azureutil.SubscriptionID(),
+		AzureResourceGroup:  azureutil.ResourceGroup(),
 	}
 	state.audit.AuditScenarioStep(description, payload, err)
 
@@ -87,96 +91,113 @@ func (state *scenarioState) anAzureResourceGroupExists() error {
 }
 
 func (state *scenarioState) checkPolicyAssigned() error {
+	return nil
 
-	/////////////////////////
-	err := fmt.Errorf("Not Implemented")
+	var a azurePolicy.Assignment
+	var err error
 
 	var stepTrace strings.Builder
-	stepTrace.WriteString("TODO: Pending implementation;")
-
-	description := stepTrace.String()
 	payload := struct {
+		AzureSubscriptionID  string
+		ManagamentGroup      string
+		PolicyAssignmentName string
+		PolicyAssignment     azurePolicy.Assignment
 	}{}
-	state.audit.AuditScenarioStep(description, payload, err)
 
-	//return err
-	return nil //TODO: Remove this line. This is temporary to ensure test doesn't halt and other steps are not skipped
-	/////////////////////////
+	if state.policyAssignmentMgmtGroup == "" {
+		stepTrace.WriteString("Management Group has not been set, check Policy Assignment at the Subscription;")
+		a, err = policy.AssignmentBySubscription(state.ctx, azureutil.SubscriptionID(), policyAssignmentName)
+	} else {
+		stepTrace.WriteString("Check Policy Assignment at the Management Group;")
+		a, err = policy.AssignmentByManagementGroup(state.ctx, state.policyAssignmentMgmtGroup, policyAssignmentName)
+	}
 
-	// var a azurePolicy.Assignment
-	// var err error
+	//Audit log
+	payload.AzureSubscriptionID = azureutil.SubscriptionID()
+	payload.ManagamentGroup = state.policyAssignmentMgmtGroup
+	payload.PolicyAssignmentName = policyAssignmentName
+	payload.PolicyAssignment = a
+	state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 
-	// // If a Management Group has not been set, check Policy Assignment at the Subscription
-	// if state.policyAssignmentMgmtGroup == "" {
-	// 	a, err = policy.AssignmentBySubscription(state.ctx, azureutil.SubscriptionID(), policyAssignmentName)
-	// } else {
-	// 	a, err = policy.AssignmentByManagementGroup(state.ctx, state.policyAssignmentMgmtGroup, policyAssignmentName)
-	// }
+	if err != nil {
+		log.Printf("[ERROR] Policy Assignment error: %v", err)
+		return err
+	}
 
-	// if err != nil {
-	// 	log.Printf("[ERROR] Policy Assignment error: %v", err)
-	// 	return err
-	// }
-
-	// log.Printf("[DEBUG] Policy Assignment check: %v [Step PASSED]", *a.Name)
-	// return nil
+	log.Printf("[DEBUG] Policy Assignment check: %v [Step PASSED]", *a.Name)
+	return nil
 }
 
 func (state *scenarioState) provisionStorageContainer() error {
 
+	// define a bucket name, then pass the step - we will provision the account in the next step.
+
 	var stepTrace strings.Builder
 	var err error
-
-	stepTrace.WriteString("A bucket name is defined using a random string, storage account is not yet provisioned;")
-	// define a bucket name, then pass the step - we will provision the account in the next step.
-	state.bucketName = utils.RandomString(10)
-
-	description := stepTrace.String()
 	payload := struct {
 		BucketName string
-	}{
-		BucketName: state.bucketName,
-	}
-	state.audit.AuditScenarioStep(description, payload, err)
+	}{}
+
+	stepTrace.WriteString("A bucket name is defined using a random string, storage account is not yet provisioned;")
+	state.bucketName = utils.RandomString(10)
+
+	//Audit log
+	payload.BucketName = state.bucketName
+	state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 
 	return err
 }
 
 func (state *scenarioState) createWithWhitelist(ipRange string) error {
 
-	// ////////////////////////////////
-	// err := fmt.Errorf("Not Implemented")
+	var err error
+	var stepTrace strings.Builder
+	payload := struct {
+		SubscriptionID string
+		ResourceGroup  string
+		BucketName     string
+		IPRange        string
+		NetworkRuleSet azureStorage.NetworkRuleSet
+		Tags           interface{}
+		StorageAccount azureStorage.Account
+	}{}
 
-	// var stepTrace strings.Builder
-	// stepTrace.WriteString("TODO: Pending implementation;")
-
-	// description := stepTrace.String()
-	// payload := struct {
-	// }{}
-	// state.audit.AuditScenarioStep(description, payload, err)
-
-	// //return err
-	// return nil //TODO: Remove this line. This is temporary to ensure test doesn't halt and other steps are not skipped
-	// ///////////////////////////////
+	stepTrace.WriteString(fmt.Sprintf("Attempting to create storage bucket with whitelisting for given IP Range: %s;", ipRange))
 
 	var networkRuleSet azureStorage.NetworkRuleSet
 	if ipRange == "nil" {
+		stepTrace.WriteString("IP Range is nil, using DefaultActionAllow for NetworkRuleSet;")
 		networkRuleSet = azureStorage.NetworkRuleSet{
 			DefaultAction: azureStorage.DefaultActionAllow,
 		}
 	} else {
+		stepTrace.WriteString("Setting IP Rule to allow given IP Range;")
 		ipRule := azureStorage.IPRule{
 			Action:           azureStorage.Allow,
 			IPAddressOrRange: to.StringPtr(ipRange),
 		}
 
+		stepTrace.WriteString("Setting Network Rule Set with IP Rule;")
 		networkRuleSet = azureStorage.NetworkRuleSet{
 			IPRules:       &[]azureStorage.IPRule{ipRule},
 			DefaultAction: azureStorage.DefaultActionDeny,
 		}
 	}
 
+	stepTrace.WriteString("Creating storage bucket with Network Rule Set within Resource Group;")
 	state.storageAccount, state.runningErr = storage.CreateWithNetworkRuleSet(state.ctx, state.bucketName, azureutil.ResourceGroup(), state.tags, true, &networkRuleSet)
+
+	//Audit log
+	err = state.runningErr
+	payload.SubscriptionID = azureutil.SubscriptionID()
+	payload.ResourceGroup = azureutil.ResourceGroup()
+	payload.BucketName = state.bucketName
+	payload.IPRange = ipRange
+	payload.NetworkRuleSet = networkRuleSet
+	payload.Tags = state.tags
+	payload.StorageAccount = state.storageAccount
+	state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+
 	return nil
 }
 
@@ -186,27 +207,38 @@ func (state *scenarioState) creationWill(expectation string) error {
 	var stepTrace strings.Builder
 	payload := struct {
 		StorageAccountID string
+		CreationError    string
 	}{}
 
 	stepTrace.WriteString(fmt.Sprintf("Expectation that Object Storage container was provisioned with whitelisting in previous step is: %s;", expectation))
-	payload.StorageAccountID = *state.storageAccount.ID
 
-	// if expectation == "Fail" {
-	// 	if state.runningErr == nil {
-	// 		//return fmt.Errorf("incorrectly created Storage Account: %v", *state.storageAccount.ID)
-	// 	}
-	// 	//return nil
-	// }
-
-	// if state.runningErr == nil {
-	// 	return nil
-	// }
-
-	if (expectation == "Fail" && state.runningErr == nil) || (expectation == "Success" && state.runningErr != nil) {
-		err = fmt.Errorf("incorrectly created Storage Account: %v", *state.storageAccount.ID)
+	if expectation == "Fail" {
+		if state.runningErr == nil {
+			//Expected Fail but no previous error occurred, step should Fail
+			err = fmt.Errorf("incorrectly created Storage Account: %v", *state.storageAccount.ID)
+			// Audit log
+			payload.StorageAccountID = *state.storageAccount.ID
+			state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+			return err
+		}
+		// Audit log
+		payload.CreationError = state.runningErr.Error()
+		state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		return nil //Expected Fail and previous error occurred, step should Pass
 	}
-	state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 
+	if state.runningErr == nil {
+		// Audit log
+		payload.StorageAccountID = *state.storageAccount.ID
+		state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		return nil //Expected Success and no previous error occurred, step should Pass
+	}
+
+	//Expected Success but previous error occurred, step should Fail
+	err = state.runningErr
+	// Audit log
+	payload.CreationError = state.runningErr.Error()
+	state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	return err
 }
 
