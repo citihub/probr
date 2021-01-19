@@ -91,7 +91,6 @@ func (state *scenarioState) anAzureResourceGroupExists() error {
 }
 
 func (state *scenarioState) checkPolicyAssigned() error {
-	return nil
 
 	var a azurePolicy.Assignment
 	var err error
@@ -259,29 +258,49 @@ func (state *scenarioState) cspSupportsWhitelisting() error {
 }
 
 func (state *scenarioState) examineStorageContainer(containerNameEnvVar string) error {
-	return nil
+
+	var err error
+	var stepTrace strings.Builder
+	payload := struct {
+		AccountName    string
+		ResourceGroup  string
+		StorageAccount azureStorage.Account
+		NetworkRuleSet azureStorage.NetworkRuleSet
+	}{}
+	stepTrace.WriteString(fmt.Sprintf("Examining the Object Storage container in environment variable %s;", containerNameEnvVar))
 
 	accountName := os.Getenv(containerNameEnvVar)
+	payload.AccountName = accountName
 	if accountName == "" {
-		return fmt.Errorf("environment variable \"%s\" is not defined test can't run", containerNameEnvVar)
+		err = fmt.Errorf("environment variable \"%s\" is not defined test can't run", containerNameEnvVar)
+		state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		return err
 	}
 
 	resourceGroup := os.Getenv(storageRgEnvVar)
+	payload.ResourceGroup = resourceGroup
 	if resourceGroup == "" {
-		return fmt.Errorf("environment variable \"%s\" is not defined test can't run", storageRgEnvVar)
+		err = fmt.Errorf("environment variable \"%s\" is not defined test can't run", storageRgEnvVar)
+		state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		return err
 	}
 
 	state.storageAccount, state.runningErr = storage.AccountProperties(state.ctx, resourceGroup, accountName)
-
+	payload.StorageAccount = state.storageAccount
 	if state.runningErr != nil {
-		return state.runningErr
+		err = state.runningErr
+		state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		return err
 	}
 
 	networkRuleSet := state.storageAccount.AccountProperties.NetworkRuleSet
+	payload.NetworkRuleSet = *networkRuleSet
 	result := false
 	// Default action is deny
 	if networkRuleSet.DefaultAction == azureStorage.DefaultActionAllow {
-		return fmt.Errorf("%s has not configured with firewall network rule default action is not deny", accountName)
+		err = fmt.Errorf("%s has not configured with firewall network rule default action is not deny", accountName)
+		state.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		return err
 	}
 
 	// Check if it has IP whitelisting
