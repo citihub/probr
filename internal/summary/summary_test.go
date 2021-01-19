@@ -42,31 +42,36 @@ func TestSummaryState_LogPodName(t *testing.T) {
 	}
 }
 
+// createMockProbe - creates a mock summarystate and probe object in it and returns summarySteate object.
+func createMockProbe(probename string) SummaryState {
+	var sumstate SummaryState
+	sumstate.Probes = make(map[string]*Probe)
+	ap := filepath.Join(config.AuditDir(), (probename + ".json")) // Needed in both Probe and ProbeAudit
+	sumstate.Probes[probename] = &Probe{
+		name:          probename,
+		Meta:          make(map[string]interface{}),
+		PodsDestroyed: 0,
+		audit: &ProbeAudit{
+			Name: probename,
+			path: ap,
+		},
+	}
+	sumstate.Probes[probename].Meta["audit_path"] = ap
+	sumstate.Probes[probename].audit.PodsDestroyed = &sumstate.Probes[probename].PodsDestroyed
+	sumstate.Probes[probename].audit.ScenariosAttempted = &sumstate.Probes[probename].ScenariosAttempted
+	sumstate.Probes[probename].audit.ScenariosFailed = &sumstate.Probes[probename].ScenariosFailed
+	sumstate.Probes[probename].audit.Result = &sumstate.Probes[probename].Result
+	sumstate.Probes[probename].countResults()
+	return sumstate
+}
+
 func TestSummaryState_initProbe(t *testing.T) {
 
 	type args struct {
 		fakeName string
 	}
-	var fakeName = "testProbe"
-	var fakeSummaryState SummaryState
-	fakeSummaryState.Probes = make(map[string]*Probe)
-	ap := filepath.Join(config.AuditDir(), (fakeName + ".json")) // Needed in both Probe and ProbeAudit
-	fakeSummaryState.Probes[fakeName] = &Probe{
-		name:          fakeName,
-		Meta:          make(map[string]interface{}),
-		PodsDestroyed: 0,
-		audit: &ProbeAudit{
-			Name: fakeName,
-			path: ap,
-		},
-	}
-	fakeSummaryState.Probes[fakeName].Meta["audit_path"] = ap
-	fakeSummaryState.Probes[fakeName].audit.PodsDestroyed = &fakeSummaryState.Probes[fakeName].PodsDestroyed
-	fakeSummaryState.Probes[fakeName].audit.ScenariosAttempted = &fakeSummaryState.Probes[fakeName].ScenariosAttempted
-	fakeSummaryState.Probes[fakeName].audit.ScenariosSucceeded = &fakeSummaryState.Probes[fakeName].ScenariosSucceeded
-	fakeSummaryState.Probes[fakeName].audit.ScenariosFailed = &fakeSummaryState.Probes[fakeName].ScenariosFailed
-	fakeSummaryState.Probes[fakeName].audit.Result = &fakeSummaryState.Probes[fakeName].Result
-	fakeSummaryState.Probes[fakeName].countResults()
+	var probeName = "testProbe"
+	var mockSummaryState = createMockProbe(probeName)
 
 	tests := []struct {
 		testName string
@@ -75,7 +80,7 @@ func TestSummaryState_initProbe(t *testing.T) {
 	}{
 		{
 			testName: "TestProbeInitialized",
-			s:        &fakeSummaryState,
+			s:        &mockSummaryState,
 			args:     args{fakeName: "testProbe"},
 		},
 	}
@@ -83,7 +88,7 @@ func TestSummaryState_initProbe(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 			tt.s.initProbe(tt.args.fakeName)
 			tt.s.initProbe("AnotherProbe")
-			createdProbes := fakeSummaryState.Probes
+			createdProbes := mockSummaryState.Probes
 			v, found := createdProbes["testProbe"]
 			if !found {
 				t.Errorf("Summary State doesn't contain probe name: %v", createdProbes)
