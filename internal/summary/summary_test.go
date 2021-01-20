@@ -43,7 +43,7 @@ func TestSummaryState_LogPodName(t *testing.T) {
 }
 
 // createMockProbe - creates a mock summarystate and probe object in it and returns summarySteate object.
-func createMockProbe(probename string) SummaryState {
+func createSummaryStateWithMockProbe(probename string) SummaryState {
 	var sumstate SummaryState
 	sumstate.Probes = make(map[string]*Probe)
 	ap := filepath.Join(config.AuditDir(), (probename + ".json")) // Needed in both Probe and ProbeAudit
@@ -71,7 +71,7 @@ func TestSummaryState_initProbe(t *testing.T) {
 		fakeName string
 	}
 	var probeName = "testProbe"
-	var mockSummaryState = createMockProbe(probeName)
+	var mockSummaryState = createSummaryStateWithMockProbe(probeName)
 
 	tests := []struct {
 		testName string
