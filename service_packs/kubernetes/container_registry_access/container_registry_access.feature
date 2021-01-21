@@ -1,9 +1,3 @@
-@probes/kubernetes
-@standard/cis/gke/6
-@standard/cis/gke/6.1
-@standard/citihub/CHC2-APPDEV135
-@standard/citihub/CHC2-ITS120
-@csp/any
 @k-cra
 Feature: Protect image container registries
     As a Security Auditor
