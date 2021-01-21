@@ -11,7 +11,7 @@ import (
 )
 
 func GetProbes() []coreengine.Probe {
-	config.SetTags(tags)
+	config.Vars.SetTags(tags)
 	if config.Vars.ServicePacks.Kubernetes.IsExcluded() {
 		return nil
 	}
