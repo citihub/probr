@@ -1,4 +1,5 @@
 @k-psp
+@probes/kubernetes/pod_security_policy
 Feature: Maximise security through Pod Security Policies
 
 As a Cloud Security Administrator
