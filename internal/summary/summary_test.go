@@ -1,6 +1,7 @@
 package summary
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -121,6 +122,11 @@ func TestSummaryState_SetProbrStatus(t *testing.T) {
 			s:              &mockSummaryState,
 			expectedResult: "Complete - All Probes Completed Successfully",
 			args:           args{probeName: "testProbe", probesPassed: 1, probesFailed: 0},
+		}, {
+			testName:       "SetProbrStatus_WithFailedProbes",
+			s:              &mockSummaryState,
+			expectedResult: fmt.Sprintf("Complete - %v of %v Probes Failed", 1, 2),
+			args:           args{probeName: "testProbe", probesPassed: 0, probesFailed: 1},
 		},
 	}
 	for _, tt := range tests {
@@ -129,6 +135,7 @@ func TestSummaryState_SetProbrStatus(t *testing.T) {
 			tt.s.initProbe("anotherPod")
 			tt.s.ProbesPassed = tt.args.probesPassed
 			tt.s.ProbesFailed = tt.args.probesFailed
+			tt.s.ProbesSkipped = 0
 			tt.s.SetProbrStatus()
 			if string(tt.s.Status) != string(tt.expectedResult) {
 				t.Errorf("\nCall: SetProbrStatus()\nExpected: %q", string(tt.expectedResult))
