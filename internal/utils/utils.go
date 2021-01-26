@@ -94,11 +94,12 @@ func ReadStaticFile(path ...string) ([]byte, error) {
 	for _, folder := range dirpathSlice {
 		dirPath = filepath.Join(dirPath, folder)
 	}
-	filepath := filepath.Join(dirPath, filename)
+	filepath := filepath.Join("/", dirPath, filename) //Need the abs path (/) for pgker to work
 
 	// If pkged.go file has been generated using pkger cli tool, this will open the file from bundled memory buffer.
 	// Otherwise, this will read from file system
 	// See: https://github.com/markbates/pkger
+
 	f, err := pkger.Open(filepath)
 	if err != nil {
 		return nil, err
