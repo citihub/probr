@@ -68,8 +68,7 @@ func GetFeaturePath(path ...string) string {
 	for _, folder := range path {
 		dirPath = filepath.Join(dirPath, folder)
 	}
-	featurePath := filepath.Join(dirPath, featureName+".feature")
-	return featurePath
+	return filepath.Join(dirPath, featureName+".feature")
 }
 
 // LogScenarioStart logs the name and tags associated with the supplied scenario.
