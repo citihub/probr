@@ -63,12 +63,12 @@ func getOutputPath(t string) (*os.File, error) {
 }
 
 func GetFeaturePath(path ...string) string {
-	featureName := path[len(path)-1]
+	featureName := path[len(path)-1] + ".feature"
 	dirPath := ""
 	for _, folder := range path {
 		dirPath = filepath.Join(dirPath, folder)
 	}
-	return filepath.Join(dirPath, featureName+".feature")
+	return filepath.Join(dirPath, featureName)
 }
 
 // LogScenarioStart logs the name and tags associated with the supplied scenario.
