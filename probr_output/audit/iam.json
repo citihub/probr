@@ -1,0 +1,162 @@
+{
+  "Name": "iam",
+  "PodsDestroyed": 2,
+  "ScenariosAttempted": 2,
+  "ScenariosSucceeded": 2,
+  "ScenariosFailed": 0,
+  "Result": "Success",
+  "Scenarios": {
+    "1": {
+      "Name": "Prevent cross namespace Azure Identities",
+      "Result": "Passed",
+      "Tags": [
+        "@k-iam",
+        "@probes/kubernetes/iam",
+        "@k-iam-001"
+      ],
+      "Steps": {
+        "1": {
+          "Name": "aKubernetesClusterIsDeployed",
+          "Description": "Passes if Probr successfully connects to the specified cluster.",
+          "Result": "Passed",
+          "Error": "",
+          "Payload": {
+            "KubeConfigPath": "C:\\Users\\lcarrazana\\.kube\\config",
+            "KubeContext": ""
+          }
+        },
+        "2": {
+          "Name": "aNamedAzureIdentityBindingExistsInNamedNS",
+          "Description": "Gets the AzureIdentityBindings, then filters according to namespace. Passes if binding is retrieved for namespace.",
+          "Result": "Passed",
+          "Error": "",
+          "Payload": {
+            "AzIdentbindName": "probr-aib",
+            "AzNameSpace": "default"
+          }
+        },
+        "3": {
+          "Name": "iCreateASimplePodInNamespaceAssignedWithThatAzureIdentityBinding",
+          "Description": "Creating simple pod in the probr namespace assigned with the azure identity binding probr-aib",
+          "Result": "Passed",
+          "Error": "",
+          "Payload": {
+            "PodState": {
+              "PodName": "iam-test-pod-280121-120937-55",
+              "CreationError": null,
+              "ExpectedReason": null,
+              "CommandExitCode": 0
+            },
+            "PodName": "iam-test-pod-280121-120937-55"
+          }
+        },
+        "4": {
+          "Name": "thePodIsDeployedSuccessfully",
+          "Description": "The Pod Deploying successfully",
+          "Result": "Passed",
+          "Error": "",
+          "Payload": {
+            "PodState": {
+              "PodName": "iam-test-pod-280121-120937-55",
+              "CreationError": null,
+              "ExpectedReason": null,
+              "CommandExitCode": 0
+            },
+            "PodName": "iam-test-pod-280121-120937-55"
+          }
+        },
+        "5": {
+          "Name": "anAttemptToObtainAnAccessTokenFromThatPodShould",
+          "Description": "Attempting to get access toekn from Pod",
+          "Result": "Passed",
+          "Error": "",
+          "Payload": {
+            "PodState": {
+              "PodName": "iam-test-pod-280121-120937-55",
+              "CreationError": null,
+              "ExpectedReason": null,
+              "CommandExitCode": 0
+            },
+            "PodName": "iam-test-pod-280121-120937-55"
+          }
+        }
+      }
+    },
+    "2": {
+      "Name": "Prevent cross namespace Azure Identities",
+      "Result": "Passed",
+      "Tags": [
+        "@k-iam",
+        "@probes/kubernetes/iam",
+        "@k-iam-001"
+      ],
+      "Steps": {
+        "1": {
+          "Name": "aKubernetesClusterIsDeployed",
+          "Description": "Passes if Probr successfully connects to the specified cluster.",
+          "Result": "Passed",
+          "Error": "",
+          "Payload": {
+            "KubeConfigPath": "C:\\Users\\lcarrazana\\.kube\\config",
+            "KubeContext": ""
+          }
+        },
+        "2": {
+          "Name": "aNamedAzureIdentityBindingExistsInNamedNS",
+          "Description": "Gets the AzureIdentityBindings, then filters according to namespace. Passes if binding is retrieved for namespace.",
+          "Result": "Passed",
+          "Error": "",
+          "Payload": {
+            "AzIdentbindName": "probr-aib",
+            "AzNameSpace": "default"
+          }
+        },
+        "3": {
+          "Name": "iCreateASimplePodInNamespaceAssignedWithThatAzureIdentityBinding",
+          "Description": "Creating simple pod in the default namespace assigned with the azure identity binding probr-aib",
+          "Result": "Passed",
+          "Error": "",
+          "Payload": {
+            "PodState": {
+              "PodName": "iam-test-pod-280121-121103-19",
+              "CreationError": null,
+              "ExpectedReason": null,
+              "CommandExitCode": 0
+            },
+            "PodName": "iam-test-pod-280121-121103-19"
+          }
+        },
+        "4": {
+          "Name": "thePodIsDeployedSuccessfully",
+          "Description": "The Pod Deploying successfully",
+          "Result": "Passed",
+          "Error": "",
+          "Payload": {
+            "PodState": {
+              "PodName": "iam-test-pod-280121-121103-19",
+              "CreationError": null,
+              "ExpectedReason": null,
+              "CommandExitCode": 0
+            },
+            "PodName": "iam-test-pod-280121-121103-19"
+          }
+        },
+        "5": {
+          "Name": "anAttemptToObtainAnAccessTokenFromThatPodShould",
+          "Description": "Attempting to get access toekn from Pod",
+          "Result": "Passed",
+          "Error": "",
+          "Payload": {
+            "PodState": {
+              "PodName": "iam-test-pod-280121-121103-19",
+              "CreationError": null,
+              "ExpectedReason": null,
+              "CommandExitCode": 0
+            },
+            "PodName": "iam-test-pod-280121-121103-19"
+          }
+        }
+      }
+    }
+  }
+}

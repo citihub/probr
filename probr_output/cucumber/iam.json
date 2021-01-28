@@ -1,0 +1,190 @@
+[
+    {
+        "uri": "C:\\Users\\lcarrazana\\go\\src\\github.com\\lcarrazana\\probr\\service_packs\\kubernetes\\iam\\iam.feature",
+        "id": "ensure-stringent-authentication-and-authorisation",
+        "keyword": "Feature",
+        "name": "Ensure stringent authentication and authorisation",
+        "description": "    As a Security Auditor\n    I want to ensure that stringent authentication and authorisation policies are applied to my organisation's Kubernetes clusters\n    So that only approve actors have ability to perform sensitive operations in order to prevent malicious attacks on my organization",
+        "line": 3,
+        "tags": [
+            {
+                "name": "@k-iam",
+                "line": 1
+            },
+            {
+                "name": "@probes/kubernetes/iam",
+                "line": 2
+            }
+        ],
+        "elements": [
+            {
+                "id": "ensure-stringent-authentication-and-authorisation;prevent-cross-namespace-azure-identities;;2",
+                "keyword": "Scenario Outline",
+                "name": "Prevent cross namespace Azure Identities",
+                "description": "",
+                "line": 18,
+                "type": "scenario",
+                "tags": [
+                    {
+                        "name": "@k-iam",
+                        "line": 1
+                    },
+                    {
+                        "name": "@probes/kubernetes/iam",
+                        "line": 2
+                    },
+                    {
+                        "name": "@k-iam-001",
+                        "line": 8
+                    }
+                ],
+                "steps": [
+                    {
+                        "keyword": "Given ",
+                        "name": "a Kubernetes cluster exists which we can deploy into",
+                        "line": 18,
+                        "match": {
+                            "location": "iam.go:49"
+                        },
+                        "result": {
+                            "status": "passed",
+                            "duration": 1000100
+                        }
+                    },
+                    {
+                        "keyword": "And ",
+                        "name": "an AzureIdentityBinding called \"probr-aib\" exists in the namespace called \"default\"",
+                        "line": 18,
+                        "match": {
+                            "location": "iam.go:56"
+                        },
+                        "result": {
+                            "status": "passed",
+                            "duration": 22010500
+                        }
+                    },
+                    {
+                        "keyword": "When ",
+                        "name": "I create a simple pod in \"the probr\" namespace assigned with the \"probr-aib\" AzureIdentityBinding",
+                        "line": 18,
+                        "match": {
+                            "location": "iam.go:70"
+                        },
+                        "result": {
+                            "status": "passed",
+                            "duration": 5027603000
+                        }
+                    },
+                    {
+                        "keyword": "Then ",
+                        "name": "the pod is deployed successfully",
+                        "line": 18,
+                        "match": {
+                            "location": "iam.go:96"
+                        },
+                        "result": {
+                            "status": "passed",
+                            "duration": 1000500
+                        }
+                    },
+                    {
+                        "keyword": "But ",
+                        "name": "an attempt to obtain an access token from that pod should \"Fail\"",
+                        "line": 18,
+                        "match": {
+                            "location": "iam.go:131"
+                        },
+                        "result": {
+                            "status": "passed",
+                            "duration": 80485167000
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "ensure-stringent-authentication-and-authorisation;prevent-cross-namespace-azure-identities;;3",
+                "keyword": "Scenario Outline",
+                "name": "Prevent cross namespace Azure Identities",
+                "description": "",
+                "line": 19,
+                "type": "scenario",
+                "tags": [
+                    {
+                        "name": "@k-iam",
+                        "line": 1
+                    },
+                    {
+                        "name": "@probes/kubernetes/iam",
+                        "line": 2
+                    },
+                    {
+                        "name": "@k-iam-001",
+                        "line": 8
+                    }
+                ],
+                "steps": [
+                    {
+                        "keyword": "Given ",
+                        "name": "a Kubernetes cluster exists which we can deploy into",
+                        "line": 19,
+                        "match": {
+                            "location": "iam.go:49"
+                        },
+                        "result": {
+                            "status": "passed",
+                            "duration": 0
+                        }
+                    },
+                    {
+                        "keyword": "And ",
+                        "name": "an AzureIdentityBinding called \"probr-aib\" exists in the namespace called \"default\"",
+                        "line": 19,
+                        "match": {
+                            "location": "iam.go:56"
+                        },
+                        "result": {
+                            "status": "passed",
+                            "duration": 63058300
+                        }
+                    },
+                    {
+                        "keyword": "When ",
+                        "name": "I create a simple pod in \"the default\" namespace assigned with the \"probr-aib\" AzureIdentityBinding",
+                        "line": 19,
+                        "match": {
+                            "location": "iam.go:70"
+                        },
+                        "result": {
+                            "status": "passed",
+                            "duration": 3162748100
+                        }
+                    },
+                    {
+                        "keyword": "Then ",
+                        "name": "the pod is deployed successfully",
+                        "line": 19,
+                        "match": {
+                            "location": "iam.go:96"
+                        },
+                        "result": {
+                            "status": "passed",
+                            "duration": 0
+                        }
+                    },
+                    {
+                        "keyword": "But ",
+                        "name": "an attempt to obtain an access token from that pod should \"Succeed\"",
+                        "line": 19,
+                        "match": {
+                            "location": "iam.go:131"
+                        },
+                        "result": {
+                            "status": "passed",
+                            "duration": 80828823200
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+]
