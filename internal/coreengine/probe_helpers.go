@@ -114,21 +114,21 @@ func unpackFileAndSave(origFilePath string, newFilePath string) error {
 	// TODO: This function could be extracted to a separate object i.e: Bundler interface?
 
 	fileBytes, readFileErr := utils.ReadStaticFile(origFilePath) // Read bytes using pkger memory bundle
-	if readFileErr == nil {
-
-		createFilePathErr := os.MkdirAll(filepath.Dir(newFilePath), 0755) // Create directory and sub directories for file
-		if createFilePathErr != nil {
-			return fmt.Errorf("Error creating path for file: '%v' - Error: %v", newFilePath, createFilePathErr)
-		}
-
-		writeFileErr := ioutil.WriteFile(newFilePath, fileBytes, 0755) // Save file to new location
-		if writeFileErr != nil {
-			return fmt.Errorf("Error saving file: '%v' - Error: %v", newFilePath, writeFileErr)
-		}
-		return nil // File created
+	if readFileErr != nil {
+		return fmt.Errorf("Error reading file content: '%v' - Error: %v", origFilePath, readFileErr)
 	}
 
-	return fmt.Errorf("Error reading file content: '%v' - Error: %v", origFilePath, readFileErr)
+	createFilePathErr := os.MkdirAll(filepath.Dir(newFilePath), 0755) // Create directory and sub directories for file
+	if createFilePathErr != nil {
+		return fmt.Errorf("Error creating path for file: '%v' - Error: %v", newFilePath, createFilePathErr)
+	}
+
+	writeFileErr := ioutil.WriteFile(newFilePath, fileBytes, 0755) // Save file to new location
+	if writeFileErr != nil {
+		return fmt.Errorf("Error saving file: '%v' - Error: %v", newFilePath, writeFileErr)
+	}
+
+	return nil // File created
 }
 
 // LogScenarioStart logs the name and tags associated with the supplied scenario.
