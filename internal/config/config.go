@@ -113,7 +113,14 @@ func LogConfigState() {
 	log.Printf("[NOTICE] Config State: %s", s)
 }
 
-// AuditDir creates -audit- directory within WriteDirectory
+// TmpDir creates and return -tmp- directory within WriteDirectory
+func (ctx *ConfigVars) TmpDir() string {
+	tmpDir := filepath.Join(WriteDirectory(), "tmp")
+	_ = os.Mkdir(tmpDir, 0755) // Creates if not already existing
+	return tmpDir
+}
+
+// AuditDir creates and return -audit- directory within WriteDirectory
 func AuditDir() string {
 	auditDir := filepath.Join(WriteDirectory(), "audit")
 	_ = os.Mkdir(auditDir, 0755) // Creates if not already existing

@@ -50,11 +50,9 @@ func TestGetOutputPath(t *testing.T) {
 		_ = os.MkdirAll(d, 0755) // Creates if not already existing
 		return d
 	}
-	var e error
-	file, e = getOutputPath(f)
+	file, _ = getOutputPath(f)
 	if desiredFile != file.Name() {
 		t.Logf("Desired filepath '%s' does not match '%s'", desiredFile, file.Name())
-		t.Log(e)
 		t.Fail()
 	}
 }
@@ -91,7 +89,7 @@ func TestGetFeaturePath(t *testing.T) {
 		{
 			testName:       "GetFeaturePath_WithTwoSubfoldersAndFeatureName_ShouldReturnFeatureFilePath",
 			testArgs:       args{path: []string{"service_packs", "kubernetes", "container_registry_access"}},
-			expectedResult: filepath.Join("service_packs", "kubernetes", "container_registry_access", "container_registry_access.feature"), // Using filepath.join() instead of literal string in order to run test in Windows (\\) and Linux (/)
+			expectedResult: filepath.Join(config.Vars.TmpDir(), "service_packs", "kubernetes", "container_registry_access", "container_registry_access.feature"), // Using filepath.join() instead of literal string in order to run test in Windows (\\) and Linux (/)
 		},
 	}
 	for _, tt := range tests {
