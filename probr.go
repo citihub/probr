@@ -1,6 +1,10 @@
 package probr
 
 import (
+	"log"
+	"os"
+
+	"github.com/citihub/probr/internal/config"
 	"github.com/citihub/probr/internal/coreengine"
 	"github.com/citihub/probr/service_packs"
 )
@@ -18,6 +22,9 @@ func RunAllProbes() (int, *coreengine.ProbeStore, error) {
 
 //GetAllProbeResults maps ProbeStore results to strings
 func GetAllProbeResults(ps *coreengine.ProbeStore) map[string]string {
+
+	defer cleanup()
+
 	out := make(map[string]string)
 	for name := range ps.Probes {
 		results, name, err := readProbeResults(ps, name)
@@ -38,4 +45,13 @@ func readProbeResults(ps *coreengine.ProbeStore, name string) (probeResults, pro
 	probeResults = p.Results.String()
 	probeName = p.ProbeDescriptor.Name
 	return
+}
+
+// cleanup is used to dispose of any temp resources used during probe execution
+func cleanup() {
+	// Remove tmp folder and its content
+	err := os.RemoveAll(config.Vars.TmpDir())
+	if err != nil {
+		log.Printf("[ERROR] Error removing tmp folder %v", err)
+	}
 }
