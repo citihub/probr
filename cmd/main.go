@@ -15,6 +15,9 @@ import (
 )
 
 func main() {
+
+	defer cleanup()
+
 	err := config.Init("") // Create default config
 	if err != nil {
 		log.Printf("[ERROR] error returned from config.Init: %v", err)
@@ -64,8 +67,22 @@ func showIndicator() bool {
 }
 
 func exit(status int) {
+
+	cleanup()
+
 	if showIndicator() {
 		config.Spinner.Stop()
 	}
 	os.Exit(status)
+}
+
+// cleanup is used to dispose of any temp resources used during execution
+func cleanup() {
+
+	// Remove tmp folder and its content
+	err := os.RemoveAll(config.Vars.TmpDir())
+	if err != nil {
+		log.Printf("[ERROR] Error removing tmp folder %v", err)
+	}
+
 }
