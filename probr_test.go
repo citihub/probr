@@ -45,7 +45,7 @@ func TestGetAllProbeResults(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 
 			//Create temp dir with test data
-			if err := CreateTestData(testTmpDir); err != nil {
+			if err := createTestData(testTmpDir); err != nil {
 				t.Fatalf("Test file couldn't be created. Error: %v", err)
 			}
 
@@ -60,7 +60,7 @@ func TestGetAllProbeResults(t *testing.T) {
 	}
 }
 
-func CreateTestData(testDir string) error {
+func createTestData(testDir string) error {
 	createTestFolderErr := os.MkdirAll(testDir, 0755) // Creates if not already existing
 	if createTestFolderErr != nil {
 		return createTestFolderErr
