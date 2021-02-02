@@ -143,9 +143,3 @@ of step functions.
          return
       }
       ```
-
-**Aceptance Test**
-
-| Step | Description | Action | Expected Result | Passed |
-|---|---|---|---|---|
-|1|Bundle static files|run `pkger`|A file named `pkged.go` is generated|---|
