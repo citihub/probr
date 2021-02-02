@@ -700,7 +700,7 @@ func (s *scenarioState) anSeccompProfileIsRequestedForTheKubernetesDeployment(se
 	}
 
 	if err != nil {
-		log.Print(err)
+		log.Print(utils.ReformatError("error reading seccomp provile %v yaml file : %v", seccompProfile, err))
 	}
 	pd, err := psp.CreatePodFromYaml(y, s.probe)
 	err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPSeccompProfile, err)
