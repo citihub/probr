@@ -219,7 +219,7 @@ func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatRequiresPrivilegedA
 		s.audit.AuditScenarioStep(description, payload, err)
 	}()
 
-	err = s.runVerificationProbe(VerificationProbe{Cmd: Chroot, ExpectedExitCode: 126})
+	err = s.runVerificationProbe(VerificationProbe{Cmd: Chroot, ExpectedExitCode: 1})
 
 	description = "Should not able to perform command that requires privileged"
 	payload = struct {
