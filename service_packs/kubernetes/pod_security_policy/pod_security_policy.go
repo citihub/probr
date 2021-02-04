@@ -219,7 +219,7 @@ func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatRequiresPrivilegedA
 		s.audit.AuditScenarioStep(description, payload, err)
 	}()
 
-	err = s.runVerificationProbe(VerificationProbe{Cmd: Chroot, ExpectedExitCode: 1})
+	err = s.runVerificationProbe(VerificationProbe{Cmd: Chroot, ExpectedExitCode: 126})
 
 	description = "Should not able to perform command that requires privileged"
 	payload = struct {
@@ -465,6 +465,24 @@ func (s *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunnin
 	err = s.runControlProbe(psp.PrivilegedEscalationIsRestricted, "PrivilegedEscalationIsRestricted")
 
 	description = "Some systems exists to prevent kebernetes deployment from running the allowed privileged escalation in an existing kubernetes cluster"
+	payload = struct {
+		PodState kubernetes.PodState
+		PodName  string
+	}{s.podState, s.podState.PodName}
+
+	return err
+}
+
+func (s *scenarioState) iShouldNotBeAbleToPerformASudoCommandThatRequiresPrivilegedAccess() error {
+	// Standard auditing logic to ensures panics are also audited
+	description, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		s.audit.AuditScenarioStep(description, payload, err)
+	}()
+
+	err = s.runVerificationProbe(VerificationProbe{Cmd: SudoChroot, ExpectedExitCode: 1})
+
+	description = "Should not able to perform sudo command that requires privileged"
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -985,6 +1003,7 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	//CIS-5.2.5
 	ctx.Step(`^privileged escalation is marked "([^"]*)" for the Kubernetes deployment$`, ps.privilegedEscalationIsMarkedForTheKubernetesDeployment)
 	ctx.Step(`^some system exists to prevent a Kubernetes deployment from running using the allowPrivilegeEscalation in an existing Kubernetes cluster$`, ps.someSystemExistsToPreventAKubernetesDeploymentFromRunningUsingTheAllowPrivilegeEscalationInAnExistingKubernetesCluster)
+	ctx.Step(`^I should not be able to perform a sudo command that requires privileged access$`, ps.iShouldNotBeAbleToPerformASudoCommandThatRequiresPrivilegedAccess)
 
 	//CIS-5.2.6
 	ctx.Step(`^the user requested is "([^"]*)" for the Kubernetes deployment$`, ps.theUserRequestedIsForTheKubernetesDeployment)
