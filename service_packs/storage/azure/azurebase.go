@@ -1,4 +1,4 @@
-package azureutil
+package azure
 
 import (
 	"log"
