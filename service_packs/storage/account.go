@@ -8,7 +8,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/storage/mgmt/2019-04-01/storage"
 	"github.com/Azure/go-autorest/autorest/azure/auth"
 	"github.com/Azure/go-autorest/autorest/to"
-	"github.com/citihub/probr/service_packs/storage/azure"
+	azureutil "github.com/citihub/probr/service_packs/storage/azure"
 )
 
 // DeleteAccount - deletes a storage account given the azure contect, resource group and account name
@@ -56,7 +56,7 @@ func CreateWithNetworkRuleSet(ctx context.Context, accountName, accountGroupName
 			Sku: &storage.Sku{
 				Name: storage.StandardLRS},
 			Kind:                              storage.Storage,
-			Location:                          to.StringPtr(azure.ResourceLocation()),
+			Location:                          to.StringPtr(azureutil.ResourceLocation()),
 			AccountPropertiesCreateParameters: networkRuleSetParam,
 			Tags:                              tags,
 		})
@@ -94,10 +94,10 @@ func getAccountKeys(ctx context.Context, accountName, accountGroupName string) (
 func accountClient() storage.AccountsClient {
 
 	// Create an azure storage account client object via the connection config vars
-	c := storage.NewAccountsClient(azure.SubscriptionID())
+	c := storage.NewAccountsClient(azureutil.SubscriptionID())
 
 	// Create an authorization object via the connection config vars
-	authorizer := auth.NewClientCredentialsConfig(azure.ClientID(), azure.ClientSecret(), azure.TenantID())
+	authorizer := auth.NewClientCredentialsConfig(azureutil.ClientID(), azureutil.ClientSecret(), azureutil.TenantID())
 
 	authorizerToken, err := authorizer.Authorizer()
 	if err == nil {
