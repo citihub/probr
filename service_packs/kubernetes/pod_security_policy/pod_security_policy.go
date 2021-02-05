@@ -480,7 +480,7 @@ func (s *scenarioState) iShouldNotBeAbleToPerformASudoCommandThatRequiresPrivile
 		s.audit.AuditScenarioStep(description, payload, err)
 	}()
 
-	err = s.runVerificationProbe(VerificationProbe{Cmd: SudoChroot, ExpectedExitCode: 1})
+	err = s.runVerificationProbe(VerificationProbe{Cmd: SudoChroot, ExpectedExitCode: 126})
 
 	description = "Should not able to perform sudo command that requires privileged"
 	payload = struct {
