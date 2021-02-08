@@ -1,7 +1,9 @@
 FROM golang:1.14.4-alpine AS probr-build
 WORKDIR /probr
 COPY . .
-RUN make binary
+RUN go get github.com/markbates/pkger/cmd/pkger
+RUN pkger
+RUN go build -o probr cmd/main.go
 
 FROM node:alpine
 COPY internal/view /probr/internal/view
