@@ -1,2 +1,2 @@
 #!/bin/sh
-/probr/probr -varsfile=/probr/config.yml --loglevel=debug
+/probr/probr -varsfile=/probr/config.yml -loglevel=DEBUG
