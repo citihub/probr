@@ -12,5 +12,5 @@ RUN npm ci
 
 WORKDIR /probr
 COPY --from=probr-build /probr .
-COPY /examples/docker/entrypoint.sh .
+COPY /examples/docker/. .
 ENTRYPOINT ["/probr/entrypoint.sh"]
