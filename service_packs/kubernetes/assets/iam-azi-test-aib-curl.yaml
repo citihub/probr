@@ -4,6 +4,8 @@ metadata:
   name: IAMTEST
   labels:
     aadpodidbinding: #demo  #TODO: need to inject this
+    caller: {{ probr-caller-function }}
+    feature: k-iam-002,k-iam-001
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: "runtime/default"
 spec:
@@ -13,7 +15,7 @@ spec:
    fsGroup: 2000
    supplementalGroups: [ 1 ]
   containers:
-  - name: demo
+  - name: iam-azi-test-aib-curl
     image: {{ probr-compatible-image }}
     command: [ "sh", "-c", "sleep 1h" ]
     securityContext:
