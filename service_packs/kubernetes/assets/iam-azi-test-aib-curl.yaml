@@ -4,8 +4,6 @@ metadata:
   name: IAMTEST
   labels:
     aadpodidbinding: #demo  #TODO: need to inject this
-    caller: {{ probr-caller-function }}
-    feature: k-iam-002,k-iam-001
   annotations:
     seccomp.security.alpha.kubernetes.io/pod: "runtime/default"
 spec:
