@@ -29,4 +29,4 @@ spec:
     securityContext:
       allowPrivilegeEscalation: false  
       capabilities:
-        drop: ["NET_RAW"]          
+        drop: {{ probr-cap-drop }}          
