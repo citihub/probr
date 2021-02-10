@@ -196,10 +196,7 @@ func (k *Kube) CreatePod(podName string, ns string, containerName string, image 
 func (k *Kube) CreatePodFromYaml(y []byte, pname string, ns string, image string, aadpodidbinding string, w bool, probe *audit.Probe) (*apiv1.Pod, error) {
 	vars := config.Vars.ServicePacks.Kubernetes
 	approvedImage := vars.AuthorisedContainerRegistry + "/" + vars.ProbeImage
-	replaceSpecValues := strings.NewReplacer(
-    "{{ probr-compatible-image }}", approvedImage,
-    "{{ probr-caller-function }}", utils.CallerName(2),
-    "{{ probr-cap-drop }}", vars.ContainerDropCapabilities)
+	replaceSpecValues := strings.NewReplacer("{{ probr-compatible-image }}", approvedImage, "{{ probr-caller-function }}", utils.CallerName(2), "{{ probr-cap-drop }}", vars.ContainerDropCapabilities)
 	podSpec := utils.ReplaceBytesMultipleValues(y, replaceSpecValues)
 
 	o, _, err := scheme.Codecs.UniversalDeserializer().Decode(podSpec, nil, nil)
