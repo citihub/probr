@@ -1,8 +1,8 @@
 ---
-name: BDD Probe request
-about: Suggest new BDD specification
-title: "[BDD Probe]"
-labels: feature request, bdd, probe
+name: BDD Scenario request
+about: Suggest new BDD scenario specification
+title: "[Scenario]"
+labels: feature request, scenario
 assignees: ''
 
 ---
