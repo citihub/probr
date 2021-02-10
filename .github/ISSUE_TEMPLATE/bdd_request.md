@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 **Please write BDD specification**
-_[Replace sample below with actual BDD specification. See [Gheriking syntax](https://cucumber.io/docs/gherkin/reference/) for reference.]_
+_[Replace sample below with actual BDD specification. See Gherkin syntax for reference: https://cucumber.io/docs/gherkin/reference]_
 ```
 Feature: Guess the word
 
