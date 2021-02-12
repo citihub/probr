@@ -564,6 +564,12 @@ func (s *scenarioState) nETRAWIsMarkedForTheKubernetesDeployment(netRawRequested
 		s.audit.AuditScenarioStep(description, payload, err)
 	}()
 
+	// TODO: 259
+	// Override default drop capabilities, explicitly simulating what's needed in this test case
+	// if netRawRequested == true { drop: nil; add: NET_RAW }
+	// if netRawRequested == false { drop: nil; add: nil }
+	// if netRawRequested == Not Defined { drop: nil; add: nil }
+
 	var c []string
 	if netRawRequested == "True" {
 		c = make([]string, 1)
@@ -582,23 +588,24 @@ func (s *scenarioState) nETRAWIsMarkedForTheKubernetesDeployment(netRawRequested
 	return err
 }
 
-func (s *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunningWithNETRAWCapabilityInAnExistingKubernetesCluster() error {
-	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
-	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
-	}()
+// TODO: Remove 259
+// func (s *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunningWithNETRAWCapabilityInAnExistingKubernetesCluster() error {
+// 	// Standard auditing logic to ensures panics are also audited
+// 	description, payload, err := utils.AuditPlaceholders()
+// 	defer func() {
+// 		s.audit.AuditScenarioStep(description, payload, err)
+// 	}()
 
-	err = s.runControlProbe(psp.NETRawIsRestricted, "NETRAWIsRestricted")
+// 	err = s.runControlProbe(psp.NETRawIsRestricted, "NETRAWIsRestricted")
 
-	description = "some System Exists To Prevent A Kubernetes Deployment From Running With NETRAW Capability In An Existing Kubernetes Cluster"
-	payload = struct {
-		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+// 	description = "some System Exists To Prevent A Kubernetes Deployment From Running With NETRAW Capability In An Existing Kubernetes Cluster"
+// 	payload = struct {
+// 		PodState kubernetes.PodState
+// 		PodName  string
+// 	}{s.podState, s.podState.PodName}
 
-	return err
-}
+// 	return err
+// }
 
 func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatRequiresNETRAWCapability() error {
 	// Standard auditing logic to ensures panics are also audited
@@ -1012,7 +1019,7 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	//CIS-5.2.7
 	ctx.Step(`^NET_RAW is marked "([^"]*)" for the Kubernetes deployment$`, ps.nETRAWIsMarkedForTheKubernetesDeployment)
-	ctx.Step(`^some system exists to prevent a Kubernetes deployment from running with NET_RAW capability in an existing Kubernetes cluster$`, ps.someSystemExistsToPreventAKubernetesDeploymentFromRunningWithNETRAWCapabilityInAnExistingKubernetesCluster)
+	// TODO: Remove //ctx.Step(`^some system exists to prevent a Kubernetes deployment from running with NET_RAW capability in an existing Kubernetes cluster$`, ps.someSystemExistsToPreventAKubernetesDeploymentFromRunningWithNETRAWCapabilityInAnExistingKubernetesCluster)
 	ctx.Step(`^I should not be able to perform a command that requires NET_RAW capability$`, ps.iShouldNotBeAbleToPerformACommandThatRequiresNETRAWCapability)
 
 	//CIS-5.2.8

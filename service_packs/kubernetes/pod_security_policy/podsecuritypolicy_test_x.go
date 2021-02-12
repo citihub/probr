@@ -51,9 +51,10 @@ func TestRootUserIsRestricted(t *testing.T) {
 	runTest(t, "HasRootUserRestriction", "RootUserIsRestricted")
 }
 
-func TestNETRawIsRestricted(t *testing.T) {
-	runTest(t, "HasNETRAWRestriction", "NETRawIsRestricted")
-}
+// TODO: Remove 259
+// func TestNETRawIsRestricted(t *testing.T) {
+// 	runTest(t, "HasNETRAWRestriction", "NETRawIsRestricted")
+// }
 
 func TestAllowedCapabilitiesAreRestricted(t *testing.T) {
 	runTest(t, "HasAllowedCapabilitiesRestriction", "AllowedCapabilitiesAreRestricted")
@@ -400,9 +401,12 @@ func (m *securityProviderMock) HasAllowPrivilegeEscalationRestriction() (*bool, 
 func (m *securityProviderMock) HasRootUserRestriction() (*bool, error) {
 	return m.returnArgs(m.Called())
 }
-func (m *securityProviderMock) HasNETRAWRestriction() (*bool, error) {
-	return m.returnArgs(m.Called())
-}
+
+// TODO: Remove 259
+// func (m *securityProviderMock) HasNETRAWRestriction() (*bool, error) {
+// 	return m.returnArgs(m.Called())
+// }
+
 func (m *securityProviderMock) HasAllowedCapabilitiesRestriction() (*bool, error) {
 	return m.returnArgs(m.Called())
 }

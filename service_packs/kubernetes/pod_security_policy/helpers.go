@@ -90,7 +90,7 @@ type PodSecurityPolicy interface {
 	HostNetworkIsRestricted() (*bool, error)
 	PrivilegedEscalationIsRestricted() (*bool, error)
 	RootUserIsRestricted() (*bool, error)
-	NETRawIsRestricted() (*bool, error)
+	// NETRawIsRestricted() (*bool, error) // TODO: Remove 259
 	AllowedCapabilitiesAreRestricted() (*bool, error)
 	AssignedCapabilitiesAreRestricted() (*bool, error)
 	HostPortsAreRestricted() (*bool, error)
@@ -296,23 +296,24 @@ func (psp *PSP) RootUserIsRestricted() (*bool, error) {
 	return logAndReturn("RootUserIsRestricted", success, ret, err)
 }
 
-// NETRawIsRestricted looks for a SecurityPolicyProvider where the NET_RAW capability is restricted.
-func (psp *PSP) NETRawIsRestricted() (*bool, error) {
-	var err error
-	var ret, success bool
+// TODO: Remove 259
+// // NETRawIsRestricted looks for a SecurityPolicyProvider where the NET_RAW capability is restricted.
+// func (psp *PSP) NETRawIsRestricted() (*bool, error) {
+// 	var err error
+// 	var ret, success bool
 
-	// iterate over providers ...
-	for _, p := range *psp.securityPolicyProviders {
-		if p == nil {
-			continue
-		}
-		if makeSecurityPolicyCall(p.HasNETRAWRestriction, &ret, &success, &err) {
-			break
-		}
-	}
+// 	// iterate over providers ...
+// 	for _, p := range *psp.securityPolicyProviders {
+// 		if p == nil {
+// 			continue
+// 		}
+// 		if makeSecurityPolicyCall(p.HasNETRAWRestriction, &ret, &success, &err) {
+// 			break
+// 		}
+// 	}
 
-	return logAndReturn("NETRawIsRestricted", success, ret, err)
-}
+// 	return logAndReturn("NETRawIsRestricted", success, ret, err)
+// }
 
 // AllowedCapabilitiesAreRestricted looks for a SecurityPolicyProvider where allowed capabilities are restricted.
 func (psp *PSP) AllowedCapabilitiesAreRestricted() (*bool, error) {
@@ -777,27 +778,28 @@ func (p *KubePodSecurityPolicyProvider) HasRootUserRestriction() (*bool, error) 
 	return &res, nil
 }
 
-// HasNETRAWRestriction provides the KubePodSecurityPolicyProvider implementation of SecurityPolicyProvider.
-func (p *KubePodSecurityPolicyProvider) HasNETRAWRestriction() (*bool, error) {
-	psps, err := p.getPolicies()
-	if err != nil {
-		return nil, err
-	}
+// TODO: Remove 259
+// // HasNETRAWRestriction provides the KubePodSecurityPolicyProvider implementation of SecurityPolicyProvider.
+// func (p *KubePodSecurityPolicyProvider) HasNETRAWRestriction() (*bool, error) {
+// 	psps, err := p.getPolicies()
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	//at least one of the PSPs should have a RequiredDropCapability of "NET_RAW"
-	var res bool
-	for _, e := range psps.Items {
-		for _, c := range e.Spec.RequiredDropCapabilities {
-			if c == "NET_RAW" || c == "ALL" {
-				log.Printf("[DEBUG] PodSecurityPolicy: HasNETRAWRestriction: RequiredDropCapability of %v is set on Policy: %v", c, e.GetName())
-				res = true
-				break
-			}
-		}
-	}
+// 	//at least one of the PSPs should have a RequiredDropCapability of "NET_RAW"
+// 	var res bool
+// 	for _, e := range psps.Items {
+// 		for _, c := range e.Spec.RequiredDropCapabilities {
+// 			if c == "NET_RAW" || c == "ALL" {
+// 				log.Printf("[DEBUG] PodSecurityPolicy: HasNETRAWRestriction: RequiredDropCapability of %v is set on Policy: %v", c, e.GetName())
+// 				res = true
+// 				break
+// 			}
+// 		}
+// 	}
 
-	return &res, nil
-}
+// 	return &res, nil
+// }
 
 // HasAllowedCapabilitiesRestriction provides the KubePodSecurityPolicyProvider implementation of SecurityPolicyProvider.
 func (p *KubePodSecurityPolicyProvider) HasAllowedCapabilitiesRestriction() (*bool, error) {
