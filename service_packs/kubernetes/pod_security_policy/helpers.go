@@ -553,11 +553,6 @@ func (psp *PSP) CreatePODSettingCapabilities(c *[]string, probe *audit.Probe) (*
 				}
 				con.SecurityContext.Capabilities.Add =
 					append(con.SecurityContext.Capabilities.Add, apiv1.Capability(cap))
-				//con.SecurityContext.Capabilities.Drop = append(con.SecurityContext.Capabilities.Drop, apiv1.Capability("NET_RAW"))
-				// TODO: Remove above line, since it will cause the values for container drop capabilities to be duplicated
-				// Keeping commented out for now to ensure no edge cases will appear.
-				// Tested runnig probr --tags=@k-psp and got 33/36 succeeded scenarios
-				// Theory is that this line is not needed, since GetPodObject will call defaultContainerSecurityContext, which gets the drop capability from config.
 			}
 		}
 	}
