@@ -12,7 +12,7 @@ import (
 func TestGetDropCapabilitiesFromConfig(t *testing.T) {
 
 	// Default value
-	dropCapabilitiesFromDefaultValue := []apiv1.Capability{"NET_RAW"} //This test will fail if default value changes for config.Vars.ServicePacks.Kubernetes.ContainerDropCapabilities. Adjust as needed.
+	dropCapabilitiesFromDefaultValue := []apiv1.Capability{"NET_RAW"} //This test will fail if default value changes for config.Vars.ServicePacks.Kubernetes.ContainerRequiredDropCapabilities. Adjust as needed.
 
 	// Config value
 	configValue := []string{"CAP_SETUID"}
@@ -46,7 +46,7 @@ func TestGetDropCapabilitiesFromConfig(t *testing.T) {
 			} else {
 				// Set config vars
 				// Only ContainerDropCapabilities for now. Extend if more config vars are used.
-				config.Vars.ServicePacks.Kubernetes.ContainerDropCapabilities = tt.configValue
+				config.Vars.ServicePacks.Kubernetes.ContainerRequiredDropCapabilities = tt.configValue
 			}
 
 			if got := GetContainerDropCapabilitiesFromConfig(); !reflect.DeepEqual(got, tt.expectedResult) {

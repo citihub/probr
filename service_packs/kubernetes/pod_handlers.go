@@ -171,7 +171,7 @@ func waitForDelete(c *k8s.Clientset, ns string, n string) error {
 
 func GetContainerDropCapabilitiesFromConfig() []apiv1.Capability {
 	// Adding all values from config
-	dropCapabilitiesFromConfig := config.Vars.ServicePacks.Kubernetes.ContainerDropCapabilities
+	dropCapabilitiesFromConfig := config.Vars.ServicePacks.Kubernetes.ContainerRequiredDropCapabilities
 
 	return GetCapabilitiesFromList(dropCapabilitiesFromConfig)
 }
