@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/citihub/probr/config"
@@ -186,4 +187,19 @@ func GetCapabilitiesFromList(capList []string) []apiv1.Capability {
 	}
 
 	return apiCapabilities
+}
+
+func GetUnapprovedHostPortFromConfig() string {
+	return config.Vars.ServicePacks.Kubernetes.UnapprovedHostPort
+}
+
+func GetKeepPodsFromConfig() bool {
+	flag, err := strconv.ParseBool(config.Vars.ServicePacks.Kubernetes.KeepPods)
+
+	if err != nil {
+		log.Printf("[INFO] Error converting KeepPods to bool val. Defaulting to false.")
+		return false
+	} else {
+		return flag
+	}
 }

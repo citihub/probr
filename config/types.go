@@ -16,6 +16,7 @@ type ConfigVars struct {
 	NoSummary                 bool           // set by flags only
 	Silent                    bool           // set by flags only
 	Meta                      Meta           // set by CLI options only
+	ResultsFormat             string         // set by flags only
 }
 
 type Meta struct {
@@ -29,15 +30,19 @@ type ServicePacks struct {
 }
 
 type Kubernetes struct {
-	exclusionLogged               bool
-	Probes                        []Probe  `yaml:"Probes"`
-	KubeConfigPath                string   `yaml:"KubeConfig"`
-	KubeContext                   string   `yaml:"KubeContext"`
-	SystemClusterRoles            []string `yaml:"SystemClusterRoles"`
-	AuthorisedContainerRegistry   string   `yaml:"AuthorisedContainerRegistry"`
-	UnauthorisedContainerRegistry string   `yaml:"UnauthorisedContainerRegistry"`
-	ProbeImage                    string   `yaml:"ProbeImage"`
-	ContainerDropCapabilities     []string `yaml:"ContainerDropCapabilities"`
+	exclusionLogged                   bool
+	KeepPods                          string   `yaml:"KeepPods"`
+	Probes                            []Probe  `yaml:"Probes"`
+	KubeConfigPath                    string   `yaml:"KubeConfig"`
+	KubeContext                       string   `yaml:"KubeContext"`
+	SystemClusterRoles                []string `yaml:"SystemClusterRoles"`
+	AuthorisedContainerRegistry       string   `yaml:"AuthorisedContainerRegistry"`
+	UnauthorisedContainerRegistry     string   `yaml:"UnauthorisedContainerRegistry"`
+	ProbeImage                        string   `yaml:"ProbeImage"`
+	ContainerRequiredDropCapabilities []string `yaml:"ContainerRequiredDropCapabilities"`
+	ContainerAllowedAddCapabilities   []string `yaml:"ContainerAllowedAddCapabilities"`
+	ApprovedVolumeTypes               []string `yaml:"ApprovedVolumeTypes"`
+	UnapprovedHostPort                string   `yaml:"UnapprovedHostPort"`
 }
 
 type Storage struct {
