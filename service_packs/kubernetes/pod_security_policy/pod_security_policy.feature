@@ -109,7 +109,7 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
             | Non-Root       | Succeed  |                             |
             | Not Defined    | Succeed  |                             |
 
-    @k-psp-007-1
+    @k-psp-007
     Scenario Outline: Prevent deployments from running with the NET_RAW capability.
 
     Assuming cluster is configured to prevent NET_RAW capabilities:
@@ -126,20 +126,6 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
             | Added              | Fail    | Containers cant run with NET_RAW capabilities |
             | Dropped            | Succeed |                                               |
             | Not Defined        | Fail    | Containers cant run with NET_RAW capabilities |
-
-    @k-psp-007-2
-    Scenario: Prevent deployments from executing commands with the NET_RAW capability.
-
-    Assuming cluster is configured to prevent NET_RAW capabilities:
-    - A container with explicit drop NET_RAW is deployed
-    - A command that doesn't require NET_RAW (such as ls) should succeed
-    - A command that requires NET_RAW (such as ping www.google.com) should fail
-
-        Given a Kubernetes cluster exists which we can deploy into
-        When a Kubernetes deployment with NET_RAW capability "Dropped" is applied to an existing Kubernetes cluster
-        Then the operation will "Succeed" with an error ""
-        And I should be able to perform an allowed command
-        But I should not be able to perform a command that requires NET_RAW capability
 
     @k-psp-008
     Scenario Outline: Prevent container running with capabilities beyond the default set.
@@ -220,3 +206,17 @@ So that a policy of least privilege can be enforced in order to prevent maliciou
 			| unapproved  	| Fail  	| Cannot access unapproved port range	|
 			| approved		| Succeed	|									  	|
 			| not defined	| Succeed	|	                                    |
+
+    @k-psp-013
+    Scenario: Prevent deployments from executing commands with the NET_RAW capability.
+
+    Assuming cluster is configured to prevent NET_RAW capabilities:
+    - A container with explicit drop NET_RAW is deployed
+    - A command that doesn't require NET_RAW (such as ls) should succeed
+    - A command that requires NET_RAW (such as ping www.google.com) should fail
+
+        Given a Kubernetes cluster exists which we can deploy into
+        When a Kubernetes deployment with NET_RAW capability "Dropped" is applied to an existing Kubernetes cluster
+        Then the operation will "Succeed" with an error ""
+        And I should be able to perform an allowed command
+        But I should not be able to perform a command that requires NET_RAW capability
