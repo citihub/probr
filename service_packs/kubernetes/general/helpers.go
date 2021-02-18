@@ -8,11 +8,10 @@ import (
 )
 
 type scenarioState struct {
-	name          string
-	audit         *audit.ScenarioAudit
-	probe         *audit.Probe
-	podState      kubernetes.PodState
-	wildcardRoles interface{}
+	name     string
+	audit    *audit.ScenarioAudit
+	probe    *audit.Probe
+	podState kubernetes.PodState
 }
 
 func beforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {

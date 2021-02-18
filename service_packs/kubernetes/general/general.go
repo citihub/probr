@@ -3,15 +3,10 @@
 package general
 
 import (
-	"fmt"
 	"strings"
-
-	rbacv1 "k8s.io/api/rbac/v1"
-	v1 "k8s.io/api/rbac/v1"
 
 	"github.com/cucumber/godog"
 
-	"github.com/citihub/probr/config"
 	"github.com/citihub/probr/service_packs/coreengine"
 	"github.com/citihub/probr/service_packs/kubernetes"
 	"github.com/citihub/probr/utils"
@@ -30,130 +25,6 @@ func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 	return error //  ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
 }
 
-//@CIS-5.1.3
-func (s *scenarioState) iInspectTheThatAreConfigured(roleLevel string) error {
-	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
-	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
-	}()
-
-	if roleLevel == "Cluster Roles" {
-		l, e := kubernetes.GetKubeInstance().GetClusterRolesByResource("*")
-		err = e
-		s.wildcardRoles = l
-	} else if roleLevel == "Roles" {
-		l, e := kubernetes.GetKubeInstance().GetRolesByResource("*")
-		err = e
-		s.wildcardRoles = l
-	}
-	if err != nil {
-		err = utils.ReformatError("error raised when retrieving '%v': %v", roleLevel, err)
-	}
-
-	description = fmt.Sprintf("Ensures that %s are configured. Retains wildcard roles in state for following steps. Passes if retrieval command does not have error.", roleLevel)
-	payload = struct {
-		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
-	return err
-}
-
-func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations() error {
-	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
-	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
-	}()
-
-	//we strip out system/known entries in the cluster roles & roles call
-	var wildcardCount int
-	//	wildcardCount := len(s.wildcardRoles.([]interface{}))
-	switch s.wildcardRoles.(type) {
-	case *[]v1.Role:
-		wildCardRoles := s.wildcardRoles.(*[]rbacv1.Role)
-		wildcardCount = len(*wildCardRoles)
-	case *[]v1.ClusterRole:
-		wildCardRoles := s.wildcardRoles.(*[]rbacv1.ClusterRole)
-		wildcardCount = len(*wildCardRoles)
-	default:
-	}
-
-	if wildcardCount > 0 {
-		err = utils.ReformatError("roles exist with wildcarded resources")
-	}
-
-	description = "Examines scenario state's wildcard roles. Passes if no wildcard roles are found."
-	payload = struct {
-		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
-
-	return err
-}
-
-//@CIS-5.6.3
-func (s *scenarioState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext() error {
-	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
-	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
-	}()
-
-	cname := "probr-general"
-	podName := kubernetes.GenerateUniquePodName(cname)
-	image := config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry + "/" + config.Vars.ServicePacks.Kubernetes.ProbeImage
-
-	//create pod with nil security context
-	pod, podAudit, err := kubernetes.GetKubeInstance().CreatePod(podName, "probr-general-test-ns", cname, image, true, nil, s.probe)
-
-	err = kubernetes.ProcessPodCreationResult(&s.podState, pod, kubernetes.UndefinedPodCreationErrorReason, err)
-
-	description = "Attempts to create a deployment without a security context. Retains the status of the deployment in scenario state for following steps. Passes if created, or if an expected error is encountered."
-	payload = kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
-	return err
-}
-
-func (s *scenarioState) theDeploymentIsRejected() error {
-	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
-	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
-	}()
-
-	//looking for a non-nil creation error
-	if s.podState.CreationError == nil {
-		err = utils.ReformatError("pod %v was created successfully. Test fail.", s.podState.PodName)
-	}
-
-	description = "Looks for a creation error on the current scenario state. Passes if error is found, because it should have been rejected."
-	payload = struct {
-		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
-
-	return err
-}
-
-//@CIS-6.10.1
-// PENDING IMPLEMENTATION
-func (s *scenarioState) iShouldNotBeAbleToAccessTheKubernetesWebUI() error {
-	//TODO: will be difficult to test this.  To access it, a proxy needs to be created:
-	//az aks browse --resource-group rg-probr-all-policies --name ProbrAllPolicies
-	//which will then open a browser at:
-	//http://127.0.0.1:8001/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/#/login
-	//I don't think this is going to be easy to do from here
-	//Is there another test?  Or is it sufficient to verify that no kube-dashboard is running?
-
-	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
-	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
-	}()
-
-	return godog.ErrPending
-}
-
 func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 	// Standard auditing logic to ensures panics are also audited
 	description, payload, err := utils.AuditPlaceholders()
@@ -170,7 +41,7 @@ func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 	} else {
 		//a "pass" is the absence of a "kubernetes-dashboard" pod
 		for _, v := range pl.Items {
-			if strings.HasPrefix(v.Name, "kubernetes-dashboard") {
+			if strings.HasPrefix(v.Name, "kubernetes-dashboard") { // TODO: k8s dashboard pod name should come from config file, in case it changes in k8s future release
 				err = utils.ReformatError("kubernetes-dashboard pod found (%v) - test fail", v.Name)
 				name = v.Name
 			}
@@ -218,20 +89,9 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	//general
 	ctx.Step(`^a Kubernetes cluster is deployed$`, ps.aKubernetesClusterIsDeployed)
-
-	//@CIS-5.1.3
-	ctx.Step(`^I inspect the "([^"]*)" that are configured$`, ps.iInspectTheThatAreConfigured)
-	ctx.Step(`^I should only find wildcards in known and authorised configurations$`, ps.iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations)
-
-	//@CIS-5.6.3
-	ctx.Step(`^I attempt to create a deployment which does not have a Security Context$`, ps.iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext)
-	ctx.Step(`^the deployment is rejected$`, ps.theDeploymentIsRejected)
-
-	ctx.Step(`^I should not be able to access the Kubernetes Web UI$`, ps.iShouldNotBeAbleToAccessTheKubernetesWebUI)
 	ctx.Step(`^the Kubernetes Web UI is disabled$`, ps.theKubernetesWebUIIsDisabled)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
-		kubernetes.GetKubeInstance().DeletePod(ps.podState.PodName, "probr-general-test-ns", p.Name())
 		coreengine.LogScenarioEnd(s)
 	})
 }
