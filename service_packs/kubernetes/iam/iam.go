@@ -462,7 +462,6 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	})
 
 	//general/all
-	//ctx.Step(`^a Kubernetes cluster exists which we can deploy into$`, ps.aKubernetesClusterIsDeployed)
 	ctx.Step(`^a Kubernetes cluster is deployed$`, ps.aKubernetesClusterIsDeployed)
 
 	//AZ-AAD-AI-1.0
