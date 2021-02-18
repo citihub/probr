@@ -39,22 +39,23 @@ func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 	return err //  ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
 }
 
-// CIS-6.1.3
-// Minimize cluster access to read-only
-func (s *scenarioState) iAmAuthorisedToPullFromAContainerRegistry() error {
-	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
-	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
-	}()
+// TODO: 265 Remove
+// // CIS-6.1.3
+// // Minimize cluster access to read-only
+// func (s *scenarioState) iAmAuthorisedToPullFromAContainerRegistry() error {
+// 	// Standard auditing logic to ensures panics are also audited
+// 	description, payload, err := utils.AuditPlaceholders()
+// 	defer func() {
+// 		s.audit.AuditScenarioStep(description, payload, err)
+// 	}()
 
-	pod, podAudit, err := cra.SetupContainerAccessProbePod(config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry, s.probe)
-	err = kubernetes.ProcessPodCreationResult(&s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
+// 	pod, podAudit, err := cra.SetupContainerAccessProbePod(config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry, s.probe)
+// 	err = kubernetes.ProcessPodCreationResult(&s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
 
-	description = fmt.Sprintf("Creates a new pod using an image from %s. Passes if image successfully pulls and pod is built.", config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry)
-	payload = kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
-	return err
-}
+// 	description = fmt.Sprintf("Creates a new pod using an image from %s. Passes if image successfully pulls and pod is built.", config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry)
+// 	payload = kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
+// 	return err
+// }
 
 // PENDING IMPLEMENTATION
 func (s *scenarioState) iAttemptToPushToTheContainerRegistryUsingTheClusterIdentity() error {
@@ -180,15 +181,13 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a Kubernetes cluster is deployed$`, ps.aKubernetesClusterIsDeployed)
 
 	//CIS-6.1.3
-	ctx.Step(`^I am authorised to pull from a container registry$`, ps.iAmAuthorisedToPullFromAContainerRegistry)
 	ctx.Step(`^I attempt to push to the container registry using the cluster identity$`, ps.iAttemptToPushToTheContainerRegistryUsingTheClusterIdentity)
 	ctx.Step(`^the push request is rejected due to authorization$`, ps.thePushRequestIsRejectedDueToAuthorization)
 
 	//CIS-6.1.4
+	//CIS-6.1.5
 	ctx.Step(`^a user attempts to deploy a container from an authorised registry$`, ps.aUserAttemptsToDeployAuthorisedContainer)
 	ctx.Step(`^the deployment attempt is allowed$`, ps.theDeploymentAttemptIsAllowed)
-
-	//CIS-6.1.5
 	ctx.Step(`^a user attempts to deploy a container from an unauthorised registry$`, ps.aUserAttemptsToDeployUnauthorisedContainer)
 	ctx.Step(`^the deployment attempt is denied$`, ps.theDeploymentAttemptIsDenied)
 
