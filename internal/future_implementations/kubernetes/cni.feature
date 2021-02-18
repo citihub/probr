@@ -2,11 +2,11 @@
 
 Feature: Ensure that the CNI supports Network Policies
 
- As a Cloud Security Admin
- I want to ensure that kubernetes deployments do not run without Network policies enabled
- So that my organization can ensure that the CNI is secure
+  As a Cloud Security Admin
+  I want to ensure that kubernetes deployments do not run without Network policies enabled
+  So that my organization can ensure that the CNI is secure
 
- Rule: ...
+  Rule: ...
 
     @preventative
     Scenario Outline: Ensure that the CNI supports Network Policies
