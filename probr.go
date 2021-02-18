@@ -49,7 +49,7 @@ func readProbeResults(ps *coreengine.ProbeStore, name string) (probeResults, pro
 	return
 }
 
-// Cleanup is used to dispose of any temp resources used during execution
+// CleanupTmp is used to dispose of any temp resources used during execution
 func CleanupTmp() {
 	// Remove tmp folder and its content
 	err := os.RemoveAll(tmpDirFunc())
