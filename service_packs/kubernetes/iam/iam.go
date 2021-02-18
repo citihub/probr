@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/cucumber/godog"
+	rbacv1 "k8s.io/api/rbac/v1"
+	v1 "k8s.io/api/rbac/v1"
 
 	"github.com/citihub/probr/service_packs/coreengine"
 	"github.com/citihub/probr/service_packs/kubernetes"
@@ -359,6 +361,67 @@ func (s *scenarioState) kubernetesShouldPreventMeFromRunningTheCommand() error {
 	return err
 }
 
+func (s *scenarioState) iInspectTheThatAreConfigured(roleLevel string) error {
+	// Standard auditing logic to ensures panics are also audited
+	description, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		s.audit.AuditScenarioStep(description, payload, err)
+	}()
+
+	if roleLevel == "Cluster Roles" {
+		l, e := kubernetes.GetKubeInstance().GetClusterRolesByResource("*")
+		err = e
+		s.wildcardRoles = l
+	} else if roleLevel == "Roles" {
+		l, e := kubernetes.GetKubeInstance().GetRolesByResource("*")
+		err = e
+		s.wildcardRoles = l
+	}
+	if err != nil {
+		err = utils.ReformatError("error raised when retrieving '%v': %v", roleLevel, err)
+	}
+
+	description = fmt.Sprintf("Ensures that %s are configured. Retains wildcard roles in state for following steps. Passes if retrieval command does not have error.", roleLevel)
+	payload = struct {
+		PodState kubernetes.PodState
+		PodName  string
+	}{s.podState, s.podState.PodName}
+	return err
+}
+
+func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations() error {
+	// Standard auditing logic to ensures panics are also audited
+	description, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		s.audit.AuditScenarioStep(description, payload, err)
+	}()
+
+	//we strip out system/known entries in the cluster roles & roles call
+	var wildcardCount int
+	//	wildcardCount := len(s.wildcardRoles.([]interface{}))
+	switch s.wildcardRoles.(type) {
+	case *[]v1.Role:
+		wildCardRoles := s.wildcardRoles.(*[]rbacv1.Role)
+		wildcardCount = len(*wildCardRoles)
+	case *[]v1.ClusterRole:
+		wildCardRoles := s.wildcardRoles.(*[]rbacv1.ClusterRole)
+		wildcardCount = len(*wildCardRoles)
+	default:
+	}
+
+	if wildcardCount > 0 {
+		err = utils.ReformatError("roles exist with wildcarded resources")
+	}
+
+	description = "Examines scenario state's wildcard roles. Passes if no wildcard roles are found."
+	payload = struct {
+		PodState kubernetes.PodState
+		PodName  string
+	}{s.podState, s.podState.PodName}
+
+	return err
+}
+
 func (p ProbeStruct) Name() string {
 	return "iam"
 }
@@ -399,7 +462,8 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	})
 
 	//general/all
-	ctx.Step(`^a Kubernetes cluster exists which we can deploy into$`, ps.aKubernetesClusterIsDeployed)
+	//ctx.Step(`^a Kubernetes cluster exists which we can deploy into$`, ps.aKubernetesClusterIsDeployed)
+	ctx.Step(`^a Kubernetes cluster is deployed$`, ps.aKubernetesClusterIsDeployed)
 
 	//AZ-AAD-AI-1.0
 	ctx.Step(`^an AzureIdentityBinding called "([^"]*)" exists in the namespace called "([^"]*)"$`, ps.aNamedAzureIdentityBindingExistsInNamedNS)
@@ -423,6 +487,9 @@ func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^I execute the command "([^"]*)" against the MIC pod$`, ps.iExecuteTheCommandAgainstTheMICPod)
 	ctx.Step(`^Kubernetes should prevent me from running the command$`, ps.kubernetesShouldPreventMeFromRunningTheCommand)
 	ctx.Step(`^the cluster has managed identity components deployed$`, ps.theClusterHasManagedIdentityComponentsDeployed)
+
+	ctx.Step(`^I inspect the "([^"]*)" that are configured$`, ps.iInspectTheThatAreConfigured)
+	ctx.Step(`^I should only find wildcards in known and authorised configurations$`, ps.iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		iam.DeleteIAMProbePod(ps.podState.PodName, ps.useDefaultNS, p.Name())

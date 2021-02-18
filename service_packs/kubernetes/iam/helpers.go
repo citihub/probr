@@ -20,11 +20,12 @@ import (
 )
 
 type scenarioState struct {
-	name         string
-	audit        *audit.ScenarioAudit
-	probe        *audit.Probe
-	podState     kubernetes.PodState
-	useDefaultNS bool
+	name          string
+	audit         *audit.ScenarioAudit
+	probe         *audit.Probe
+	podState      kubernetes.PodState
+	useDefaultNS  bool
+	wildcardRoles interface{}
 }
 
 const (
