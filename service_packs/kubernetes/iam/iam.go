@@ -12,9 +12,10 @@ import (
 	"github.com/citihub/probr/utils"
 )
 
-type ProbeStruct struct{}
+type probeStruct struct{}
 
-var Probe ProbeStruct
+// Probe meets the service pack interface for adding the logic from this file
+var Probe probeStruct
 
 const (
 	identityPodsNamespace = "kube-system" //value needs replacing with configuration
@@ -51,9 +52,11 @@ func (s *scenarioState) azureIdentitySetupCheck(f func(arg1 string, arg2 string)
 
 // General
 func (s *scenarioState) aKubernetesClusterIsDeployed() error {
+	var stepTrace strings.Builder
 	description, payload, err := kubernetes.ClusterIsDeployed()
+	stepTrace.WriteString(description)
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 	return err //  ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
 }
@@ -61,14 +64,14 @@ func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 //AZ-AAD-AI-1.0
 func (s *scenarioState) aNamedAzureIdentityBindingExistsInNamedNS(aibName string, namespace string) error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	err = s.azureIdentitySetupCheck(iam.AzureIdentityBindingExists, namespace, "AzureIdentityBinding", aibName)
 
-	description = "Gets the AzureIdentityBindings, then filters according to namespace. Passes if binding is retrieved for namespace."
+	stepTrace.WriteString(fmt.Sprintf("Retrieves Azure Identity Binding in namespace '%s'; ", namespace))
 	payload = struct {
 		AzIdentbindName string
 		AzNameSpace     string
@@ -79,9 +82,9 @@ func (s *scenarioState) aNamedAzureIdentityBindingExistsInNamedNS(aibName string
 
 func (s *scenarioState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentityBinding(namespace, aibName string) error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	y, err := utils.ReadStaticFile(kubernetes.AssetsDir, "iam-azi-test-aib-curl.yaml")
@@ -96,7 +99,7 @@ func (s *scenarioState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentit
 		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
 	}
 
-	description = fmt.Sprintf("Creating simple pod in %s namespace assigned with the azure identity binding %s", namespace, aibName)
+	stepTrace.WriteString(fmt.Sprintf("Creating simple pod in %s namespace assigned with the azure identity binding %s", namespace, aibName))
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -108,9 +111,9 @@ func (s *scenarioState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentit
 //AZ-AAD-AI-1.0, AZ-AAD-AI-1.1
 func (s *scenarioState) thePodIsDeployedSuccessfully() error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	//check for pod name
@@ -122,7 +125,7 @@ func (s *scenarioState) thePodIsDeployedSuccessfully() error {
 		err = utils.ReformatError("pod was not deployed successfully - creation error: %v", s.podState.CreationError)
 	}
 
-	description = "The Pod Deploying successfully"
+	stepTrace.WriteString("Validates that the pod was deployed successfully; ")
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -133,15 +136,15 @@ func (s *scenarioState) thePodIsDeployedSuccessfully() error {
 
 func (s *scenarioState) anAttemptToObtainAnAccessTokenFromThatPodShouldFail() error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	//reuse the parameterised / scenario outline func
 	err = s.anAttemptToObtainAnAccessTokenFromThatPodShould("Fail")
 
-	description = "Attempting to get access token from Pod"
+	stepTrace.WriteString("Attempts to get access token from Pod; ")
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -152,9 +155,9 @@ func (s *scenarioState) anAttemptToObtainAnAccessTokenFromThatPodShouldFail() er
 
 func (s *scenarioState) anAttemptToObtainAnAccessTokenFromThatPodShould(expectedresult string) error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	if s.podState.CreationError != nil {
@@ -187,7 +190,7 @@ func (s *scenarioState) anAttemptToObtainAnAccessTokenFromThatPodShould(expected
 		}
 	}
 
-	description = "Attempting to get access toekn from Pod"
+	stepTrace.WriteString("Attempts to get access toekn from Pod")
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -199,14 +202,17 @@ func (s *scenarioState) anAttemptToObtainAnAccessTokenFromThatPodShould(expected
 //AZ-AAD-AI-1.1
 func (s *scenarioState) aNamedAzureIdentityExistsInNamedNS(namespace string, aiName string) error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	err = s.azureIdentitySetupCheck(iam.AzureIdentityExists, namespace, "AzureIdentity", aiName)
 
-	description = fmt.Sprintf("Gets the AzureIdentityBindings from binding %s, then filters according to namespace %s. Passes if binding is retrieved for namespace.", aiName, namespace)
+	stepTrace.WriteString(fmt.Sprintf(
+		"Gets the AzureIdentityBindings from binding %s, then filters according to namespace %s. Passes if binding is retrieved for namespace.",
+		aiName,
+		namespace))
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -217,9 +223,9 @@ func (s *scenarioState) aNamedAzureIdentityExistsInNamedNS(namespace string, aiN
 
 func (s *scenarioState) iCreateAnAzureIdentityBindingCalledInANondefaultNamespace(aibName, aiName string) error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	err = iam.CreateAIB(false, aibName, aiName) // create an AIB in a non-default NS if it deosn't already exist
@@ -227,7 +233,10 @@ func (s *scenarioState) iCreateAnAzureIdentityBindingCalledInANondefaultNamespac
 		err = utils.ReformatError("error returned from CreateAIB: %v", err)
 		log.Print(err)
 	}
-	description = fmt.Sprintf("Gets the AzureIdentityBindings from binding %s, then filters according to namespace %s. Passes if binding is retrieved for namespace.", aiName, aiName)
+	stepTrace.WriteString(fmt.Sprintf(
+		"Gets the AzureIdentityBindings from binding %s, then filters according to namespace %s. Passes if binding is retrieved for namespace.",
+		aiName,
+		aiName))
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -237,9 +246,9 @@ func (s *scenarioState) iCreateAnAzureIdentityBindingCalledInANondefaultNamespac
 
 func (s *scenarioState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoTheSameNamespaceAsTheAzureIdentityBinding(aibName string) error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	y, err := utils.ReadStaticFile(kubernetes.AssetsDir, "iam-azi-test-aib-curl.yaml")
@@ -250,7 +259,7 @@ func (s *scenarioState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoTheSam
 		pd, err := iam.CreateIAMProbePod(y, false, aibName, s.probe)
 		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
 	}
-	description = fmt.Sprintf("Deploy Pod assigned with the AzureIdentityBindings from binding %s,", aibName)
+	stepTrace.WriteString(fmt.Sprintf("Deploy Pod assigned with the AzureIdentityBindings from binding %s,", aibName))
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -263,9 +272,9 @@ func (s *scenarioState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoTheSam
 func (s *scenarioState) theClusterHasManagedIdentityComponentsDeployed() error {
 
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	//look for the mic pods in the default ns
@@ -291,7 +300,7 @@ func (s *scenarioState) theClusterHasManagedIdentityComponentsDeployed() error {
 		}
 	}
 
-	description = "Cluster has managed identity componenet deployed"
+	stepTrace.WriteString("Cluster has managed identity component deployed")
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -302,9 +311,9 @@ func (s *scenarioState) theClusterHasManagedIdentityComponentsDeployed() error {
 
 func (s *scenarioState) iExecuteTheCommandAgainstTheMICPod(arg1 string) error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	c := CatAzJSON
@@ -329,7 +338,7 @@ func (s *scenarioState) iExecuteTheCommandAgainstTheMICPod(arg1 string) error {
 		s.podState.CommandExitCode = res.Code
 	}
 
-	description = fmt.Sprintf("Executing command %s,", arg1)
+	stepTrace.WriteString(fmt.Sprintf("Executing command %s,", arg1))
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -340,9 +349,9 @@ func (s *scenarioState) iExecuteTheCommandAgainstTheMICPod(arg1 string) error {
 
 func (s *scenarioState) kubernetesShouldPreventMeFromRunningTheCommand() error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	if s.podState.CommandExitCode == 0 {
@@ -350,7 +359,7 @@ func (s *scenarioState) kubernetesShouldPreventMeFromRunningTheCommand() error {
 		err = utils.ReformatError("verification command was not blocked")
 	}
 
-	description = "Examines scenario state to ensure that verification command was blocked."
+	stepTrace.WriteString("Examines scenario state to ensure that verification command was blocked.")
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -359,17 +368,19 @@ func (s *scenarioState) kubernetesShouldPreventMeFromRunningTheCommand() error {
 	return err
 }
 
-func (p ProbeStruct) Name() string {
+// Name presents the name of this probe for external reference
+func (p probeStruct) Name() string {
 	return "iam"
 }
 
-func (p ProbeStruct) Path() string {
+// Path presents the path of these feature files for external reference
+func (p probeStruct) Path() string {
 	return coreengine.GetFeaturePath("service_packs", "kubernetes", p.Name())
 }
 
 // ProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
 // test handler as part of the init() function.
-func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
+func (p probeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	ctx.BeforeSuite(func() {
 		//check dependancies ...
 		if iam == nil {
@@ -390,7 +401,7 @@ func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 // which reflects the tests described in the events directory.  There must be a test step registered for
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
 // a step / function defined.  See: https://github.com/cucumber/godog#example.
-func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
+func (p probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ps := scenarioState{}
 
