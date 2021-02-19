@@ -17,9 +17,10 @@ import (
 	"github.com/citihub/probr/utils"
 )
 
-type ProbeStruct struct{}
+type probeStruct struct{}
 
-var Probe ProbeStruct
+// Probe meets the service pack interface for adding the logic from this file
+var Probe probeStruct
 
 // General
 func (s *scenarioState) aKubernetesClusterIsDeployed() error {
@@ -33,9 +34,9 @@ func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 //@CIS-5.1.3
 func (s *scenarioState) iInspectTheThatAreConfigured(roleLevel string) error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	if roleLevel == "Cluster Roles" {
@@ -51,7 +52,7 @@ func (s *scenarioState) iInspectTheThatAreConfigured(roleLevel string) error {
 		err = utils.ReformatError("error raised when retrieving '%v': %v", roleLevel, err)
 	}
 
-	description = fmt.Sprintf("Ensures that %s are configured. Retains wildcard roles in state for following steps. Passes if retrieval command does not have error.", roleLevel)
+	stepTrace.WriteString(fmt.Sprintf("Ensures that %s are configured. Retains wildcard roles in state for following steps; ", roleLevel))
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -61,9 +62,9 @@ func (s *scenarioState) iInspectTheThatAreConfigured(roleLevel string) error {
 
 func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfigurations() error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	//we strip out system/known entries in the cluster roles & roles call
@@ -83,7 +84,7 @@ func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfiguratio
 		err = utils.ReformatError("roles exist with wildcarded resources")
 	}
 
-	description = "Examines scenario state's wildcard roles. Passes if no wildcard roles are found."
+	stepTrace.WriteString("Examines scenario state's wildcard roles; ")
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -95,9 +96,9 @@ func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfiguratio
 //@CIS-5.6.3
 func (s *scenarioState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityContext() error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	cname := "probr-general"
@@ -109,16 +110,16 @@ func (s *scenarioState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityCont
 
 	err = kubernetes.ProcessPodCreationResult(&s.podState, pod, kubernetes.UndefinedPodCreationErrorReason, err)
 
-	description = "Attempts to create a deployment without a security context. Retains the status of the deployment in scenario state for following steps. Passes if created, or if an expected error is encountered."
+	stepTrace.WriteString("Attempts to create a deployment without a security context. Retains the status of the deployment in scenario state for following steps; ")
 	payload = kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
 	return err
 }
 
 func (s *scenarioState) theDeploymentIsRejected() error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	//looking for a non-nil creation error
@@ -126,7 +127,7 @@ func (s *scenarioState) theDeploymentIsRejected() error {
 		err = utils.ReformatError("pod %v was created successfully. Test fail.", s.podState.PodName)
 	}
 
-	description = "Looks for a creation error on the current scenario state. Passes if error is found, because it should have been rejected."
+	stepTrace.WriteString("Validates that a creation error occurred in the previous step; ")
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -146,19 +147,19 @@ func (s *scenarioState) iShouldNotBeAbleToAccessTheKubernetesWebUI() error {
 	//Is there another test?  Or is it sufficient to verify that no kube-dashboard is running?
 
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
-
+	stepTrace.WriteString("PENDING IMPLEMENTATION")
 	return godog.ErrPending
 }
 
 func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	//look for the dashboard pod in the kube-system ns
@@ -177,7 +178,7 @@ func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 		}
 	}
 
-	description = "Attempts to find a pod in the 'kube-system' namespace with the prefix 'kubernetes-dashboard'. Passes if no pod is returned."
+	stepTrace.WriteString("Attempts to find a pod in the 'kube-system' namespace with the prefix 'kubernetes-dashboard'; ")
 	payload = struct {
 		PodState         kubernetes.PodState
 		PodName          string
@@ -187,17 +188,19 @@ func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 	return err
 }
 
-func (p ProbeStruct) Name() string {
+// Name presents the name of this probe for external reference
+func (p probeStruct) Name() string {
 	return "general"
 }
 
-func (p ProbeStruct) Path() string {
+// Path presents the path of these feature files for external reference
+func (p probeStruct) Path() string {
 	return coreengine.GetFeaturePath("service_packs", "kubernetes", p.Name())
 }
 
-// genProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
+// ProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
 // test handler as part of the init() function.
-func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
+func (p probeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 
 	ctx.BeforeSuite(func() {}) //nothing for now
 
@@ -205,11 +208,11 @@ func (p ProbeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 
 }
 
-// genScenarioInitialize initialises the specific test steps.  This is essentially the creation of the test
+// ScenarioInitialize initialises the specific test steps.  This is essentially the creation of the test
 // which reflects the tests described in the events directory.  There must be a test step registered for
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
 // a step / function defined.  See: https://github.com/cucumber/godog#example.
-func (p ProbeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
+func (p probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ps := scenarioState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
