@@ -84,9 +84,9 @@ func (s *scenarioState) theOperationWillWithAnError(res, msg string) error {
 
 func (s *scenarioState) allOperationsWillWithAnError(res, msg string) error {
 	// Standard auditing logic to ensures panics are also audited
-	description, payload, err := utils.AuditPlaceholders()
+	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		s.audit.AuditScenarioStep(description, payload, err)
+		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
 	var kubeErrors []error
