@@ -100,7 +100,7 @@ func (s *scenarioState) allOperationsWillWithAnError(res, msg string) error {
 		}
 	}
 
-	description = fmt.Sprintf("The operation with result %s and message %s", res, msg)
+	stepTrace.WriteString(fmt.Sprintf("The operation with result %s and message %s", res, msg))
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -782,7 +782,7 @@ func (s *scenarioState) additionalCapabilitiesForTheKubernetesDeployment(capabil
 		s.info = append(s.info, capability)
 	}
 
-	description = fmt.Sprintf("Add Capabilities For The Kubernetes Deployment %s Allowed", capabilitiesAllowed)
+	stepTrace.WriteString(fmt.Sprintf("Add Capabilities For The Kubernetes Deployment %s Allowed", capabilitiesAllowed))
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -911,10 +911,10 @@ func (s *scenarioState) anPortRangeIsRequestedForTheKubernetesDeployment(portRan
 		unapprovedHostPort := kubernetes.GetUnapprovedHostPortFromConfig()
 		y, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-hostport-unapproved.yaml")
 		yaml = utils.ReplaceBytesValue(y, "{{ unapproved-port }}", unapprovedHostPort)
-		description = fmt.Sprintf("%s port range is requested for kubernetes deployment. Port was %v.", portRange, unapprovedHostPort)
+		stepTrace.WriteString(fmt.Sprintf("%s port range is requested for kubernetes deployment. Port was %v.", portRange, unapprovedHostPort))
 	case "not defined":
 		yaml, err = utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-hostport-notdefined.yaml")
-		description = fmt.Sprintf("%s port range is requested for kubernetes deployment.", portRange)
+		stepTrace.WriteString(fmt.Sprintf("%s port range is requested for kubernetes deployment.", portRange))
 	default:
 		err = fmt.Errorf("Unrecognised port range option")
 	}
@@ -925,7 +925,6 @@ func (s *scenarioState) anPortRangeIsRequestedForTheKubernetesDeployment(portRan
 	}
 
 	//audit log description defined in case statement above
-	stepTrace.WriteString(fmt.Sprintf("Port range is requested for kubernetes deployment %s", portRange))
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -1020,7 +1019,7 @@ func (s *scenarioState) volumeTypesAreRequestedForTheKubernetesDeployment(volume
 		}
 	}
 
-	description = fmt.Sprintf("%s volume types are requested for kubernetes deployment", volumeType)
+	stepTrace.WriteString(fmt.Sprintf("%s volume types are requested for kubernetes deployment", volumeType))
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
