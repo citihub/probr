@@ -36,7 +36,7 @@ func (s *scenarioState) creationWillWithAMessage(arg1, arg2 string) error {
 	defer func() {
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
-
+	stepTrace.WriteString("PENDING IMPLEMENTATION")
 	return godog.ErrPending
 }
 
@@ -59,30 +59,30 @@ func (s *scenarioState) aKubernetesDeploymentIsAppliedToAnExistingKubernetesClus
 	}()
 
 	//TODO: not sure this step is adding value ... return "pass" for now ...
-	stepTrace.WriteString("Pending Implementation")
+	stepTrace.WriteString("PENDING IMPLEMENTATION")
 
 	return nil
 }
 
-func (s *scenarioState) theOperationWillWithAnError(res, msg string) error {
+func (s *scenarioState) theOperationWillWithAnError(result, message string) error {
 	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	err = kubernetes.AssertResult(&s.podState, res, msg)
-	stepTrace.WriteString(fmt.Sprintf("The operation with result %s and message %s", res, msg))
+	stepTrace.WriteString("Validate that the scenario state was updated in the previous step with a particular result and message; ")
+	err = kubernetes.AssertResult(&s.podState, result, message)
 	payload = struct {
-		PodState kubernetes.PodState
-		PodName  string
-		Expected string
-	}{s.podState, s.podState.PodName, res}
+		ExpectedResult  string
+		ExpectedMessage string
+		PodState        kubernetes.PodState
+	}{result, message, s.podState}
 
 	return err
 }
 
-func (s *scenarioState) allOperationsWillWithAnError(res, msg string) error {
+func (s *scenarioState) allOperationsWillWithAnError(result, message string) error {
 	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
@@ -91,7 +91,7 @@ func (s *scenarioState) allOperationsWillWithAnError(res, msg string) error {
 
 	var kubeErrors []error
 	for _, ps := range s.podStates {
-		kubeErrors = append(kubeErrors, kubernetes.AssertResult(&ps, res, msg))
+		kubeErrors = append(kubeErrors, kubernetes.AssertResult(&ps, result, message))
 	}
 
 	for _, ke := range kubeErrors {
@@ -100,17 +100,17 @@ func (s *scenarioState) allOperationsWillWithAnError(res, msg string) error {
 		}
 	}
 
-	stepTrace.WriteString(fmt.Sprintf("The operation with result %s and message %s", res, msg))
+	stepTrace.WriteString("Validate that the scenario state was updated in the previous step with a list of pods with a particular result and message; ")
 	payload = struct {
-		PodState kubernetes.PodState
-		PodName  string
-		Expected string
-	}{s.podState, s.podState.PodName, res}
+		ExpectedResult  string
+		ExpectedMessage string
+		PodState        []kubernetes.PodState
+	}{result, message, s.podStates}
 
 	return err
 }
 
-func (s *scenarioState) performAllowedCommand() error {
+func (s *scenarioState) iShouldBeAbleToPerformAnAllowedCommand() error {
 	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
@@ -118,29 +118,32 @@ func (s *scenarioState) performAllowedCommand() error {
 	}()
 
 	if len(s.podStates) == 0 {
+		stepTrace.WriteString("Validating that 'ls' is executed successfully")
+		payload = struct {
+			PodState         kubernetes.PodState
+			Command          string
+			ExpectedExitCode int
+		}{s.podState, Ls.String(), 0}
 		err = s.runVerificationProbe(VerificationProbe{Cmd: Ls, ExpectedExitCode: 0}) //'0' exit code as we expect this to succeed
 	} else {
-		var errorMessage string = ""
+		stepTrace.WriteString("Validating that 'ls' is executed successfully for all pods specified in the scenario state")
+		payload = struct {
+			PodStates        []kubernetes.PodState
+			Command          string
+			ExpectedExitCode int
+		}{s.podStates, Ls.String(), 0}
+
+		var errorMessage strings.Builder
 		for _, podState := range s.podStates {
-			//fmt.Printf("Run allowed command against %v goes here", podState.PodName)
 			err = s.runVerificationProbeWithCommand(podState, "ls", 0)
 			if err != nil {
-				errorMessage = fmt.Sprintf("%v%v. ", errorMessage, podState.PodName)
+				errorMessage.WriteString(fmt.Sprintf("%v: %v; ", podState.PodName, errorMessage))
 			}
 		}
-		if errorMessage == "" {
-			return nil
-		} else {
-			return fmt.Errorf("[ERROR] Unable to run expected command against pods %s", errorMessage)
+		if errorMessage.String() != "" {
+			err = utils.ReformatError("Unable to run expected command against pods: %s", errorMessage.String())
 		}
 	}
-
-	stepTrace.WriteString("Perform Allowed commands")
-	payload = struct {
-		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
-
 	return err
 }
 
@@ -300,15 +303,13 @@ func (s *scenarioState) privilegedAccessRequestIsMarkedForTheKubernetesDeploymen
 		pa = false
 	}
 
+	stepTrace.WriteString(fmt.Sprintf("Attempt to deploy a pod with priviledged access '%s'; ", privilegedAccessRequested))
 	pd, err := psp.CreatePODSettingSecurityContext(&pa, nil, nil, s.probe)
-
 	err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPNoPrivilege, err)
 
-	stepTrace.WriteString(fmt.Sprintf("Privileged access request %s is marked for the kubernetes deployment ", privilegedAccessRequested))
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -320,13 +321,13 @@ func (s *scenarioState) someControlExistsToPreventPrivilegedAccessForKubernetesD
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
+	// TODO: This entire process needs refactored for readability, and to remove holistic dependency on azure security context
+	stepTrace.WriteString("Validate that the kube instance security context contains 'k8sazurecontainernoprivilege'")
 	err = s.runControlProbe(psp.PrivilegedAccessIsRestricted, "PrivilegedAccessIsRestricted")
 
-	stepTrace.WriteString("Some controls exists to prevent privileged access for kiubernetes deployment an active kubernetes")
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -338,9 +339,9 @@ func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatRequiresPrivilegedA
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
+	stepTrace.WriteString(fmt.Sprintf("Validate that the command '%s' fails to execute", Chroot.String()))
 	err = s.runVerificationProbe(VerificationProbe{Cmd: Chroot, ExpectedExitCode: 1})
 
-	stepTrace.WriteString("Should not able to perform command that requires privileged")
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -1234,7 +1235,7 @@ func (p probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	//general - outcome
 	ctx.Step(`^the operation will "([^"]*)" with an error "([^"]*)"$`, ps.theOperationWillWithAnError)
 	ctx.Step(`^all operations will "([^"]*)" with an error "([^"]*)"$`, ps.allOperationsWillWithAnError)
-	ctx.Step(`^I should be able to perform an allowed command$`, ps.performAllowedCommand)
+	ctx.Step(`^I should be able to perform an allowed command$`, ps.iShouldBeAbleToPerformAnAllowedCommand)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		if kubernetes.GetKeepPodsFromConfig() == false {
