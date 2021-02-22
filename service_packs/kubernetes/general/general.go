@@ -58,8 +58,7 @@ func (s *scenarioState) iInspectTheThatAreConfigured(roleLevel string) error {
 	stepTrace.WriteString("Stored any retrieved wildcard roles in state for following steps; ")
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 	return err
 }
 
@@ -91,8 +90,7 @@ func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfiguratio
 
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -113,7 +111,8 @@ func (s *scenarioState) iAttemptToCreateADeploymentWhichDoesNotHaveASecurityCont
 	image := config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry + "/" + config.Vars.ServicePacks.Kubernetes.ProbeImage
 	pod, podAudit, err := kubernetes.GetKubeInstance().CreatePod(podName, "probr-general-test-ns", cname, image, true, nil, s.probe)
 
-	stepTrace.WriteString(fmt.Sprintf("Ensure failure to deploy returns '%s'; ", kubernetes.UndefinedPodCreationErrorReason))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Ensure failure to deploy returns '%s'; ", kubernetes.UndefinedPodCreationErrorReason))
 	err = kubernetes.ProcessPodCreationResult(&s.podState, pod, kubernetes.UndefinedPodCreationErrorReason, err)
 
 	payload = kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
@@ -135,8 +134,7 @@ func (s *scenarioState) theDeploymentIsRejected() error {
 	stepTrace.WriteString("Validates that an expected creation error occurred in the previous step; ")
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }

@@ -69,7 +69,8 @@ func (s *scenarioState) aNamedAzureIdentityBindingExistsInNamedNS(aibName string
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	stepTrace.WriteString(fmt.Sprintf("Check whether '%s' Azure Identity Binding exists in namespace '%s'; ", aibName, namespace))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Check whether '%s' Azure Identity Binding exists in namespace '%s'; ", aibName, namespace))
 	err = s.azureIdentitySetupCheck(iam.AzureIdentityBindingExists, namespace, "AzureIdentityBinding", aibName)
 
 	return err
@@ -83,7 +84,8 @@ func (s *scenarioState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentit
 	}()
 
 	specPath := "iam-azi-test-aib-curl.yaml"
-	stepTrace.WriteString(fmt.Sprintf("Load pod spec from '%s'; ", specPath))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Load pod spec from '%s'; ", specPath))
 	y, err := utils.ReadStaticFile(kubernetes.AssetsDir, specPath)
 	if err != nil {
 		err = utils.ReformatError("error reading yaml for test: %v", err)
@@ -92,15 +94,15 @@ func (s *scenarioState) iCreateASimplePodInNamespaceAssignedWithThatAzureIdentit
 		if namespace == "the default" {
 			s.useDefaultNS = true
 		}
-		stepTrace.WriteString(fmt.Sprintf("Create simple pod in %s namespace assigned with the azure identity binding %s", namespace, aibName))
+		stepTrace.WriteString(fmt.Sprintf(
+			"Create simple pod in %s namespace assigned with the azure identity binding %s", namespace, aibName))
 		pd, err := iam.CreateIAMProbePod(y, s.useDefaultNS, aibName, s.probe)
 		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
 	}
 
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -126,8 +128,7 @@ func (s *scenarioState) thePodIsDeployedSuccessfully() error {
 
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -152,7 +153,8 @@ func (s *scenarioState) anAttemptToObtainAnAccessTokenFromThatPodShould(expected
 		err = utils.ReformatError("failed to create pod", s.podState.CreationError)
 		log.Print(err)
 	} else {
-		stepTrace.WriteString(fmt.Sprintf("Get access token for '%s' pod, expected result is '%s'; ", s.podState.PodName, expectedresult))
+		stepTrace.WriteString(fmt.Sprintf(
+			"Get access token for '%s' pod, expected result is '%s'; ", s.podState.PodName, expectedresult))
 		//curl for the auth token ... need to supply appropriate ns
 		res, err := iam.GetAccessToken(s.podState.PodName, s.useDefaultNS)
 
@@ -183,8 +185,7 @@ func (s *scenarioState) anAttemptToObtainAnAccessTokenFromThatPodShould(expected
 
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -205,8 +206,7 @@ func (s *scenarioState) aNamedAzureIdentityExistsInNamedNS(namespace string, aiN
 
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -218,7 +218,8 @@ func (s *scenarioState) iCreateAnAzureIdentityBindingCalledInANondefaultNamespac
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	stepTrace.WriteString(fmt.Sprintf("Attempt to create '%s' binding in the Probr namespace bound to '%s' identity; ", aibName, aiName))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Attempt to create '%s' binding in the Probr namespace bound to '%s' identity; ", aibName, aiName))
 	err = iam.CreateAIB(false, aibName, aiName) // create an AIB in a non-default NS if it deosn't already exist
 	if err != nil {
 		err = utils.ReformatError("error returned from CreateAIB: %v", err)
@@ -227,8 +228,7 @@ func (s *scenarioState) iCreateAnAzureIdentityBindingCalledInANondefaultNamespac
 
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 	return err
 }
 
@@ -240,13 +240,15 @@ func (s *scenarioState) iDeployAPodAssignedWithTheAzureIdentityBindingIntoThePro
 	}()
 
 	specPath := "iam-azi-test-aib-curl.yaml"
-	stepTrace.WriteString(fmt.Sprintf("Get pod spec from '%s'; ", specPath))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Get pod spec from '%s'; ", specPath))
 	y, err := utils.ReadStaticFile(kubernetes.AssetsDir, specPath)
 	if err != nil {
 		err = utils.ReformatError("error reading yaml for test: %v", err)
 		log.Print(err)
 	} else {
-		stepTrace.WriteString(fmt.Sprintf("Attempt to deploy pod with '%s' binding to the Probr namespace; ", aibName))
+		stepTrace.WriteString(fmt.Sprintf(
+			"Attempt to deploy pod with '%s' binding to the Probr namespace; ", aibName))
 		pd, err := iam.CreateIAMProbePod(y, false, aibName, s.probe)
 		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.UndefinedPodCreationErrorReason, err)
 	}
@@ -269,7 +271,8 @@ func (s *scenarioState) theClusterHasManagedIdentityComponentsDeployed() error {
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	stepTrace.WriteString(fmt.Sprintf("Get pods from '%s' namespace; ", identityPodsNamespace))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Get pods from '%s' namespace; ", identityPodsNamespace))
 	//look for the mic pods in the default ns
 	pl, err := kubernetes.GetKubeInstance().GetPods(identityPodsNamespace)
 
@@ -296,8 +299,7 @@ func (s *scenarioState) theClusterHasManagedIdentityComponentsDeployed() error {
 
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -309,7 +311,8 @@ func (s *scenarioState) iExecuteTheCommandAgainstTheMICPod(arg1 string) error {
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	stepTrace.WriteString(fmt.Sprintf("Attempt to execute command '%s'; ", CatAzJSON.String()))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Attempt to execute command '%s'; ", CatAzJSON.String()))
 	res, err := iam.ExecuteVerificationCmd(s.podState.PodName, CatAzJSON, identityPodsNamespace)
 
 	if err != nil {
@@ -326,13 +329,13 @@ func (s *scenarioState) iExecuteTheCommandAgainstTheMICPod(arg1 string) error {
 		err = utils.ReformatError("%s: %v - (%v)", utils.CallerName(0), CatAzJSON, res.Err)
 		log.Print(err)
 	}
-	stepTrace.WriteString(fmt.Sprintf("Store '%v' exit code in scenario state; ", res.Code))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Store '%v' exit code in scenario state; ", res.Code))
 	s.podState.CommandExitCode = res.Code
 
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -351,8 +354,7 @@ func (s *scenarioState) kubernetesShouldPreventMeFromRunningTheCommand() error {
 
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }

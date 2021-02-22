@@ -70,7 +70,8 @@ func (s *scenarioState) aPodIsDeployedInTheCluster() error {
 		}
 	}
 
-	stepTrace.WriteString(fmt.Sprintf("Verifying the Pod %s deployed in the cluster", s.podState.PodName))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Verifying the Pod %s deployed in the cluster", s.podState.PodName))
 	payload = kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
 
 	return err
@@ -93,11 +94,11 @@ func (s *scenarioState) aProcessInsideThePodEstablishesADirectHTTPSConnectionTo(
 	//hold on to the code
 	s.httpStatusCode = code
 
-	stepTrace.WriteString(fmt.Sprintf("Proces inside the pod established http connection with url '%s',", url))
+	stepTrace.WriteString(fmt.Sprintf(
+		"Proces inside the pod established http connection with url '%s',", url))
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -117,11 +118,11 @@ func (s *scenarioState) accessIs(accessResult string) error {
 		}
 	}
 
-	stepTrace.WriteString(fmt.Sprintf("The access result is %s,", accessResult))
+	stepTrace.WriteString(fmt.Sprintf(
+		"The access result is %s,", accessResult))
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }

@@ -100,8 +100,7 @@ func (s *scenarioState) theDeploymentAttemptIsAllowed() error {
 	stepTrace.WriteString("Asserts pod creation result in scenario state is successful; ")
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -143,8 +142,7 @@ func (s *scenarioState) theDeploymentAttemptIsDenied() error {
 	stepTrace.WriteString("Asserts pod creation result in scenario state is denied; ")
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
