@@ -1,0 +1,147 @@
+// This tool parses audit logs and flatten data in csv format
+
+package main
+
+import (
+	"encoding/csv"
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"path"
+	"strconv"
+	"strings"
+
+	"github.com/citihub/probr/audit"
+	"github.com/citihub/probr/config"
+)
+
+type FlatObj struct {
+	SourceFile      string
+	ProbeName       string
+	ScenarioID      int
+	ScenarioName    string
+	StepID          int
+	StepDescription string
+	StepFunction    string
+	StepPayload     string
+}
+
+func main() {
+
+	config.Init("")
+	auditLogsDir := config.Vars.AuditDir()
+
+	if len(os.Args) >= 2 {
+		auditLogsDir = os.Args[1] // Override config default
+	}
+
+	fmt.Println(fmt.Printf("Parsing audit logs from: '%s' ...", auditLogsDir))
+
+	files, err := getAllFiles(auditLogsDir)
+	if err != nil {
+		log.Panicf("failed reading directory: %s", err)
+	}
+	fmt.Printf("Number of files in current directory: %d \n", len(files))
+
+	// Files
+	for _, fileInfo := range files {
+
+		if !strings.HasSuffix(fileInfo.Name(), ".json") { //Only parse json files
+			continue
+		}
+
+		var flatRows []FlatObj
+
+		filePath := path.Join(auditLogsDir, fileInfo.Name())
+		probeAudit, err := deserializeJson(filePath)
+		check(err)
+
+		// Scenarios
+		for scenarioId, scenario := range probeAudit.Scenarios {
+
+			// Steps
+			for stepId, step := range scenario.Steps {
+				var flatRow FlatObj
+
+				flatRow.SourceFile = filePath // FlatRow
+
+				flatRow.ScenarioID = scenarioId
+				flatRow.ScenarioName = scenario.Name
+
+				flatRow.StepID = stepId
+				flatRow.StepDescription = step.Description
+				flatRow.StepFunction = step.Name
+
+				flatRows = append(flatRows, flatRow)
+			}
+		}
+
+		// Write file
+		csvFilePath := filePath + ".csv"
+		writeCSVFile(csvFilePath, flatRows, true)
+		fmt.Println("Created: ", csvFilePath)
+	}
+}
+
+func getAllFiles(dir string) ([]os.FileInfo, error) {
+	entries, err := ioutil.ReadDir(dir)
+	if err != nil {
+		log.Panicf("failed reading directory: %s", err)
+	}
+	return entries, err
+}
+
+func check(e error) {
+	if e != nil {
+		log.Panicf("failed to perform action: %s", e)
+	}
+}
+
+func deserializeJson(filePath string) (audit.ProbeAudit, error) {
+	data, err := ioutil.ReadFile(filePath)
+	check(err)
+
+	// Deserialize Json
+	var probeAudit audit.ProbeAudit
+	err = json.Unmarshal(data, &probeAudit)
+	check(err)
+
+	return probeAudit, err
+}
+
+func writeCSVFile(filePath string, rows []FlatObj, addHeader bool) error {
+	csvFile, err := os.Create(filePath)
+	check(err)
+	defer csvFile.Close()
+
+	writer := csv.NewWriter(csvFile)
+
+	// Header
+	if addHeader {
+		var row []string
+		row = append(row, "SourceFile")
+		row = append(row, "ScenarioID")
+		row = append(row, "ScenarioName")
+		row = append(row, "StepID")
+		row = append(row, "StepDescription")
+		row = append(row, "StepFunction")
+		writer.Write(row)
+	}
+
+	for _, r := range rows {
+		var row []string
+		row = append(row, r.SourceFile)
+		row = append(row, strconv.Itoa(r.ScenarioID))
+		row = append(row, r.ScenarioName)
+		row = append(row, strconv.Itoa(r.StepID))
+		row = append(row, r.StepDescription)
+		row = append(row, r.StepFunction)
+		writer.Write(row)
+	}
+
+	writer.Flush()
+
+	return err
+}
