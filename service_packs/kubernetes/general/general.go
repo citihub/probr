@@ -83,7 +83,7 @@ func (s *scenarioState) iShouldOnlyFindWildcardsInKnownAndAuthorisedConfiguratio
 	default:
 	}
 
-	stepTrace.WriteString("Validating that no unexpected wildcards were found; ")
+	stepTrace.WriteString("Validate that no unexpected wildcards were found; ")
 	if wildcardCount > 0 {
 		err = utils.ReformatError("roles exist with wildcarded resources")
 	}
