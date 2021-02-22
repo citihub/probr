@@ -3,7 +3,6 @@ package pod_security_policy
 import (
 	"fmt"
 	"log"
-	"path/filepath"
 	"strings"
 
 	"github.com/cucumber/godog"
@@ -322,7 +321,7 @@ func (s *scenarioState) someControlExistsToPreventPrivilegedAccessForKubernetesD
 	}()
 
 	// TODO: This entire process needs refactored for readability, and to remove holistic dependency on azure security context
-	stepTrace.WriteString("Validate that the kube instance security context contains 'k8sazurecontainernoprivilege'")
+	stepTrace.WriteString("Validate that the kube instance security context contains 'k8sazurecontainernoprivilege'; ")
 	err = s.runControlProbe(psp.PrivilegedAccessIsRestricted, "PrivilegedAccessIsRestricted")
 
 	payload = struct {
@@ -339,13 +338,12 @@ func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatRequiresPrivilegedA
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	stepTrace.WriteString(fmt.Sprintf("Validate that the command '%s' fails to execute", Chroot.String()))
+	stepTrace.WriteString(fmt.Sprintf("Validate that the command '%s' fails to execute; ", Chroot.String()))
 	err = s.runVerificationProbe(VerificationProbe{Cmd: Chroot, ExpectedExitCode: 1})
 
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -365,16 +363,13 @@ func (s *scenarioState) hostPIDRequestIsMarkedForTheKubernetesDeployment(hostPID
 	} else {
 		hostPID = false
 	}
-
+	stepTrace.WriteString(fmt.Sprintf("Attempt to deploy a pod with host PID '%s'; ", hostPIDRequested))
 	pd, err := psp.CreatePODSettingAttributes(&hostPID, nil, nil, s.probe)
-
 	err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPHostNamespace, err)
 
-	stepTrace.WriteString(fmt.Sprintf("Host pid request is marked for the kubernetes deployment hostpidrequested %s", hostPIDRequested))
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -386,13 +381,12 @@ func (s *scenarioState) someSystemExistsToPreventAKubernetesContainerFromRunning
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
+	stepTrace.WriteString("Validate that at least on of the cluster's pod security policies has HostPID set to false; ")
 	err = s.runControlProbe(psp.HostPIDIsRestricted, "HostPIDIsRestricted")
 
-	stepTrace.WriteString("Some systems exist to prevent kubernetes container from running using the host pid on the active kubernetes cluster")
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -404,13 +398,12 @@ func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToThe
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
+	stepTrace.WriteString(fmt.Sprintf("Validate that the exit code for command '%s' is 1; ", EnterHostPIDNS.String()))
 	err = s.runVerificationProbe(VerificationProbe{Cmd: EnterHostPIDNS, ExpectedExitCode: 1})
 
-	stepTrace.WriteString("Should not be able to perform command that provide access to the host pid namespaces")
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -430,18 +423,15 @@ func (s *scenarioState) hostIPCRequestIsMarkedForTheKubernetesDeployment(hostIPC
 		hostIPC = false
 	}
 
+	stepTrace.WriteString(fmt.Sprintf("Attempt to deploy a pod with Host IPC requested: %s; ", hostIPCRequested))
 	pd, err := psp.CreatePODSettingAttributes(nil, &hostIPC, nil, s.probe)
-
 	err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPHostNamespace, err)
 
-	stepTrace.WriteString(fmt.Sprintf(" Host ipc request is marked for the kubernetes deployment %s", hostIPCRequested))
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
-
 }
 
 func (s *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunningUsingTheHostIPCInAnExistingKubernetesCluster() error {
@@ -451,13 +441,12 @@ func (s *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunnin
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
+	stepTrace.WriteString("Validate that at least on of the cluster's pod security policies has HostIPC set to false; ")
 	err = s.runControlProbe(psp.HostIPCIsRestricted, "HostIPCIsRestricted")
 
-	stepTrace.WriteString("Some system exists to prevent a kubernetes deployment from running using the host ipc in an existing kubernetes cluster")
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -469,13 +458,12 @@ func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToThe
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
+	stepTrace.WriteString(fmt.Sprintf("Validate that the exit code for command '%s' is 1; ", EnterHostIPCNS.String()))
 	err = s.runVerificationProbe(VerificationProbe{Cmd: EnterHostIPCNS, ExpectedExitCode: 1})
 
-	stepTrace.WriteString("Should not be able to perform command that provide access to the host pid namespaces")
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -495,11 +483,10 @@ func (s *scenarioState) hostNetworkRequestIsMarkedForTheKubernetesDeployment(hos
 		hostNetwork = false
 	}
 
+	stepTrace.WriteString(fmt.Sprintf("Attempt to deploy a pod with host network request marked '%s'; ", hostNetworkRequested))
 	pd, err := psp.CreatePODSettingAttributes(nil, nil, &hostNetwork, s.probe)
-
 	err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPHostNetwork, err)
 
-	stepTrace.WriteString(fmt.Sprintf(" Host network request is marked for the kubernetes deployment %s", hostNetworkRequested))
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -515,9 +502,9 @@ func (s *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunnin
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
+	stepTrace.WriteString("Validate that at least on of the pod security policies has HostNetwork set to false; ")
 	err = s.runControlProbe(psp.HostNetworkIsRestricted, "HostNetworkIsRestricted")
 
-	stepTrace.WriteString("Some sytems exists to prevent kubernetes deployment from running using the host network in an existing kubernetes cluster")
 	payload = struct {
 		PodState kubernetes.PodState
 		PodName  string
@@ -526,6 +513,7 @@ func (s *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunnin
 	return err
 
 }
+
 func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToTheHostNetworkNamespace() error {
 	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
@@ -533,13 +521,12 @@ func (s *scenarioState) iShouldNotBeAbleToPerformACommandThatProvidesAccessToThe
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
+	stepTrace.WriteString(fmt.Sprintf("Validate that the exit code for command '%s' is 1", EnterHostNetworkNS.String()))
 	err = s.runVerificationProbe(VerificationProbe{Cmd: EnterHostNetworkNS, ExpectedExitCode: 1})
 
-	stepTrace.WriteString("Should not be able to perform form a command that provide access to the host network space")
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
@@ -556,21 +543,20 @@ func (s *scenarioState) privilegedEscalationIsMarkedForTheKubernetesDeployment(p
 	if strings.ToLower(privilegedEscalationRequested) != "true" {
 		allowPrivilegeEscalation = "false"
 	}
-	stepTrace.WriteString("Attempt to create a pod with privilege escalation set to " + allowPrivilegeEscalation)
-
-	y, err := utils.ReadStaticFile(kubernetes.AssetsDir, "psp-azp-privileges.yaml")
+	specPath := "psp-azp-privileges.yaml"
+	stepTrace.WriteString("Parsing pod spec file '%s'; ")
+	y, err := utils.ReadStaticFile(kubernetes.AssetsDir, specPath)
 	if err == nil {
 		yaml := utils.ReplaceBytesValue(y, "{{ allowPrivilegeEscalation }}", allowPrivilegeEscalation)
+
+		stepTrace.WriteString(fmt.Sprintf("Attempt to create a pod with privilege escalation set to '%s'; ", allowPrivilegeEscalation))
 		pd, cErr := psp.CreatePodFromYaml(yaml, s.probe)
 		err = kubernetes.ProcessPodCreationResult(&s.podState, pd, kubernetes.PSPNoPrivilegeEscalation, cErr)
 	}
+
 	payload = struct {
-		PrivilegedEscalationRequested string
-		PodSpecPath                   string
-	}{
-		privilegedEscalationRequested,
-		filepath.Join(kubernetes.AssetsDir, "psp-azp-privileges.yaml"),
-	}
+		PodState kubernetes.PodState
+	}{s.podState}
 
 	return err
 
@@ -582,13 +568,12 @@ func (s *scenarioState) someSystemExistsToPreventAKubernetesDeploymentFromRunnin
 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
+	stepTrace.WriteString("Validate that at least one of the pod security policies has AllowPrivilegeEscalation set to false")
 	err = s.runControlProbe(psp.PrivilegedEscalationIsRestricted, "PrivilegedEscalationIsRestricted")
 
-	stepTrace.WriteString("Some systems exists to prevent kebernetes deployment from running the allowed privileged escalation in an existing kubernetes cluster")
 	payload = struct {
 		PodState kubernetes.PodState
-		PodName  string
-	}{s.podState, s.podState.PodName}
+	}{s.podState}
 
 	return err
 }
