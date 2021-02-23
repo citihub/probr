@@ -41,8 +41,8 @@ func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 	return err //  ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
 }
 
-// // CIS-6.1.3
-// // Minimize cluster access to read-only
+// CIS-6.1.3
+// Minimize cluster access to read-only
 func (s *scenarioState) iAmAuthorisedToPullFromAContainerRegistry() error {
 	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
