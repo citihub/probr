@@ -7,7 +7,6 @@ import (
 
 	"github.com/cucumber/godog"
 
-	"github.com/citihub/probr/config"
 	"github.com/citihub/probr/service_packs/coreengine"
 	"github.com/citihub/probr/service_packs/kubernetes"
 	"github.com/citihub/probr/utils"
@@ -34,7 +33,7 @@ func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 	}()
 
 	//look for the dashboard pod in the kube-system ns
-	pl, err := kubernetes.GetKubeInstance().GetPods(config.Vars.ServicePacks.Kubernetes.SystemNamespace)
+	pl, err := kubernetes.GetKubeInstance().GetPods("kube-system")
 	var name string
 
 	if err != nil {
@@ -42,9 +41,8 @@ func (s *scenarioState) theKubernetesWebUIIsDisabled() error {
 	} else {
 		//a "pass" is the absence of a "kubernetes-dashboard" pod
 		for _, v := range pl.Items {
-			dashboardPodName := config.Vars.ServicePacks.Kubernetes.DashboardPodName
-			if strings.HasPrefix(v.Name, dashboardPodName) {
-				err = utils.ReformatError("(%v) pod found (%v) - test fail", dashboardPodName, v.Name)
+			if strings.HasPrefix(v.Name, "kubernetes-dashboard") { // TODO: k8s dashboard pod name should come from config file, in case it changes in k8s future release
+				err = utils.ReformatError("kubernetes-dashboard pod found (%v) - test fail", v.Name)
 				name = v.Name
 			}
 		}
