@@ -10,6 +10,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -78,6 +79,9 @@ func main() {
 			}
 		}
 
+		// Sort collection
+		sort.Sort(byScenarioAndStepID(flatRows))
+
 		// Write file
 		csvFilePath := filePath + ".csv"
 		writeCSVFile(csvFilePath, flatRows, true)
@@ -145,3 +149,22 @@ func writeCSVFile(filePath string, rows []FlatObj, addHeader bool) error {
 
 	return err
 }
+
+// Implementing Sort interface
+
+type byScenarioAndStepID []FlatObj
+
+func (s byScenarioAndStepID) Len() int {
+	return len(s)
+}
+func (s byScenarioAndStepID) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s byScenarioAndStepID) Less(i, j int) bool {
+	if s[i].ScenarioID == s[j].ScenarioID {
+		return s[i].StepID < s[j].StepID
+	}
+	return s[i].ScenarioID < s[j].ScenarioID
+}
+
+// Implementing Sort interface
