@@ -39,6 +39,24 @@ func (s *scenarioState) aKubernetesClusterIsDeployed() error {
 	return err //  ClusterIsDeployed will create a fatal error if kubeconfig doesn't validate
 }
 
+// TODO: 265 Remove
+// // CIS-6.1.3
+// // Minimize cluster access to read-only
+// func (s *scenarioState) iAmAuthorisedToPullFromAContainerRegistry() error {
+// 	// Standard auditing logic to ensures panics are also audited
+// 	description, payload, err := utils.AuditPlaceholders()
+// 	defer func() {
+// 		s.audit.AuditScenarioStep(description, payload, err)
+// 	}()
+
+// 	pod, podAudit, err := cra.SetupContainerAccessProbePod(config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry, s.probe)
+// 	err = kubernetes.ProcessPodCreationResult(&s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
+
+// 	description = fmt.Sprintf("Creates a new pod using an image from %s. Passes if image successfully pulls and pod is built.", config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry)
+// 	payload = kubernetes.PodPayload{Pod: pod, PodAudit: podAudit}
+// 	return err
+// }
+
 // PENDING IMPLEMENTATION
 func (s *scenarioState) iAttemptToPushToTheContainerRegistryUsingTheClusterIdentity() error {
 	// Standard auditing logic to ensures panics are also audited
