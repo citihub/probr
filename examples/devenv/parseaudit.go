@@ -1,4 +1,7 @@
 // This tool parses audit logs and flatten data in csv format
+// Sample usage:
+// 	go run ./example/devenv/parseaudit.go 							>> (will use default output directory from config to find json files)
+// 	go run ./example/devenv/parseaudit.go "/path/to/auditlogs/" 	>> (will use cli arg as path to json files)
 
 package main
 
