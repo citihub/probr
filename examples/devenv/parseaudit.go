@@ -34,7 +34,7 @@ func main() {
 	config.Init("")
 	auditLogsDir := config.Vars.AuditDir()
 
-	if len(os.Args) >= 2 {
+	if len(os.Args[1:]) > 0 {
 		auditLogsDir = os.Args[1] // Override config default
 	}
 
