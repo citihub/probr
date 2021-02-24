@@ -21,7 +21,7 @@ import (
 	"github.com/citihub/probr/config"
 )
 
-type FlatObj struct {
+type flatObj struct {
 	SourceFile      string
 	ProbeName       string
 	ScenarioID      int
@@ -56,25 +56,25 @@ func main() {
 			continue
 		}
 
-		var flatRows []FlatObj
+		var flatRows []flatObj
 
 		filePath := path.Join(auditLogsDir, fileInfo.Name())
-		probeAudit, err := deserializeJson(filePath)
+		probeAudit, err := deserializeJSON(filePath)
 		check(err)
 
 		// Scenarios
-		for scenarioId, scenario := range probeAudit.Scenarios {
+		for scenarioID, scenario := range probeAudit.Scenarios {
 
 			// Steps
-			for stepId, step := range scenario.Steps {
-				var flatRow FlatObj
+			for stepID, step := range scenario.Steps {
+				var flatRow flatObj
 
 				flatRow.SourceFile = filePath // FlatRow
 
-				flatRow.ScenarioID = scenarioId
+				flatRow.ScenarioID = scenarioID
 				flatRow.ScenarioName = scenario.Name
 
-				flatRow.StepID = stepId
+				flatRow.StepID = stepID
 				flatRow.StepDescription = step.Description
 				flatRow.StepFunction = step.Name
 
@@ -106,7 +106,7 @@ func check(e error) {
 	}
 }
 
-func deserializeJson(filePath string) (audit.ProbeAudit, error) {
+func deserializeJSON(filePath string) (audit.ProbeAudit, error) {
 	data, err := ioutil.ReadFile(filePath)
 	check(err)
 
@@ -118,7 +118,7 @@ func deserializeJson(filePath string) (audit.ProbeAudit, error) {
 	return probeAudit, err
 }
 
-func writeCSVFile(filePath string, rows []FlatObj, addHeader bool) error {
+func writeCSVFile(filePath string, rows []flatObj, addHeader bool) error {
 	csvFile, err := os.Create(filePath)
 	check(err)
 	defer csvFile.Close()
@@ -155,7 +155,7 @@ func writeCSVFile(filePath string, rows []FlatObj, addHeader bool) error {
 
 // Implementing Sort interface
 
-type byScenarioAndStepID []FlatObj
+type byScenarioAndStepID []flatObj
 
 func (s byScenarioAndStepID) Len() int {
 	return len(s)
