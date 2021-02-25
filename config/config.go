@@ -113,7 +113,7 @@ func ValidateConfigPath(path string) error {
 	return nil
 }
 
-// LogConfigState will print the config state as a NOTICE in the log
+// LogConfigState will write the config file to the write directory
 func (ctx *VarOptions) LogConfigState() {
 	json, _ := json.MarshalIndent(Vars, "", "  ")
 	log.Printf("[INFO] Config State: %s", json)
