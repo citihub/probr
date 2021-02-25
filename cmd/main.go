@@ -37,8 +37,6 @@ func main() {
 		cliflags.HandleFlags()
 	}
 
-	config.LogConfigState()
-
 	if showIndicator() {
 		// At this loglevel, Probr is often silent for long periods. Add a visual runtime indicator.
 		config.Spinner = spinner.New(spinner.CharSets[42], 500*time.Millisecond)
@@ -61,6 +59,8 @@ func main() {
 		)
 	}
 	audit.State.PrintSummary()
+	audit.State.WriteSummary()
+
 	exit(s)
 }
 
