@@ -42,7 +42,7 @@ func (s *summaryState) PrintSummary() {
 // WriteSummary will write the summary to the audit directory
 func (s *summaryState) WriteSummary() {
 	if config.Vars.AuditEnabled == "true" {
-		path := filepath.Join(config.Vars.AuditDir(), "audit-summary.json")
+		path := filepath.Join(config.Vars.GetWriteDirectory(), "summary.json")
 		if utils.WriteAllowed(path, config.Vars.Overwrite()) {
 			json, _ := json.MarshalIndent(s, "", "  ")
 			data := []byte(json)
