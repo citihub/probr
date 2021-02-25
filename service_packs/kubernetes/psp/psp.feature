@@ -34,8 +34,8 @@ Feature: Maximise security through Pod Security Policies
             - CIS Kubernetes Benchmark v1.6.0 - 5.2.5
 
         When pod creation succeeds with "allowPrivilegeEscalation" set to "<VALUE>" in the pod spec
-        And the execution of a 'non-privileged' command inside the Pod is successful
-        And the execution of a 'privileged' command inside the Pod fails due to "privileged access command restrictions"
+        Then the execution of a 'non-privileged' command inside the Pod is successful
+        But the execution of a 'privileged' command inside the Pod fails due to "privileged access command restrictions"
 
         Examples:
             | VALUE                     |
