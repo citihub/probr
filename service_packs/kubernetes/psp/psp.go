@@ -38,16 +38,9 @@ func (p probeStruct) Path() string {
 // test handler as part of the init() function.
 func (p probeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	ctx.BeforeSuite(func() {
-		//check dependencies ...
-		if psp == nil {
-			// not been given one so set default
-			psp = NewDefaultPSP()
-		}
-		psp.CreateConfigMap()
 	})
 
 	ctx.AfterSuite(func() {
-		psp.DeleteConfigMap()
 	})
 }
 
@@ -59,7 +52,6 @@ func (p probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ps := scenarioState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
-		beforeScenario(&ps, p.Name(), s)
 	})
 
 	ctx.Step(`^a Kubernetes cluster exists which we can deploy into$`, ps.aKubernetesClusterIsDeployed)
@@ -69,15 +61,11 @@ func (p probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		if kubernetes.GetKeepPodsFromConfig() == false {
 			if len(ps.podStates) == 0 {
-				psp.TeardownPodSecurityProbe(ps.podState.PodName, p.Name())
 			} else {
 				for _, s := range ps.podStates {
-					psp.TeardownPodSecurityProbe(s.PodName, p.Name())
 				}
 			}
 		}
-		ps.podState.PodName = ""
-		ps.podState.CreationError = nil
 		coreengine.LogScenarioEnd(s)
 	})
 }
