@@ -5,7 +5,6 @@ OverwriteHistoricalAudits: true
 ServicePacks:
   Kubernetes:
     Azure:
-      DefaultNamespaceAI:
       DefaultNamespaceAIB:
 
     KubeConfig:
