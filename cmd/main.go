@@ -36,6 +36,7 @@ func main() {
 		// Currently only ERROR will print prior to HandleFlags()
 		cliflags.HandleFlags()
 	}
+	config.LogConfigState()
 
 	if showIndicator() {
 		// At this loglevel, Probr is often silent for long periods. Add a visual runtime indicator.
