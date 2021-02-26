@@ -6,9 +6,13 @@ import (
 	"github.com/citihub/probr/audit"
 	"github.com/citihub/probr/service_packs/coreengine"
 	"github.com/citihub/probr/service_packs/kubernetes"
+	"github.com/citihub/probr/service_packs/kubernetes/connection"
 )
 
-type probeStruct struct{}
+type probeStruct struct {
+}
+
+var conn connection.KubernetesAPI
 
 // scenarioState holds the steps and state for any scenario in this probe
 type scenarioState struct {
@@ -20,8 +24,8 @@ type scenarioState struct {
 var Probe probeStruct
 
 func (scenario *scenarioState) aKubernetesClusterIsDeployed() error {
-	// TODO: Retrieve the configuration for the kubernetes cluster context specified in config.Vars
-	return nil
+	// TODO: Retrieve the configuration for the kubernetes cluster context specified in config.
+	return conn.ClusterIsDeployed()
 }
 
 func (scenario *scenarioState) podCreationSuccedsWithXSetToYInThePodSpec(key, value string) error {
@@ -57,13 +61,14 @@ func (probe probeStruct) Name() string {
 
 // Path presents the path of these feature files for external reference
 func (probe probeStruct) Path() string {
-	return coreengine.GetFeaturePath("service_packs", "kubernetes", p.Name())
+	return coreengine.GetFeaturePath("service_packs", "kubernetes", probe.Name())
 }
 
 // ProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
 // test handler as part of the init() function.
 func (probe probeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	ctx.BeforeSuite(func() {
+		conn = connection.Get()
 	})
 
 	ctx.AfterSuite(func() {
@@ -90,15 +95,15 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the execution of a "([^"]*)" command inside the Pod fails due to "([^"]*)"$`, scenario.theExecutionOfAXCommandInsideThePodFailsDueToY)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
-		if kubernetes.GetKeepPodsFromConfig() == false {
-			if len(scenario.podStates) == 0 {
-				//
-			} else {
-				for _, s := range scenario.podStates {
-					//
-				}
-			}
-		}
+		// if kubernetes.GetKeepPodsFromConfig() == false {
+		// 	if len(scenario.podStates) == 0 {
+		// 		//
+		// 	} else {
+		// 		for _, _ = range scenario.podStates {
+		// 			//
+		// 		}
+		// 	}
+		// }
 		coreengine.LogScenarioEnd(s)
 	})
 }
