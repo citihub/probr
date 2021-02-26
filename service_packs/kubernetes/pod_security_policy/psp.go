@@ -1,12 +1,20 @@
 package psp
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/cucumber/godog"
 
 	"github.com/citihub/probr/audit"
+	"github.com/citihub/probr/config"
 	"github.com/citihub/probr/service_packs/coreengine"
 	"github.com/citihub/probr/service_packs/kubernetes"
 	"github.com/citihub/probr/service_packs/kubernetes/connection"
+	"github.com/citihub/probr/service_packs/kubernetes/constructors"
+	"github.com/citihub/probr/utils"
+
+	apiv1 "k8s.io/api/core/v1"
 )
 
 type probeStruct struct {
@@ -16,7 +24,9 @@ var conn connection.KubernetesAPI
 
 // scenarioState holds the steps and state for any scenario in this probe
 type scenarioState struct {
-	audit     audit.ScenarioAudit
+	name      string
+	probe     *audit.Probe
+	audit     *audit.ScenarioAudit
 	podStates []kubernetes.PodState
 }
 
@@ -24,15 +34,70 @@ type scenarioState struct {
 var Probe probeStruct
 
 func (scenario *scenarioState) aKubernetesClusterIsDeployed() error {
-	// TODO: Retrieve the configuration for the kubernetes cluster context specified in config.
+	// Standard auditing logic to ensures panics are also audited
+	stepTrace, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+	}()
+	stepTrace.WriteString(fmt.Sprintf("Validate that a cluster can be reached using the specified kube config and context; "))
+
+	payload = struct {
+		KubeConfigPath string
+		KubeContext    string
+	}{
+		config.Vars.ServicePacks.Kubernetes.KubeConfigPath,
+		config.Vars.ServicePacks.Kubernetes.KubeContext,
+	}
+
 	return conn.ClusterIsDeployed()
 }
 
 func (scenario *scenarioState) podCreationSuccedsWithXSetToYInThePodSpec(key, value string) error {
-	// TODO: Attempt to create a pod from a YAML spec
-	// with key/value parameters parsed into it
-	// expect successful deployment
-	return nil
+
+	// Attempt to create a pod from a pod specs with key/value parameters parsed into it
+	// Expect successful deployment
+
+	// Standard auditing logic to ensures panics are also audited
+	stepTrace, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+	}()
+
+	stepTrace.WriteString(fmt.Sprintf("Create pod spec with appropriate security context; "))
+
+	stepTrace.WriteString(fmt.Sprintf("Get default pod spec; "))
+	podName := constructors.GenerateUniquePodName("pod-security-policy") // TODO: Use Probe.Name() here, but need to replace '_' with '-', otherwise error is raised due to invalid name
+	namespace := constructors.GetDefaultProbrNamespace()
+	containerName := constructors.GetDefaultProbrContainerName()
+	securityContext := constructors.GetDefaultContainerSecurityContext()
+	podSpec := constructors.GetPodSpec(podName, namespace, containerName, securityContext)
+
+	stepTrace.WriteString(fmt.Sprintf("Set value of '%v' to '%v' in pod spec ; ", key, value))
+	bValue, _ := strconv.ParseBool(value)                                         // TODO; Handle conversion error
+	podSpec.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = &bValue // TODO: Currently, allowPrivilegeEscalation is assumed in key. Add logic to dynamically handle any pod spec attribute passed as 'key' argument
+
+	stepTrace.WriteString(fmt.Sprintf("Create pod with appropriate specs ; "))
+	createdPod, creationErr := conn.CreatePodFromObject(podSpec)
+
+	stepTrace.WriteString(fmt.Sprintf("Check result from pod creation, confirm there were no creation error; "))
+	if creationErr != nil {
+		err = utils.ReformatError("Pod creation did not succeed: %v", creationErr)
+	}
+
+	// TODO: The line  below is currently not executed within CreatePodFromObject function, as there is no probe object being passed to it. TBD
+	//probe.CountPodCreated(podName)
+
+	payload = struct {
+		DesiredPod    *apiv1.Pod
+		CreatedPod    *apiv1.Pod
+		CreationError error
+	}{
+		DesiredPod:    podSpec,
+		CreatedPod:    createdPod,
+		CreationError: creationErr,
+	}
+
+	return err
 }
 func (scenario *scenarioState) podCreationFailsWhenXIsSetToYDueToZ(key, value string) error {
 	// TODO: Attempt to create a pod from a YAML spec
@@ -83,6 +148,7 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	scenario := scenarioState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
+		beforeScenario(&scenario, probe.Name(), s)
 	})
 
 	// Background
@@ -106,4 +172,11 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 		// }
 		coreengine.LogScenarioEnd(s)
 	})
+}
+
+func beforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
+	s.name = gs.Name
+	s.probe = audit.State.GetProbeLog(probeName)
+	s.audit = audit.State.GetProbeLog(probeName).InitializeAuditor(gs.Name, gs.Tags)
+	coreengine.LogScenarioStart(gs)
 }
