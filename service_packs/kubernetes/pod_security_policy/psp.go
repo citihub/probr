@@ -208,7 +208,7 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 			for _, podName := range scenario.pods {
 				err = conn.DeletePodIfExists(podName, scenario.namespace, probe.Name())
 				if err != nil {
-					log.Printf(fmt.Sprintf("[ERROR] Could not retrieve pod for deletion: %s", err))
+					log.Printf(fmt.Sprintf("[ERROR] Could not retrieve pod from namespace '%s' for deletion: %s", scenario.namespace, err))
 				}
 			}
 		}
