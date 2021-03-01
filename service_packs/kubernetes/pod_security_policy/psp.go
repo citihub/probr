@@ -27,6 +27,7 @@ var conn connection.KubernetesAPI
 // scenarioState holds the steps and state for any scenario in this probe
 type scenarioState struct {
 	name       string
+	namespace  string
 	probeAudit *audit.Probe
 	audit      *audit.ScenarioAudit
 	pods       []string
@@ -205,8 +206,7 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		if kubernetes.GetKeepPodsFromConfig() == false {
 			for _, podName := range scenario.pods {
-				log.Printf(fmt.Sprintf("[ERROR] : %s", podName))
-				err = conn.DeletePodIfExists(podName, kubernetes.Namespace, probe.Name())
+				err = conn.DeletePodIfExists(podName, scenario.namespace, probe.Name())
 				if err != nil {
 					log.Printf(fmt.Sprintf("[ERROR] Could not retrieve pod for deletion: %s", err))
 				}
@@ -221,5 +221,6 @@ func beforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
 	s.probeAudit = audit.State.GetProbeLog(probeName)
 	s.audit = audit.State.GetProbeLog(probeName).InitializeAuditor(gs.Name, gs.Tags)
 	s.pods = make([]string, 0)
+	s.namespace = config.Vars.ServicePacks.Kubernetes.ProbeNamespace
 	coreengine.LogScenarioStart(gs)
 }

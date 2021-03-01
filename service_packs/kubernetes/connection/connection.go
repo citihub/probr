@@ -116,7 +116,7 @@ func (connection *Conn) GetOrCreateNamespace(namespace string) (*apiv1.Namespace
 			Name: namespace,
 		},
 	}
-	createdNamespace, err := connection.clientSet()CoreV1().Namespaces().Create(
+	createdNamespace, err := connection.clientSet.CoreV1().Namespaces().Create(
 		ctx, &namespaceObject, metav1.CreateOptions{})
 
 	if err != nil {
@@ -145,7 +145,7 @@ func (connection *Conn) CreatePodFromObject(pod *apiv1.Pod, probeName string) (*
 	log.Printf("[INFO] Creating pod %v in namespace %v", podName, namespace)
 	log.Printf("[DEBUG] Pod details: %+v", *pod)
 
-	c := connection.clientSet()
+	c := connection.clientSet
 
 	podsMgr := c.CoreV1().Pods(namespace) //TODO: Rename this obj to something more meaningful
 
@@ -168,18 +168,19 @@ func (connection *Conn) CreatePodFromObject(pod *apiv1.Pod, probeName string) (*
 
 // DeletePodIfExists deletes the given pod in the specified namespace.
 func (connection *Conn) DeletePodIfExists(podName, namespace, probeName string) error {
-	
-	podsMgr := connection.clientSet().CoreV1().Pods(namespace)
-
+	clientSet, _ := kubernetes.NewForConfig(connection.clientConfig)
+	podsMgr := clientSet.CoreV1().Pods(namespace)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
+	log.Printf("[DEBUG] Attempting to delete pod: %s", podName)
 
 	err := podsMgr.Delete(ctx, podName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
 	audit.State.GetProbeLog(probeName).CountPodDestroyed()
-	log.Printf("[INFO] POD %v deleted.", podName)
+	log.Printf("[INFO] POD %s deleted.", podName)
 	return nil
 }
 
@@ -187,6 +188,6 @@ func (connection *Conn) podStatus(podName, namespace string) (err error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	_, err = connection.clientSet().CoreV1().Pods(namespace).Get(ctx, podName, metav1.GetOptions{})
+	_, err = connection.clientSet.CoreV1().Pods(namespace).Get(ctx, podName, metav1.GetOptions{})
 	return
 }
