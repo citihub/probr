@@ -1,8 +1,11 @@
+// Package constructors provides functions to prepare new objects (as described by the name of the function)
 package constructors
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/citihub/probr/config"
@@ -10,8 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// GenerateUniquePodName creates a unique pod name based on the format: 'baseName'-'nanosecond time'-'random int'.
-func GenerateUniquePodName(baseName string) string {
+func uniquePodName(baseName string) string {
 	//take base and add some uniqueness
 	t := time.Now()
 	rand.Seed(t.UnixNano())
@@ -20,8 +22,12 @@ func GenerateUniquePodName(baseName string) string {
 	return fmt.Sprintf("%v-%v", baseName, uniq)
 }
 
-// GetPodSpec constructs a simple pod object using kubernetes API types.
-func GetPodSpec(podName string, namespace string, containerName string, securityContext *apiv1.SecurityContext) *apiv1.Pod {
+// PodSpec constructs a simple pod object
+func PodSpec(baseName string, namespace string, securityContext *apiv1.SecurityContext) *apiv1.Pod {
+	name := strings.Replace(baseName, "_", "-", -1)
+	podName := uniquePodName(name)
+	containerName := fmt.Sprintf("%s-probe-pod", name)
+	log.Printf(fmt.Sprintf("[DEBUG] Creating pod spec with podName=%s and containerName=%s", podName, containerName))
 
 	annotations := make(map[string]string)
 	annotations["seccomp.security.alpha.kubernetes.io/pod"] = "runtime/default"
@@ -36,11 +42,11 @@ func GetPodSpec(podName string, namespace string, containerName string, security
 			Annotations: annotations,
 		},
 		Spec: apiv1.PodSpec{
-			SecurityContext: GetDefaultPodSecurityContext(),
+			SecurityContext: DefaultPodSecurityContext(),
 			Containers: []apiv1.Container{
 				{
 					Name:            containerName,
-					Image:           GetDefaultProbrImageName(),
+					Image:           DefaultProbrImageName(),
 					ImagePullPolicy: apiv1.PullIfNotPresent,
 					Command: []string{
 						"sleep",
@@ -53,57 +59,48 @@ func GetPodSpec(podName string, namespace string, containerName string, security
 	}
 }
 
-func GetDefaultContainerSecurityContext() *apiv1.SecurityContext {
-	b := false
-
+// DefaultContainerSecurityContext returns an SC with the drop capabilities specified in config vars
+func DefaultContainerSecurityContext() *apiv1.SecurityContext {
 	capabilities := apiv1.Capabilities{
 		Drop: GetContainerDropCapabilitiesFromConfig(),
 	}
 
+	falsey := false
 	return &apiv1.SecurityContext{
-		Privileged:               &b,
-		AllowPrivilegeEscalation: &b,
+		Privileged:               &falsey,
+		AllowPrivilegeEscalation: &falsey,
 		Capabilities:             &capabilities,
 	}
 }
 
-func GetDefaultPodSecurityContext() *apiv1.PodSecurityContext {
-	var user, grp, fsgrp int64
-	user, grp, fsgrp = 1000, 3000, 2000
+// DefaultPodSecurityContext returns a basic PSC
+func DefaultPodSecurityContext() *apiv1.PodSecurityContext {
+	var user, group, fsgroup int64
+	user, group, fsgroup = 1000, 3000, 2000
 
 	return &apiv1.PodSecurityContext{
 		RunAsUser:          &user,
-		RunAsGroup:         &grp,
-		FSGroup:            &fsgrp,
+		RunAsGroup:         &group,
+		FSGroup:            &fsgroup,
 		SupplementalGroups: []int64{1},
 	}
 }
 
-func GetDefaultProbrNamespace() string {
-	return "probr-ns" // TODO: Get from config
-}
-
-func GetDefaultProbrContainerName() string {
-	return "psp-test" // TODO: Get from config
-}
-
-func GetDefaultProbrImageName() string {
+// DefaultProbrImageName joins the registry and image name specified in config vars
+func DefaultProbrImageName() string {
 	return fmt.Sprintf(
 		"%s/%s",
 		config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry,
 		config.Vars.ServicePacks.Kubernetes.ProbeImage)
 }
 
-// GetContainerDropCapabilitiesFromConfig returns Kubernetes.ContainerRequiredDropCapabilities as a list of Capability objects
+// GetContainerDropCapabilitiesFromConfig returns a Capability object with the drop caps specified in config vars
 func GetContainerDropCapabilitiesFromConfig() []apiv1.Capability {
-	// Adding all values from config
-	dropCapabilitiesFromConfig := config.Vars.ServicePacks.Kubernetes.ContainerRequiredDropCapabilities
-
-	return GetCapabilitiesFromList(dropCapabilitiesFromConfig)
+	return CapabilityObjectList(config.Vars.ServicePacks.Kubernetes.ContainerRequiredDropCapabilities)
 }
 
-// GetCapabilitiesFromList converts a list of strings into a list of capabilities
-func GetCapabilitiesFromList(capList []string) []apiv1.Capability {
+// CapabilityObjectList converts a list of strings into a list of capability objects
+func CapabilityObjectList(capList []string) []apiv1.Capability {
 	var capabilities []apiv1.Capability
 
 	for _, cap := range capList {

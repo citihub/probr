@@ -24,10 +24,10 @@ var conn connection.KubernetesAPI
 
 // scenarioState holds the steps and state for any scenario in this probe
 type scenarioState struct {
-	name      string
-	probe     *audit.Probe
-	audit     *audit.ScenarioAudit
-	podStates []kubernetes.PodState
+	name       string
+	probeAudit *audit.Probe
+	audit      *audit.ScenarioAudit
+	podStates  []kubernetes.PodState
 }
 
 // Probe meets the service pack interface for adding the logic from this file
@@ -52,48 +52,61 @@ func (scenario *scenarioState) aKubernetesClusterIsDeployed() error {
 	return conn.ClusterIsDeployed()
 }
 
+// Attempt to deploy a pod from a default pod spec, with specified modification
 func (scenario *scenarioState) podCreationSuccedsWithXSetToYInThePodSpec(key, value string) error {
+	// Supported keys:
+	//    'allowPrivilegeEscalation'
+	//
+	// Supported values:
+	//    'true'
+	//    'false'
+	//    'not have a value provided'
 
-	// Attempt to create a pod from a pod specs with key/value parameters parsed into it
-	// Expect successful deployment
-
-	// Standard auditing logic to ensures panics are also audited
+	var boolValue, useValue bool
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
 		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	stepTrace.WriteString(fmt.Sprintf("Create pod spec with appropriate security context; "))
-
-	stepTrace.WriteString(fmt.Sprintf("Get default pod spec; "))
-	podName := constructors.GenerateUniquePodName("pod-security-policy") // TODO: Use Probe.Name() here, but need to replace '_' with '-', otherwise error is raised due to invalid name
-	namespace := constructors.GetDefaultProbrNamespace()
-	containerName := constructors.GetDefaultProbrContainerName()
-	securityContext := constructors.GetDefaultContainerSecurityContext()
-	podSpec := constructors.GetPodSpec(podName, namespace, containerName, securityContext)
-
-	stepTrace.WriteString(fmt.Sprintf("Set value of '%v' to '%v' in pod spec ; ", key, value))
-	bValue, _ := strconv.ParseBool(value)                                         // TODO; Handle conversion error
-	podSpec.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = &bValue // TODO: Currently, allowPrivilegeEscalation is assumed in key. Add logic to dynamically handle any pod spec attribute passed as 'key' argument
-
-	stepTrace.WriteString(fmt.Sprintf("Create pod with appropriate specs ; "))
-	createdPod, creationErr := conn.CreatePodFromObject(podSpec)
-
-	stepTrace.WriteString(fmt.Sprintf("Check result from pod creation, confirm there were no creation error; "))
-	if creationErr != nil {
-		err = utils.ReformatError("Pod creation did not succeed: %v", creationErr)
+	if value != "not have a value provided" {
+		useValue = true
+		boolValue, err = strconv.ParseBool(value)
+		if err != nil {
+			return utils.ReformatError("Expected 'true' or 'false' but found '%s'", value) // No payload is necessary if an invalid value was provided
+		}
 	}
 
-	// TODO: The line  below is currently not executed within CreatePodFromObject function, as there is no probe object being passed to it. TBD
-	//probe.CountPodCreated(podName)
+	stepTrace.WriteString(fmt.Sprintf("Build a pod spec with default values; "))
+	securityContext := constructors.DefaultContainerSecurityContext()
+	podObject := constructors.PodSpec(Probe.Name(), config.Vars.ServicePacks.Kubernetes.ProbeNamespace, securityContext)
+
+	if useValue {
+		stepTrace.WriteString(fmt.Sprintf("Set '%v' to '%v' in pod spec; ", key, value))
+		switch key {
+		case "allowPrivilegeEscalation":
+			podObject.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = &boolValue
+		default:
+			return utils.ReformatError("Unsupported key provided: %s", key) // No payload is necessary if an invalid key was provided
+		}
+	}
+
+	stepTrace.WriteString(fmt.Sprintf("Create pod from spec; "))
+	createdPodObject, creationErr := conn.CreatePodFromObject(podObject)
+
+	stepTrace.WriteString(fmt.Sprintf("Validate successful pod creation; "))
+	if creationErr != nil {
+		err = utils.ReformatError("Pod creation did not succeed: %v", creationErr)
+	} else {
+		scenario.probeAudit.CountPodCreated(createdPodObject.ObjectMeta.Name)
+	}
 
 	payload = struct {
-		DesiredPod    *apiv1.Pod
+		DesiredPod    *apiv1.Pod // TODO: Do we really need both desired and created here?
 		CreatedPod    *apiv1.Pod
 		CreationError error
 	}{
-		DesiredPod:    podSpec,
-		CreatedPod:    createdPod,
+		DesiredPod:    podObject,
+		CreatedPod:    createdPodObject,
 		CreationError: creationErr,
 	}
 
@@ -162,12 +175,8 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		// if kubernetes.GetKeepPodsFromConfig() == false {
-		// 	if len(scenario.podStates) == 0 {
-		// 		//
-		// 	} else {
-		// 		for _, _ = range scenario.podStates {
-		// 			//
-		// 		}
+		// 	for pod := range scenario.podStates {
+		// 		connection.DeletePod(pod, kubernetes.Namespace, probe.Name()) // TODO
 		// 	}
 		// }
 		coreengine.LogScenarioEnd(s)
@@ -176,7 +185,7 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 func beforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
 	s.name = gs.Name
-	s.probe = audit.State.GetProbeLog(probeName)
+	s.probeAudit = audit.State.GetProbeLog(probeName)
 	s.audit = audit.State.GetProbeLog(probeName).InitializeAuditor(gs.Name, gs.Tags)
 	coreengine.LogScenarioStart(gs)
 }

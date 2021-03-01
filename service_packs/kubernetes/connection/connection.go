@@ -39,30 +39,29 @@ var once sync.Once
 
 // Get ...
 func Get() *Conn {
-	// TODO: This is only here because it works, we need to revisit it and gain a fuller understanding of the different singleton options
 	once.Do(func() {
 		instance = &Conn{}
-		instance.getClientConfig()
-		instance.getClientSet() // After this point we'll know whether the cluster specified in the kubeconfig is deployed and accessible
+		instance.setClientConfig()
+		instance.setClientSet()
+		instance.bootstrapDefaultNamespace()
 	})
 	return instance
 }
 
-// ClusterIsDeployed verifies if a cluster is deployed that can be contacted based on the current
-// kubernetes config and context.
+// ClusterIsDeployed verifies a cluster using the privided kubernetes config and context.
 func (connection *Conn) ClusterIsDeployed() error {
 	return connection.clusterIsDeployed
 }
 
-func (connection *Conn) getClientSet() {
+func (connection *Conn) setClientSet() {
 	var err error
 	connection.clientSet, err = kubernetes.NewForConfig(connection.clientConfig)
 	if err != nil {
-		connection.clusterIsDeployed = utils.ReformatError("Failed to rest client config: %v", err)
+		connection.clusterIsDeployed = utils.ReformatError("Failed to create Kubernetes client set: %v", err)
 	}
 }
 
-func (connection *Conn) getClientConfig() {
+func (connection *Conn) setClientConfig() {
 	// Adapted from clientcmd.BuildConfigFromFlags:
 	// https://github.com/kubernetes/client-go/blob/5ab99756f65dbf324e5adf9bd020a20a024bad85/tools/clientcmd/client_config.go#L606
 	var err error
@@ -74,19 +73,27 @@ func (connection *Conn) getClientConfig() {
 	rawConfig, _ := configLoader.RawConfig()
 
 	if vars.KubeContext == "" {
-		log.Printf("[NOTICE] Initializing client with default context from provided config")
+		log.Printf("[INFO] Initializing client with default context")
 	} else {
-		log.Printf("[NOTICE] Initializing client with non-default context: %v", vars.KubeContext)
+		log.Printf("[INFO] Initializing client with context specified in config vars: %v", vars.KubeContext)
 		connection.modifyContext(rawConfig, vars.KubeContext)
 	}
 
 	connection.clientConfig, err = configLoader.ClientConfig()
 	if err != nil {
-		connection.clusterIsDeployed = utils.ReformatError("Failed to rest client config: %v", err)
+		connection.clusterIsDeployed = utils.ReformatError("Failed to retrieve rest client config to validate cluster: %v", err)
+	}
+}
+
+func (connection *Conn) bootstrapDefaultNamespace() {
+	_, err := connection.GetOrCreateNamespace(config.Vars.ServicePacks.Kubernetes.ProbeNamespace)
+	if err != nil {
+		connection.clusterIsDeployed = utils.ReformatError("Failed to retrieve or create default Probr namespace: %v", err)
 	}
 }
 
 func (connection *Conn) modifyContext(rawConfig clientcmdapi.Config, context string) {
+	log.Printf("[DEBUG] Modifying Kubernetes context based on Probr config vars")
 	if rawConfig.Contexts[context] == nil {
 		connection.clusterIsDeployed = utils.ReformatError("Required context does not exist in provided kubeconfig: %v", context)
 	}
@@ -97,35 +104,34 @@ func (connection *Conn) modifyContext(rawConfig clientcmdapi.Config, context str
 	}
 }
 
-func (connection *Conn) getOrCreateNamespace(ns *string) (*apiv1.Namespace, error) {
-
-	c := connection.clientSet
-
+// GetOrCreateNamespace will retrieve or create a namespace within the current Kubernetes cluster
+func (connection *Conn) GetOrCreateNamespace(namespace string) (*apiv1.Namespace, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	//try and create ...
-	apiNS := apiv1.Namespace{
+	namespaceObject := apiv1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: *ns,
+			Name: namespace,
 		},
 	}
-	n, err := c.CoreV1().Namespaces().Create(ctx, &apiNS, metav1.CreateOptions{})
+	createdNamespace, err := connection.clientSet.CoreV1().Namespaces().Create(
+		ctx, &namespaceObject, metav1.CreateOptions{})
+
 	if err != nil {
 		if errors.IsStatusCode409(err) {
-			log.Printf("[INFO] Namespace %v already exists. Returning existing.", *ns)
+			log.Printf("[INFO] Namespace %v already exists. Returning existing.", namespace)
 			//return it and nil out the err
-			return n, nil
+			return createdNamespace, nil
 		}
 		return nil, err
 	}
 
-	log.Printf("[INFO] Namespace %q created.", n.GetObjectMeta().GetName())
+	log.Printf("[INFO] Namespace %q created.", createdNamespace.GetObjectMeta().GetName())
 
-	return n, nil
+	return createdNamespace, nil
 }
 
-// CreatePodFromObject creates a pod from the supplied pod object with the given pod name and namespace.
+// CreatePodFromObject creates a pod from the supplied pod object within an existing namespace
 func (connection *Conn) CreatePodFromObject(pod *apiv1.Pod) (*apiv1.Pod, error) {
 	podName := pod.ObjectMeta.Name
 	namespace := pod.ObjectMeta.Namespace
@@ -138,14 +144,6 @@ func (connection *Conn) CreatePodFromObject(pod *apiv1.Pod) (*apiv1.Pod, error) 
 	log.Printf("[DEBUG] Pod details: %+v", *pod)
 
 	c := connection.clientSet
-
-	// TODO: This looks like bootstrp logic. It should be moved out.
-	// 		If specified namespace doesn't exist is better to return error (Single Responsibility Principle)
-	//create the namespace for the POD (noOp if already present)
-	_, err := connection.getOrCreateNamespace(&namespace)
-	if err != nil {
-		return nil, err
-	}
 
 	podsMgr := c.CoreV1().Pods(namespace) //TODO: Rename this obj to something more meaningful
 
