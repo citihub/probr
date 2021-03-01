@@ -54,7 +54,11 @@ func (scenario *scenarioState) aKubernetesClusterIsDeployed() error {
 }
 
 // Attempt to deploy a pod from a default pod spec, with specified modification
-func (scenario *scenarioState) podCreationSuccedsWithXSetToYInThePodSpec(key, value string) error {
+func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result, key, value string) error {
+	// Possible Results:
+	// 'succeeds'
+	// 'fails'
+	//
 	// Supported keys:
 	//    'allowPrivilegeEscalation'
 	//
@@ -63,11 +67,20 @@ func (scenario *scenarioState) podCreationSuccedsWithXSetToYInThePodSpec(key, va
 	//    'false'
 	//    'not have a value provided'
 
-	var boolValue, useValue bool
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
 		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
+	var boolValue, useValue, shouldCreate bool
+
+	switch result {
+	case "succeeds":
+		shouldCreate = true
+	case "fails":
+		shouldCreate = false
+	default:
+		return utils.ReformatError("Unexpected value provided for expected pod creation result: %s", result) // No payload is necessary if an invalid value was provided
+	}
 
 	if value != "not have a value provided" {
 		useValue = true
@@ -80,7 +93,6 @@ func (scenario *scenarioState) podCreationSuccedsWithXSetToYInThePodSpec(key, va
 	stepTrace.WriteString(fmt.Sprintf("Build a pod spec with default values; "))
 	securityContext := constructors.DefaultContainerSecurityContext()
 	podObject := constructors.PodSpec(Probe.Name(), config.Vars.ServicePacks.Kubernetes.ProbeNamespace, securityContext)
-
 	//TODO: Unit test that this always is true: len(podObject.Spec.Containers) > 0
 
 	if useValue {
@@ -96,11 +108,24 @@ func (scenario *scenarioState) podCreationSuccedsWithXSetToYInThePodSpec(key, va
 	stepTrace.WriteString(fmt.Sprintf("Create pod from spec; "))
 	createdPodObject, creationErr := conn.CreatePodFromObject(podObject)
 
-	stepTrace.WriteString(fmt.Sprintf("Validate successful pod creation; "))
-	if creationErr != nil {
-		err = utils.ReformatError("Pod creation did not succeed: %v", creationErr)
-	} else {
+	stepTrace.WriteString(fmt.Sprintf("Validate pod creation %s; ", result))
+	if creationErr == nil {
 		scenario.probeAudit.CountPodCreated(createdPodObject.ObjectMeta.Name)
+	}
+
+	// Leaving these checks verbose for clarity
+	if shouldCreate {
+		if creationErr != nil {
+			err = utils.ReformatError("Pod creation did not succeed: %v", creationErr)
+		}
+	} else if !shouldCreate {
+		if creationErr == nil {
+			err = utils.ReformatError("Pod creation succeeded, but should have failed")
+		} else {
+			if !errors.IsStatusCode403(creationErr) {
+				err = utils.ReformatError("Unexpected error during Pod creation : %v", creationErr)
+			}
+		}
 	}
 
 	payload = struct {
@@ -233,8 +258,8 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^a Kubernetes cluster exists which we can deploy into$`, scenario.aKubernetesClusterIsDeployed)
 
 	// Scenarios
-	ctx.Step(`^pod creation succeeds with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationSuccedsWithXSetToYInThePodSpec)
-	ctx.Step(`^pod creation fails when "([^"]*)" is set to "([^"]*)" in the pod spec due to "([^"]*)"$`, scenario.podCreationFailsWhenXIsSetToYDueToZ)
+	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
+	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
 	ctx.Step(`^the execution of a "([^"]*)" command inside the Pod is successful$`, scenario.theExecutionOfAXCommandInsideThePodIsSuccessful)
 	ctx.Step(`^the execution of a "([^"]*)" command inside the Pod fails due to "([^"]*)"$`, scenario.theExecutionOfAXCommandInsideThePodFailsDueToY)
 

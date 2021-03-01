@@ -21,7 +21,7 @@ Feature: Maximise security through Pod Security Policies
             - CIS Kubernetes Benchmark v1.6.0 - 5.2.5
 
         Then pod creation "succeeds" with "allowPrivilegeEscalation" set to "false" in the pod spec
-        And pod creation "fails" when "allowPrivilegeEscalation" is set to "true" in the pod spec due to "restrictions in requesting privileged access"
+        And pod creation "fails" with "allowPrivilegeEscalation" set to "true" in the pod spec
 
     @k-psp-002
     Scenario Outline: Prevent execution of commands that require privileged access
