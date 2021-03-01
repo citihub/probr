@@ -19,3 +19,11 @@ func IsStatusCode403(err error) bool {
 	}
 	return false
 }
+
+func IsStatusCode(expected int32, err error) bool {
+	if se, ok := err.(*errors.StatusError); ok {
+		//403 is "forbidden"
+		return se.ErrStatus.Code == expected
+	}
+	return false
+}

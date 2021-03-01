@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/citihub/probr/audit"
 	"github.com/citihub/probr/config"
 	"github.com/citihub/probr/service_packs/kubernetes/errors"
 	"github.com/citihub/probr/utils"
@@ -31,7 +32,8 @@ type Conn struct {
 // KubernetesAPI should be used instead of Conn within probes to allow mocking during testing
 type KubernetesAPI interface {
 	ClusterIsDeployed() error
-	CreatePodFromObject(*apiv1.Pod) (*apiv1.Pod, error)
+	CreatePodFromObject(*apiv1.Pod, string) (*apiv1.Pod, error)
+	DeletePodIfExists(string, string, string) error
 }
 
 var instance *Conn
@@ -114,7 +116,7 @@ func (connection *Conn) GetOrCreateNamespace(namespace string) (*apiv1.Namespace
 			Name: namespace,
 		},
 	}
-	createdNamespace, err := connection.clientSet.CoreV1().Namespaces().Create(
+	createdNamespace, err := connection.clientSet()CoreV1().Namespaces().Create(
 		ctx, &namespaceObject, metav1.CreateOptions{})
 
 	if err != nil {
@@ -132,7 +134,7 @@ func (connection *Conn) GetOrCreateNamespace(namespace string) (*apiv1.Namespace
 }
 
 // CreatePodFromObject creates a pod from the supplied pod object within an existing namespace
-func (connection *Conn) CreatePodFromObject(pod *apiv1.Pod) (*apiv1.Pod, error) {
+func (connection *Conn) CreatePodFromObject(pod *apiv1.Pod, probeName string) (*apiv1.Pod, error) {
 	podName := pod.ObjectMeta.Name
 	namespace := pod.ObjectMeta.Namespace
 
@@ -143,7 +145,7 @@ func (connection *Conn) CreatePodFromObject(pod *apiv1.Pod) (*apiv1.Pod, error) 
 	log.Printf("[INFO] Creating pod %v in namespace %v", podName, namespace)
 	log.Printf("[DEBUG] Pod details: %+v", *pod)
 
-	c := connection.clientSet
+	c := connection.clientSet()
 
 	podsMgr := c.CoreV1().Pods(namespace) //TODO: Rename this obj to something more meaningful
 
@@ -155,10 +157,36 @@ func (connection *Conn) CreatePodFromObject(pod *apiv1.Pod) (*apiv1.Pod, error) 
 		log.Printf("[INFO] Attempt to create pod '%v' failed with error: '%v'", podName, err)
 	} else {
 		log.Printf("[INFO] Attempt to create pod '%v' succeeded", podName)
+		audit.State.GetProbeLog(probeName).CountPodCreated(podName)
 	}
 
 	// TODO: We are not waiting for PodState to be running here, like it is done in kube object. TBD.
 	// 		To test this, we need to force a pod to stay in Pending state and check error.
 
 	return res, err
+}
+
+// DeletePodIfExists deletes the given pod in the specified namespace.
+func (connection *Conn) DeletePodIfExists(podName, namespace, probeName string) error {
+	
+	podsMgr := connection.clientSet().CoreV1().Pods(namespace)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := podsMgr.Delete(ctx, podName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	audit.State.GetProbeLog(probeName).CountPodDestroyed()
+	log.Printf("[INFO] POD %v deleted.", podName)
+	return nil
+}
+
+func (connection *Conn) podStatus(podName, namespace string) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err = connection.clientSet().CoreV1().Pods(namespace).Get(ctx, podName, metav1.GetOptions{})
+	return
 }
