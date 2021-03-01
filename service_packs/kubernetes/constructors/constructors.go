@@ -1,4 +1,5 @@
 // Package constructors provides functions to prepare new objects (as described by the name of the function)
+// This implements factory pattern.
 package constructors
 
 import (

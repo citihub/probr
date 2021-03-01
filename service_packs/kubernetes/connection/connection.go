@@ -155,10 +155,10 @@ func (connection *Conn) CreatePodFromObject(pod *apiv1.Pod) (*apiv1.Pod, error) 
 		log.Printf("[INFO] Attempt to create pod '%v' failed with error: '%v'", podName, err)
 	} else {
 		log.Printf("[INFO] Attempt to create pod '%v' succeeded", podName)
-		//probe.CountPodCreated(podName) //TODO: This should be moved up to the probe or pack level. Currentl is not logging.
 	}
 
 	// TODO: We are not waiting for PodState to be running here, like it is done in kube object. TBD.
+	// 		To test this, we need to force a pod to stay in Pending state and check error.
 
 	return res, err
 }

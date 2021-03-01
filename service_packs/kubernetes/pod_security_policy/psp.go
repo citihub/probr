@@ -12,6 +12,7 @@ import (
 	"github.com/citihub/probr/service_packs/kubernetes"
 	"github.com/citihub/probr/service_packs/kubernetes/connection"
 	"github.com/citihub/probr/service_packs/kubernetes/constructors"
+	"github.com/citihub/probr/service_packs/kubernetes/errors"
 	"github.com/citihub/probr/utils"
 
 	apiv1 "k8s.io/api/core/v1"
@@ -80,6 +81,8 @@ func (scenario *scenarioState) podCreationSuccedsWithXSetToYInThePodSpec(key, va
 	securityContext := constructors.DefaultContainerSecurityContext()
 	podObject := constructors.PodSpec(Probe.Name(), config.Vars.ServicePacks.Kubernetes.ProbeNamespace, securityContext)
 
+	//TODO: Unit test that this always is true: len(podObject.Spec.Containers) > 0
+
 	if useValue {
 		stepTrace.WriteString(fmt.Sprintf("Set '%v' to '%v' in pod spec; ", key, value))
 		switch key {
@@ -101,11 +104,11 @@ func (scenario *scenarioState) podCreationSuccedsWithXSetToYInThePodSpec(key, va
 	}
 
 	payload = struct {
-		DesiredPod    *apiv1.Pod // TODO: Do we really need both desired and created here?
+		RequestedPod  *apiv1.Pod
 		CreatedPod    *apiv1.Pod
 		CreationError error
 	}{
-		DesiredPod:    podObject,
+		RequestedPod:  podObject,
 		CreatedPod:    createdPodObject,
 		CreationError: creationErr,
 	}
@@ -116,7 +119,69 @@ func (scenario *scenarioState) podCreationFailsWhenXIsSetToYDueToZ(key, value st
 	// TODO: Attempt to create a pod from a YAML spec
 	// with key/value parameters parsed into it
 	// and expect a failure with provided message
-	return nil
+
+	// And pod creation fails when "allowPrivilegeEscalation" is set to "true" in the pod spec due to "restrictions in requesting privileged access"
+
+	// Supported keys:
+	//    'allowPrivilegeEscalation'
+	//
+	// Supported values:
+	//    'true'
+	//    'false'
+	//    'not have a value provided'
+
+	var boolValue, useValue bool
+	stepTrace, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+	}()
+
+	if value != "not have a value provided" {
+		useValue = true
+		boolValue, err = strconv.ParseBool(value)
+		if err != nil {
+			return utils.ReformatError("Expected 'true' or 'false' but found '%s'", value) // No payload is necessary if an invalid value was provided
+		}
+	}
+
+	stepTrace.WriteString(fmt.Sprintf("Build a pod spec with default values; "))
+	securityContext := constructors.DefaultContainerSecurityContext()
+	podObject := constructors.PodSpec(Probe.Name(), config.Vars.ServicePacks.Kubernetes.ProbeNamespace, securityContext)
+
+	//TODO: Unit test that this always is true: len(podObject.Spec.Containers) > 0
+
+	if useValue {
+		stepTrace.WriteString(fmt.Sprintf("Set '%v' to '%v' in pod spec; ", key, value))
+		switch key {
+		case "allowPrivilegeEscalation":
+			podObject.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = &boolValue
+		default:
+			return utils.ReformatError("Unsupported key provided: %s", key) // No payload is necessary if an invalid key was provided
+		}
+	}
+
+	stepTrace.WriteString(fmt.Sprintf("Create pod from spec; "))
+	createdPodObject, creationErr := conn.CreatePodFromObject(podObject)
+
+	stepTrace.WriteString(fmt.Sprintf("Confirm pod creation failure; "))
+	if creationErr == nil {
+		err = utils.ReformatError("Pod creation was sucessful, while expecting error") //TODO: Reword this
+		scenario.probeAudit.CountPodCreated(createdPodObject.ObjectMeta.Name)
+	} else {
+		if !errors.IsStatusCode403(creationErr) { //Expected failure due to unauthorized error
+			err = utils.ReformatError("Unexpected error during Pod creation : %v", creationErr)
+		}
+	}
+
+	payload = struct {
+		RequestedPod  *apiv1.Pod
+		CreationError error
+	}{
+		RequestedPod:  podObject,
+		CreationError: creationErr,
+	}
+
+	return err
 }
 func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsSuccessful(permission string) error {
 	// permission = 'non-privileged' / 'privileged'
