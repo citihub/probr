@@ -167,53 +167,24 @@ func (scenario *scenarioState) theExecutionOfANonPrivilegedCommandInsideThePodIs
 		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	allowedCommand := "ls"
-
 	// Guard clause
-	stepTrace.WriteString(fmt.Sprintf("Check there are available pods from pevious step to execute command; "))
-	if !(len(scenario.pods) > 0) {
-		err = utils.ReformatError("No pods are available in scenario state. Please ensure at least one pod was created in previous step.")
+	if len(scenario.pods) == 0 {
+		err = utils.ReformatError("Pod failed to create in the previous step")
 		return err
 	}
 
-	podExecutions := make([]podExecution, 0)
+	// This command features only one pod
+	cmd := "sudo ls"
+	stepTrace.WriteString(fmt.Sprintf("Validate that '%s' can be run against the pod that was created in the previous step; ", cmd))
+	result := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
-	// Execute command in all pods
-	stepTrace.WriteString(fmt.Sprintf("Execute command in available pods; "))
-	for _, podName := range scenario.pods {
-
-		cmdExecResult := conn.ExecCommand(allowedCommand, scenario.namespace, podName)
-
-		// This is for loggin purpose in payload
-		podExecutions = append(podExecutions,
-			podExecution{
-				podName,
-				scenario.namespace,
-				allowedCommand,
-				cmdExecResult,
-			})
-		//log.Printf("Command result: %v", cmdExecResult)
-
-		// TODO: If we don't care about executing command in all available pods, we could check for error code here and return right away, see below
-		// For this payload will need to be populated before return
-		// if cmdExecResult.Code != 0 {
-		// 	return utils.ReformatError("Command execution failed")
-		// }
-	}
-
-	// TODO: Payload is nil! Need to fix this.
 	payload = struct {
-		podExecResult []podExecution
-	}{
-		podExecResult: podExecutions,
-	}
+		Result connection.CmdExecutionResult
+	}{Result: result}
 
-	for _, podExecResult := range podExecutions {
-		if podExecResult.cmdExecResult.Code != 0 {
-			return utils.ReformatError("Command execution failed in one of the pods")
-		}
+	if result.Code != 0 {
+		err = utils.ReformatError("Command execution failed: %s", result.Err)
 	}
-
 	return err
 }
 

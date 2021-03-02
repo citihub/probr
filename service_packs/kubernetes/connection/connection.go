@@ -41,9 +41,8 @@ type CmdExecutionResult struct {
 	Stdout string
 	Stderr string
 
-	Err      error
-	Code     int
-	Internal bool
+	Err  error
+	Code int
 }
 
 // KubernetesAPI should be used instead of Conn within probes to allow mocking during testing
@@ -214,24 +213,16 @@ func (connection *Conn) podStatus(podName, namespace string) (err error) {
 // ExecCommand executes the supplied command on the given pod name in the specified namespace.
 func (connection *Conn) ExecCommand(cmd string, ns string, pn string) (s CmdExecutionResult) {
 	if cmd == "" {
-		return CmdExecutionResult{Err: fmt.Errorf("command string is nil - nothing to execute"), Internal: true}
+		return CmdExecutionResult{Err: utils.ReformatError("Command string not provided to ExecCommand")}
 	}
+
 	log.Printf("[DEBUG] Executing command: \"%s\" on POD '%s' in namespace '%s'", cmd, pn, ns)
-
-	c := connection.clientSet
-
-	//c, err := k.GetClient()
-	// if err != nil {
-	// 	return &CmdExecutionResult{Err: err, Internal: true}
-	// }
-
-	req := c.CoreV1().RESTClient().Post().Resource("pods").
+	req := connection.clientSet.CoreV1().RESTClient().Post().Resource("pods").
 		Name(pn).Namespace(ns).SubResource("exec")
 
-	// TODO: Clarify what kind error this could be
 	scheme := runtime.NewScheme()
 	if err := apiv1.AddToScheme(scheme); err != nil {
-		return CmdExecutionResult{Err: fmt.Errorf("error adding to scheme: %v", err), Internal: true}
+		return CmdExecutionResult{Err: utils.ReformatError("Could not add to scheme: %v", err)}
 	}
 
 	parameterCodec := runtime.NewParameterCodec(scheme)
@@ -250,7 +241,7 @@ func (connection *Conn) ExecCommand(cmd string, ns string, pn string) (s CmdExec
 	config, err := clientcmd.BuildConfigFromFlags("", config.Vars.ServicePacks.Kubernetes.KubeConfigPath)
 	exec, err := remotecommand.NewSPDYExecutor(config, "POST", req.URL())
 	if err != nil {
-		return CmdExecutionResult{Err: fmt.Errorf("error while creating Executor: %v", err), Internal: true}
+		return CmdExecutionResult{Err: fmt.Errorf("error while creating Executor: %v", err)}
 	}
 
 	var stdout, stderr bytes.Buffer
@@ -268,7 +259,7 @@ func (connection *Conn) ExecCommand(cmd string, ns string, pn string) (s CmdExec
 			return CmdExecutionResult{Stdout: stdout.String(), Stderr: stderr.String(), Code: ce.Code, Err: fmt.Errorf("error raised on cmd execution: %v", err)}
 		}
 		// Internal error
-		return CmdExecutionResult{Stdout: stdout.String(), Stderr: stderr.String(), Err: fmt.Errorf("error in Stream: %v", err), Internal: true}
+		return CmdExecutionResult{Stdout: stdout.String(), Stderr: stderr.String(), Err: fmt.Errorf("error in Stream: %v", err)}
 	}
 
 	// Command executed without error
