@@ -121,11 +121,12 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 	stepTrace.WriteString(fmt.Sprintf("Validate pod creation %s; ", result))
 
 	// Leaving these checks verbose for clarity
-	if shouldCreate {
+	switch shouldCreate {
+	case true:
 		if creationErr != nil {
 			err = utils.ReformatError("Pod creation did not succeed: %v", creationErr)
 		}
-	} else if !shouldCreate {
+	case false:
 		if creationErr == nil {
 			err = utils.ReformatError("Pod creation succeeded, but should have failed")
 		} else {
@@ -204,15 +205,7 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^the execution of a "([^"]*)" command inside the Pod fails due to "([^"]*)"$`, scenario.theExecutionOfAXCommandInsideThePodFailsDueToY)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
-		if kubernetes.GetKeepPodsFromConfig() == false {
-			for _, podName := range scenario.pods {
-				err = conn.DeletePodIfExists(podName, scenario.namespace, probe.Name())
-				if err != nil {
-					log.Printf(fmt.Sprintf("[ERROR] Could not retrieve pod from namespace '%s' for deletion: %s", scenario.namespace, err))
-				}
-			}
-		}
-		coreengine.LogScenarioEnd(s)
+		afterScenario(scenario, probe, s, err)
 	})
 }
 
@@ -223,4 +216,16 @@ func beforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
 	s.pods = make([]string, 0)
 	s.namespace = config.Vars.ServicePacks.Kubernetes.ProbeNamespace
 	coreengine.LogScenarioStart(gs)
+}
+
+func afterScenario(scenario scenarioState, probe probeStruct, gs *godog.Scenario, err error) {
+	if kubernetes.GetKeepPodsFromConfig() == false {
+		for _, podName := range scenario.pods {
+			err = conn.DeletePodIfExists(podName, scenario.namespace, probe.Name())
+			if err != nil {
+				log.Printf(fmt.Sprintf("[ERROR] Could not retrieve pod from namespace '%s' for deletion: %s", scenario.namespace, err))
+			}
+		}
+	}
+	coreengine.LogScenarioEnd(gs)
 }
