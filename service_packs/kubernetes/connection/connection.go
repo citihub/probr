@@ -2,9 +2,11 @@
 package connection
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,10 +16,13 @@ import (
 	"github.com/citihub/probr/utils"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"k8s.io/client-go/tools/remotecommand"
+	executil "k8s.io/client-go/util/exec"
 )
 
 // Conn represents the k8s API connection.
@@ -29,11 +34,24 @@ type Conn struct {
 	clusterIsDeployed error
 }
 
+// CmdExecutionResult encapsulates the result from an exec call to the kubernetes cluster.
+// This includes 'stdout', 'stderr', 'exit code' and any error details in the case of a non-zero exit code.
+// 'Internal' is used to identify errors unrelated to command execution, e.g: connectivity issues.
+type CmdExecutionResult struct {
+	Stdout string
+	Stderr string
+
+	Err      error
+	Code     int
+	Internal bool
+}
+
 // KubernetesAPI should be used instead of Conn within probes to allow mocking during testing
 type KubernetesAPI interface {
 	ClusterIsDeployed() error
 	CreatePodFromObject(*apiv1.Pod, string) (*apiv1.Pod, error)
 	DeletePodIfExists(string, string, string) error
+	ExecCommand(command string, namespace string, podName string) CmdExecutionResult
 }
 
 var instance *Conn
@@ -70,6 +88,7 @@ func (connection *Conn) setClientConfig() {
 	vars := &config.Vars.ServicePacks.Kubernetes
 
 	configLoader := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+
 		&clientcmd.ClientConfigLoadingRules{ExplicitPath: vars.KubeConfigPath},
 		&clientcmd.ConfigOverrides{ClusterInfo: clientcmdapi.Cluster{Server: ""}})
 	rawConfig, _ := configLoader.RawConfig()
@@ -190,4 +209,68 @@ func (connection *Conn) podStatus(podName, namespace string) (err error) {
 
 	_, err = connection.clientSet.CoreV1().Pods(namespace).Get(ctx, podName, metav1.GetOptions{})
 	return
+}
+
+// ExecCommand executes the supplied command on the given pod name in the specified namespace.
+func (connection *Conn) ExecCommand(cmd string, ns string, pn string) (s CmdExecutionResult) {
+	if cmd == "" {
+		return CmdExecutionResult{Err: fmt.Errorf("command string is nil - nothing to execute"), Internal: true}
+	}
+	log.Printf("[DEBUG] Executing command: \"%s\" on POD '%s' in namespace '%s'", cmd, pn, ns)
+
+	c := connection.clientSet
+
+	//c, err := k.GetClient()
+	// if err != nil {
+	// 	return &CmdExecutionResult{Err: err, Internal: true}
+	// }
+
+	req := c.CoreV1().RESTClient().Post().Resource("pods").
+		Name(pn).Namespace(ns).SubResource("exec")
+
+	// TODO: Clarify what kind error this could be
+	scheme := runtime.NewScheme()
+	if err := apiv1.AddToScheme(scheme); err != nil {
+		return CmdExecutionResult{Err: fmt.Errorf("error adding to scheme: %v", err), Internal: true}
+	}
+
+	parameterCodec := runtime.NewParameterCodec(scheme)
+	options := apiv1.PodExecOptions{
+		Command: strings.Fields(cmd),
+		// Container: containerName, //specify if more than one container
+		Stdout: true,
+		Stderr: true,
+		TTY:    false,
+	}
+
+	req.VersionedParams(&options, parameterCodec)
+
+	log.Printf("[DEBUG] %s.%s: ExecCommand Request URL: %v", utils.CallerName(2), utils.CallerName(1), req.URL().String())
+
+	config, err := clientcmd.BuildConfigFromFlags("", config.Vars.ServicePacks.Kubernetes.KubeConfigPath)
+	exec, err := remotecommand.NewSPDYExecutor(config, "POST", req.URL())
+	if err != nil {
+		return CmdExecutionResult{Err: fmt.Errorf("error while creating Executor: %v", err), Internal: true}
+	}
+
+	var stdout, stderr bytes.Buffer
+	err = exec.Stream(remotecommand.StreamOptions{
+		Stdout: &stdout,
+		Stderr: &stderr,
+		Tty:    false,
+	})
+
+	//TODO: I think this is returning a false result - need to look at the stderr
+	if err != nil {
+		if ce, ok := err.(executil.CodeExitError); ok {
+			//the command has been executed on the container, but the underlying command raised an error
+			//this is an 'external' error and represents a successful communication with the cluster
+			return CmdExecutionResult{Stdout: stdout.String(), Stderr: stderr.String(), Code: ce.Code, Err: fmt.Errorf("error raised on cmd execution: %v", err)}
+		}
+		// Internal error
+		return CmdExecutionResult{Stdout: stdout.String(), Stderr: stderr.String(), Err: fmt.Errorf("error in Stream: %v", err), Internal: true}
+	}
+
+	// Command executed without error
+	return CmdExecutionResult{Stdout: stdout.String(), Stderr: stderr.String()}
 }

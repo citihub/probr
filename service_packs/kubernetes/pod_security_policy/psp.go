@@ -36,6 +36,14 @@ type scenarioState struct {
 // Probe meets the service pack interface for adding the logic from this file
 var Probe probeStruct
 
+// This is used to record payload during cmd execution steps
+type podExecution = struct {
+	podName       string
+	namespace     string
+	command       string
+	cmdExecResult connection.CmdExecutionResult
+}
+
 func (scenario *scenarioState) createPodfromObject(podObject *apiv1.Pod) (createdPodObject *apiv1.Pod, err error) {
 	createdPodObject, err = conn.CreatePodFromObject(podObject, Probe.Name())
 	if err == nil {
@@ -149,14 +157,67 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 	return err
 }
 
-func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsSuccessful(permission string) error {
-	// permission = 'non-privileged' / 'privileged'
-	// TODO: Attempt to execute a command on the pod in podStates
+func (scenario *scenarioState) theExecutionOfANonPrivilegedCommandInsideThePodIsSuccessful() error {
+	// Attempt to execute a command on the pod in podStates
 	// and expect an exit code of zero
-	return nil
+
+	// Standard auditing logic to ensures panics are also audited
+	stepTrace, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+	}()
+
+	allowedCommand := "blah"
+
+	// Guard clause
+	stepTrace.WriteString(fmt.Sprintf("Check there are available pods from pevious step to execute command; "))
+	if !(len(scenario.pods) > 0) {
+		err = utils.ReformatError("No pods are available in scenario state. Please ensure at least one pod was created in previous step.")
+		return err
+	}
+
+	podExecutions := make([]podExecution, 0)
+
+	// Execute command in all pods
+	stepTrace.WriteString(fmt.Sprintf("Execute command in available pods; "))
+	for _, podName := range scenario.pods {
+
+		cmdExecResult := conn.ExecCommand(allowedCommand, scenario.namespace, podName)
+
+		// This is for loggin purpose in payload
+		podExecutions = append(podExecutions,
+			podExecution{
+				podName,
+				scenario.namespace,
+				allowedCommand,
+				cmdExecResult,
+			})
+		//log.Printf("Command result: %v", cmdExecResult)
+
+		// TODO: If we don't care about executing command in all available pods, we could check for error code here and return right away, see below
+		// For this payload will need to be populated before return
+		// if cmdExecResult.Code != 0 {
+		// 	return utils.ReformatError("Command execution failed")
+		// }
+	}
+
+	// TODO: Payload is nil! Need to fix this.
+	payload = struct {
+		podExecResult []podExecution
+	}{
+		podExecResult: podExecutions,
+	}
+
+	for _, podExecResult := range podExecutions {
+		if podExecResult.cmdExecResult.Code != 0 {
+			return utils.ReformatError("Command execution failed in one of the pods")
+		}
+	}
+
+	return err
 }
 
-func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodFailsDueToY(permission, reason string) error {
+func (scenario *scenarioState) theExecutionOfAPrivilegedCommandInsideThePodFailsDueToY(permission, reason string) error {
 	// permission = 'non-privileged' / 'privileged'
 	// TODO: Attempt to execute a command on the pod in podStates
 	// and expect a non-zero exit code with an error that equates to the specified reason
@@ -201,8 +262,8 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	// Scenarios
 	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
 	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
-	ctx.Step(`^the execution of a "([^"]*)" command inside the Pod is successful$`, scenario.theExecutionOfAXCommandInsideThePodIsSuccessful)
-	ctx.Step(`^the execution of a "([^"]*)" command inside the Pod fails due to "([^"]*)"$`, scenario.theExecutionOfAXCommandInsideThePodFailsDueToY)
+	ctx.Step(`^the execution of a non-privileged command inside the Pod is successful$`, scenario.theExecutionOfANonPrivilegedCommandInsideThePodIsSuccessful)
+	ctx.Step(`^the execution of a privileged command inside the Pod fails due to "([^"]*)"$`, scenario.theExecutionOfAPrivilegedCommandInsideThePodFailsDueToY)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		afterScenario(scenario, probe, s, err)
