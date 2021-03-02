@@ -76,9 +76,9 @@ func (scenario *scenarioState) aKubernetesClusterIsDeployed() error {
 
 // Attempt to deploy a pod from a default pod spec, with specified modification
 func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result, key, value string) error {
-	// Possible Results:
-	// 'succeeds'
-	// 'fails'
+	// Supported results:
+	//     'succeeds'
+	//     'fails'
 	//
 	// Supported keys:
 	//    'allowPrivilegeEscalation'
@@ -160,11 +160,15 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 	return err
 }
 
-func (scenario *scenarioState) theExecutionOfANonPrivilegedCommandInsideThePodIsSuccessful() error {
-	// Attempt to execute a command on the pod in podStates
-	// and expect an exit code of zero
+func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission, result string) error {
+	// Supported permissions:
+	//     'non-privileged'
+	//     'privileged'
+	//
+	// Supported results:
+	//     successful
+	//     rejected
 
-	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
 		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
@@ -176,26 +180,38 @@ func (scenario *scenarioState) theExecutionOfANonPrivilegedCommandInsideThePodIs
 		return err
 	}
 
-	// This command features only one pod
-	cmd := "ls"
-	stepTrace.WriteString("Validate that an allowed can be run against the pod that was created in the previous step; ")
+	var cmd string
+	switch permission {
+	case "non-privileged":
+		cmd = "ls"
+	case "privileged":
+		cmd = "sudo ls"
+	}
+
+	var expectedExitCode int
+	switch result {
+	case "successful":
+		expectedExitCode = 0
+	case "rejected":
+		expectedExitCode = 126 // If a command is found but is not executable, the return status is 126
+	}
+	stepTrace.WriteString("Attempt to run a command in the pod that was created by the previous step; ")
 	exitCode, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
 	payload = struct {
-		Command  string
-		ExitCode int
+		Command          string
+		ExitCode         int
+		ExpectedExitCode int
 	}{
-		Command:  cmd,
-		ExitCode: exitCode,
+		Command:          cmd,
+		ExitCode:         exitCode,
+		ExpectedExitCode: expectedExitCode,
+	}
+
+	if exitCode == expectedExitCode {
+		err = nil
 	}
 	return err
-}
-
-func (scenario *scenarioState) theExecutionOfAPrivilegedCommandInsideThePodFailsDueToY(permission, reason string) error {
-	// permission = 'non-privileged' / 'privileged'
-	// TODO: Attempt to execute a command on the pod in podStates
-	// and expect a non-zero exit code with an error that equates to the specified reason
-	return nil
 }
 
 // Name presents the name of this probe for external reference
@@ -235,8 +251,7 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	// Scenarios
 	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
 	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
-	ctx.Step(`^the execution of a non-privileged command inside the Pod is successful$`, scenario.theExecutionOfANonPrivilegedCommandInsideThePodIsSuccessful)
-	ctx.Step(`^the execution of a privileged command inside the Pod fails due to "([^"]*)"$`, scenario.theExecutionOfAPrivilegedCommandInsideThePodFailsDueToY)
+	ctx.Step(`^the execution of a "([^"]*)" command inside the Pod is "([^"]*)"$`, scenario.theExecutionOfAXCommandInsideThePodIsY)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		afterScenario(scenario, probe, s, err)
