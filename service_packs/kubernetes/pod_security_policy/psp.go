@@ -167,7 +167,7 @@ func (scenario *scenarioState) theExecutionOfANonPrivilegedCommandInsideThePodIs
 		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	allowedCommand := "blah"
+	allowedCommand := "ls"
 
 	// Guard clause
 	stepTrace.WriteString(fmt.Sprintf("Check there are available pods from pevious step to execute command; "))
