@@ -40,4 +40,4 @@ Feature: Maximise security through Pod Security Policies
         Examples:
             | VALUE                     |
             | not have a value provided |
-            | false                      |
+            | false                     |
