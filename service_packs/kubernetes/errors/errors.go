@@ -27,3 +27,20 @@ func IsStatusCode(expected int32, err error) bool {
 	}
 	return false
 }
+
+// PodCreationErrors gives a list of known pod creation errors
+func PodCreationErrors() []string {
+	return []string{"podcreation-error: undefined",
+		"podcreation-error: psp-container-no-privilege",
+		"podcreation-error: psp-container-no-privilege-escalation",
+		"podcreation-error: psp-allowed-users-groups",
+		"podcreation-error: psp-container-allowed-images",
+		"podcreation-error: psp-host-namespace",
+		"podcreation-error: psp-host-network",
+		"podcreation-error: psp-allowed-capabilities",
+		"podcreation-error: psp-allowed-portrange",
+		"podcreation-error: psp-allowed-volume-types-profile",
+		"podcreation-error: psp-allowed-seccomp-profile",
+		"podcreation-error: image-pull-error",
+		"podcreation-error: blocked"}
+}

@@ -50,7 +50,7 @@ type KubernetesAPI interface {
 	ClusterIsDeployed() error
 	CreatePodFromObject(*apiv1.Pod, string) (*apiv1.Pod, error)
 	DeletePodIfExists(string, string, string) error
-	ExecCommand(command string, namespace string, podName string) CmdExecutionResult
+	ExecCommand(command string, namespace string, podName string) (int, error)
 }
 
 var instance *Conn
@@ -211,18 +211,21 @@ func (connection *Conn) podStatus(podName, namespace string) (err error) {
 }
 
 // ExecCommand executes the supplied command on the given pod name in the specified namespace.
-func (connection *Conn) ExecCommand(cmd string, ns string, pn string) (s CmdExecutionResult) {
+func (connection *Conn) ExecCommand(cmd string, namespace string, podName string) (status int, err error) {
 	if cmd == "" {
-		return CmdExecutionResult{Err: utils.ReformatError("Command string not provided to ExecCommand")}
+		err = utils.ReformatError("Command string not provided to ExecCommand")
+		return
 	}
+	connection.waitForPod(namespace, podName)
 
-	log.Printf("[DEBUG] Executing command: \"%s\" on POD '%s' in namespace '%s'", cmd, pn, ns)
-	req := connection.clientSet.CoreV1().RESTClient().Post().Resource("pods").
-		Name(pn).Namespace(ns).SubResource("exec")
+	log.Printf("[DEBUG] Executing command: \"%s\" on POD '%s' in namespace '%s'", cmd, podName, namespace)
+	request := connection.clientSet.CoreV1().RESTClient().Post().Resource("pods").
+		Name(podName).Namespace(namespace).SubResource("exec")
 
 	scheme := runtime.NewScheme()
-	if err := apiv1.AddToScheme(scheme); err != nil {
-		return CmdExecutionResult{Err: utils.ReformatError("Could not add to scheme: %v", err)}
+	if err = apiv1.AddToScheme(scheme); err != nil {
+		err = utils.ReformatError("Could not add to scheme: %v", err)
+		return
 	}
 
 	parameterCodec := runtime.NewParameterCodec(scheme)
@@ -234,14 +237,14 @@ func (connection *Conn) ExecCommand(cmd string, ns string, pn string) (s CmdExec
 		TTY:    false,
 	}
 
-	req.VersionedParams(&options, parameterCodec)
+	request.VersionedParams(&options, parameterCodec)
 
-	log.Printf("[DEBUG] %s.%s: ExecCommand Request URL: %v", utils.CallerName(2), utils.CallerName(1), req.URL().String())
-
+	log.Printf("[DEBUG] %s.%s: ExecCommand Request URL: %v", utils.CallerName(2), utils.CallerName(1), request.URL().String())
 	config, err := clientcmd.BuildConfigFromFlags("", config.Vars.ServicePacks.Kubernetes.KubeConfigPath)
-	exec, err := remotecommand.NewSPDYExecutor(config, "POST", req.URL())
+	exec, err := remotecommand.NewSPDYExecutor(config, "POST", request.URL())
 	if err != nil {
-		return CmdExecutionResult{Err: fmt.Errorf("error while creating Executor: %v", err)}
+		err = utils.ReformatError("Failed to create Executor: %v", err)
+		return
 	}
 
 	var stdout, stderr bytes.Buffer
@@ -251,17 +254,77 @@ func (connection *Conn) ExecCommand(cmd string, ns string, pn string) (s CmdExec
 		Tty:    false,
 	})
 
-	//TODO: I think this is returning a false result - need to look at the stderr
 	if err != nil {
-		if ce, ok := err.(executil.CodeExitError); ok {
+		if exit, ok := err.(executil.CodeExitError); ok {
 			//the command has been executed on the container, but the underlying command raised an error
 			//this is an 'external' error and represents a successful communication with the cluster
-			return CmdExecutionResult{Stdout: stdout.String(), Stderr: stderr.String(), Code: ce.Code, Err: fmt.Errorf("error raised on cmd execution: %v", err)}
+			err = utils.ReformatError(fmt.Sprintf("%s [%s] [%s]", err, stdout.String(), stderr.String()))
+			status = exit.Code
+			return
 		}
 		// Internal error
-		return CmdExecutionResult{Stdout: stdout.String(), Stderr: stderr.String(), Err: fmt.Errorf("error in Stream: %v", err)}
+		err = utils.ReformatError("Issue in Stream: %v", err)
+	}
+	return
+}
+
+// WaitForPod ensures pod has entered a running state, or returns any error encountered
+func (connection *Conn) waitForPod(namespace string, podName string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+
+	ps := connection.clientSet.CoreV1().Pods(namespace)
+	w, err := ps.Watch(ctx, metav1.ListOptions{})
+
+	if err != nil {
+		return err
 	}
 
-	// Command executed without error
-	return CmdExecutionResult{Stdout: stdout.String(), Stderr: stderr.String()}
+	log.Printf("[INFO] *** Waiting for pod: %s", podName)
+	for e := range w.ResultChan() {
+		log.Printf("[DEBUG] Watch Probe Type: %v", e.Type)
+		pod, ok := e.Object.(*apiv1.Pod)
+		if !ok {
+			log.Printf("[WARN] Unexpected Watch Probe Type - skipping")
+			if ctx.Err() != nil {
+				log.Printf("[WARN] Context error received while waiting on pod %v. Error: %v", podName, ctx.Err())
+				return ctx.Err()
+			}
+			continue
+		}
+		if pod.GetName() != podName {
+			continue
+		}
+
+		log.Printf("[INFO] Pod %v Phase: %v", pod.GetName(), pod.Status.Phase)
+		for _, con := range pod.Status.ContainerStatuses {
+			log.Printf("[DEBUG] Container Status: %+v", con)
+		}
+
+		err := connection.podInErrorState(pod)
+		if err != nil {
+			return err
+		}
+
+		if pod.Status.Phase == apiv1.PodRunning {
+			break
+		}
+
+	}
+	return nil
+}
+
+func (connection *Conn) podInErrorState(p *apiv1.Pod) error {
+	if len(p.Status.ContainerStatuses) > 0 {
+		if p.Status.ContainerStatuses[0].State.Waiting != nil {
+			podName := p.GetObjectMeta().GetName()
+			waitReason := p.Status.ContainerStatuses[0].State.Waiting.Reason
+			log.Printf("[DEBUG] Pod: %v Waiting reason: %v", podName, waitReason)
+
+			if strings.Contains(waitReason, "error") {
+				return utils.ReformatError("Pod '%s' is in an error state: %v", podName, waitReason)
+			}
+		}
+	}
+	return nil
 }

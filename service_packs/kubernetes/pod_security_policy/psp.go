@@ -31,10 +31,12 @@ type scenarioState struct {
 	probeAudit *audit.Probe
 	audit      *audit.ScenarioAudit
 	pods       []string
+	given      bool
 }
 
 // Probe meets the service pack interface for adding the logic from this file
 var Probe probeStruct
+var scenario scenarioState
 
 // This is used to record payload during cmd execution steps
 type podExecution = struct {
@@ -68,7 +70,8 @@ func (scenario *scenarioState) aKubernetesClusterIsDeployed() error {
 		config.Vars.ServicePacks.Kubernetes.KubeContext,
 	}
 
-	return conn.ClusterIsDeployed()
+	err = conn.ClusterIsDeployed() // Must be assigned to 'err' be audited
+	return err
 }
 
 // Attempt to deploy a pod from a default pod spec, with specified modification
@@ -174,16 +177,16 @@ func (scenario *scenarioState) theExecutionOfANonPrivilegedCommandInsideThePodIs
 	}
 
 	// This command features only one pod
-	cmd := "sudo ls"
-	stepTrace.WriteString(fmt.Sprintf("Validate that '%s' can be run against the pod that was created in the previous step; ", cmd))
-	result := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
+	cmd := "ls"
+	stepTrace.WriteString("Validate that an allowed can be run against the pod that was created in the previous step; ")
+	exitCode, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
 	payload = struct {
-		Result connection.CmdExecutionResult
-	}{Result: result}
-
-	if result.Code != 0 {
-		err = utils.ReformatError("Command execution failed: %s", result.Err)
+		Command  string
+		ExitCode int
+	}{
+		Command:  cmd,
+		ExitCode: exitCode,
 	}
 	return err
 }
@@ -221,7 +224,6 @@ func (probe probeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
 // a step / function defined.  See: https://github.com/cucumber/godog#example.
 func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
-	scenario := scenarioState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
 		beforeScenario(&scenario, probe.Name(), s)
