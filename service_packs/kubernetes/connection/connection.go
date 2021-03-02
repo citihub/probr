@@ -138,7 +138,7 @@ func (connection *Conn) GetOrCreateNamespace(namespace string) (*apiv1.Namespace
 		ctx, &namespaceObject, metav1.CreateOptions{})
 
 	if err != nil {
-		if errors.IsStatusCode409(err) {
+		if errors.IsStatusCode(409, err) {
 			log.Printf("[INFO] Namespace %v already exists. Returning existing.", namespace)
 			//return it and nil out the err
 			return createdNamespace, nil

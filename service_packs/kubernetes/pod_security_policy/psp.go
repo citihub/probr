@@ -141,7 +141,7 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 		if creationErr == nil {
 			err = utils.ReformatError("Pod creation succeeded, but should have failed")
 		} else {
-			if !errors.IsStatusCode403(creationErr) {
+			if !errors.IsStatusCode(403, creationErr) {
 				err = utils.ReformatError("Unexpected error during Pod creation : %v", creationErr)
 			}
 		}
