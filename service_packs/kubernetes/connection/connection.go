@@ -35,9 +35,9 @@ type Conn struct {
 // Connection should be used instead of Conn within probes to allow mocking during testing
 type Connection interface {
 	ClusterIsDeployed() error
-	CreatePodFromObject(*apiv1.Pod, string) (*apiv1.Pod, error)
-	DeletePodIfExists(string, string, string) error
-	ExecCommand(command string, namespace string, podName string) (int, error)
+	CreatePodFromObject(pod *apiv1.Pod, probeName string) (*apiv1.Pod, error)
+	DeletePodIfExists(podName, namespace, probeName string) error
+	ExecCommand(command, namespace, podName string) (int, error)
 }
 
 var instance *Conn
@@ -108,35 +108,31 @@ func (connection *Conn) CreatePodFromObject(pod *apiv1.Pod, probeName string) (*
 
 	c := connection.clientSet
 
-	podsMgr := c.CoreV1().Pods(namespace) //TODO: Rename this obj to something more meaningful
+	podsClient := c.CoreV1().Pods(namespace)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	res, err := podsMgr.Create(ctx, pod, metav1.CreateOptions{})
+	res, err := podsClient.Create(ctx, pod, metav1.CreateOptions{})
 	if err != nil {
 		log.Printf("[INFO] Attempt to create pod '%v' failed with error: '%v'", podName, err)
 	} else {
 		log.Printf("[INFO] Attempt to create pod '%v' succeeded", podName)
 		audit.State.GetProbeLog(probeName).CountPodCreated(podName)
 	}
-
-	// TODO: We are not waiting for PodState to be running here, like it is done in kube object. TBD.
-	// 		To test this, we need to force a pod to stay in Pending state and check error.
-
 	return res, err
 }
 
 // DeletePodIfExists deletes the given pod in the specified namespace.
 func (connection *Conn) DeletePodIfExists(podName, namespace, probeName string) error {
 	clientSet, _ := kubernetes.NewForConfig(connection.clientConfig)
-	podsMgr := clientSet.CoreV1().Pods(namespace)
+	podsClient := clientSet.CoreV1().Pods(namespace)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	log.Printf("[DEBUG] Attempting to delete pod: %s", podName)
 
-	err := podsMgr.Delete(ctx, podName, metav1.DeleteOptions{})
+	err := podsClient.Delete(ctx, podName, metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}
@@ -146,7 +142,7 @@ func (connection *Conn) DeletePodIfExists(podName, namespace, probeName string) 
 }
 
 // ExecCommand executes the supplied command on the given pod name in the specified namespace.
-func (connection *Conn) ExecCommand(cmd string, namespace string, podName string) (status int, err error) {
+func (connection *Conn) ExecCommand(cmd, namespace, podName string) (status int, err error) {
 	status = -1
 	if cmd == "" {
 		err = utils.ReformatError("Command string not provided to ExecCommand")
@@ -246,14 +242,6 @@ func (connection *Conn) modifyContext(rawConfig clientcmdapi.Config, context str
 	if err != nil {
 		connection.clusterIsDeployed = utils.ReformatError("Failed to modify context in kubeconfig: %v", context)
 	}
-}
-
-func (connection *Conn) podStatus(podName, namespace string) (err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	_, err = connection.clientSet.CoreV1().Pods(namespace).Get(ctx, podName, metav1.GetOptions{})
-	return
 }
 
 // waitForPod ensures pod has entered a running state, or returns any error encountered
