@@ -56,13 +56,27 @@ func TestPodSpec(t *testing.T) {
 		{
 			name: "Pod's security context is always the default security context",
 			args: args{
-				baseName:                 "pod1",
-				namespace:                "pod1",
+				baseName:                 "pod",
+				namespace:                "pod",
 				containerSecurityContext: nil,
 			},
 			want: func(gotPod *apiv1.Pod, args args, t *testing.T) {
 				if !reflect.DeepEqual(gotPod.Spec.SecurityContext, DefaultPodSecurityContext()) {
 					t.Errorf("PodSpec() should set the pod's security context using DefaultPodSecurityContext()")
+				}
+			},
+		},
+		{
+			name: "Pod has at least one container",
+			args: args{
+				baseName:                 "pod1",
+				namespace:                "pod1",
+				containerSecurityContext: nil,
+			},
+			want: func(gotPod *apiv1.Pod, want args, t *testing.T) {
+				gotContainers := gotPod.Spec.Containers
+				if !(len(gotContainers) > 0) {
+					t.Error("PodSpec() did not create a container object, but wanted at least one")
 				}
 			},
 		},
