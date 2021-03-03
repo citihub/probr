@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/citihub/probr/config"
+	"github.com/citihub/probr/utils"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -29,7 +30,7 @@ func PodSpec(baseName string, namespace string, containerSecurityContext *apiv1.
 			Name:      podName,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"app": "demo",
+				"app": "probr-probe",
 			},
 			Annotations: annotations,
 		},
@@ -53,33 +54,28 @@ func PodSpec(baseName string, namespace string, containerSecurityContext *apiv1.
 
 // DefaultContainerSecurityContext returns an SC with the drop capabilities specified in config vars
 func DefaultContainerSecurityContext() *apiv1.SecurityContext {
-	capabilities := apiv1.Capabilities{
-		Drop: GetContainerDropCapabilitiesFromConfig(),
-	}
-
-	falsey := false
 	return &apiv1.SecurityContext{
-		Privileged:               &falsey,
-		AllowPrivilegeEscalation: &falsey,
-		Capabilities:             &capabilities,
+		Privileged:               utils.BoolPtr(false),
+		AllowPrivilegeEscalation: utils.BoolPtr(false),
+		Capabilities: &apiv1.Capabilities{
+			Drop: GetContainerDropCapabilitiesFromConfig(),
+		},
 	}
 }
 
 // DefaultPodSecurityContext returns a basic PSC
 func DefaultPodSecurityContext() *apiv1.PodSecurityContext {
-	var user, group, fsgroup int64
-	user, group, fsgroup = 1000, 3000, 2000
-
 	return &apiv1.PodSecurityContext{
-		RunAsUser:          &user,
-		RunAsGroup:         &group,
-		FSGroup:            &fsgroup,
+		RunAsUser:          utils.Int64Ptr(1000),
+		FSGroup:            utils.Int64Ptr(2000),
+		RunAsGroup:         utils.Int64Ptr(3000),
 		SupplementalGroups: []int64{1},
 	}
 }
 
 // DefaultProbrImageName joins the registry and image name specified in config vars
 func DefaultProbrImageName() string {
+	// Service pack will not start without these vars, so we can rely on them being present
 	return fmt.Sprintf(
 		"%s/%s",
 		config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry,
