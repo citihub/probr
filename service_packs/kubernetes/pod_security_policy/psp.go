@@ -158,8 +158,8 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 	//     'privileged'
 	//
 	// Supported results:
-	//     successful
-	//     rejected
+	//     'successful'
+	//     'rejected'
 
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
@@ -186,6 +186,7 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 		expectedExitCode = 0
 	case "rejected":
 		expectedExitCode = 126 // If a command is found but is not executable, the return status is 126
+		// Known issue: we can't guarantee that the 126 recieved by kubectl isn't a masked 127
 	}
 	stepTrace.WriteString("Attempt to run a command in the pod that was created by the previous step; ")
 	exitCode, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
