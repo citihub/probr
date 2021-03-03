@@ -22,7 +22,7 @@ import (
 type probeStruct struct {
 }
 
-var conn connection.KubernetesAPI
+var conn connection.Connection
 
 // scenarioState holds the steps and state for any scenario in this probe
 type scenarioState struct {
@@ -37,14 +37,6 @@ type scenarioState struct {
 // Probe meets the service pack interface for adding the logic from this file
 var Probe probeStruct
 var scenario scenarioState
-
-// This is used to record payload during cmd execution steps
-type podExecution = struct {
-	podName       string
-	namespace     string
-	command       string
-	cmdExecResult connection.CmdExecutionResult
-}
 
 func (scenario *scenarioState) createPodfromObject(podObject *apiv1.Pod) (createdPodObject *apiv1.Pod, err error) {
 	createdPodObject, err = conn.CreatePodFromObject(podObject, Probe.Name())

@@ -14,17 +14,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func uniquePodName(baseName string) string {
-	//take base and add some uniqueness
-	t := time.Now()
-	rand.Seed(t.UnixNano())
-	uniq := fmt.Sprintf("%v-%v", t.Format("020106-150405"), rand.Intn(100))
-
-	return fmt.Sprintf("%v-%v", baseName, uniq)
-}
-
 // PodSpec constructs a simple pod object
-func PodSpec(baseName string, namespace string, securityContext *apiv1.SecurityContext) *apiv1.Pod {
+func PodSpec(baseName string, namespace string, containerSecurityContext *apiv1.SecurityContext) *apiv1.Pod {
 	name := strings.Replace(baseName, "_", "-", -1)
 	podName := uniquePodName(name)
 	containerName := fmt.Sprintf("%s-probe-pod", name)
@@ -53,7 +44,7 @@ func PodSpec(baseName string, namespace string, securityContext *apiv1.SecurityC
 						"sleep",
 						"3600",
 					},
-					SecurityContext: securityContext,
+					SecurityContext: containerSecurityContext,
 				},
 			},
 		},
@@ -111,4 +102,13 @@ func CapabilityObjectList(capList []string) []apiv1.Capability {
 	}
 
 	return capabilities
+}
+
+func uniquePodName(baseName string) string {
+	//take base and add some uniqueness
+	t := time.Now()
+	rand.Seed(t.UnixNano())
+	uniq := fmt.Sprintf("%v-%v", t.Format("020106-150405"), rand.Intn(100))
+
+	return fmt.Sprintf("%v-%v", baseName, uniq)
 }

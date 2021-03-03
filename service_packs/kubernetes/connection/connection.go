@@ -25,28 +25,15 @@ import (
 	executil "k8s.io/client-go/util/exec"
 )
 
-// Conn represents the k8s API connection.
+// Conn simplifies the kubernetes API connection
 type Conn struct {
-	// clientSet is private in order to restrict probes from implementing client-go logic directly
-	clientSet    *kubernetes.Clientset
-	clientConfig *rest.Config
-	// clientMutex       sync.Mutex
+	clientSet         *kubernetes.Clientset
+	clientConfig      *rest.Config
 	clusterIsDeployed error
 }
 
-// CmdExecutionResult encapsulates the result from an exec call to the kubernetes cluster.
-// This includes 'stdout', 'stderr', 'exit code' and any error details in the case of a non-zero exit code.
-// 'Internal' is used to identify errors unrelated to command execution, e.g: connectivity issues.
-type CmdExecutionResult struct {
-	Stdout string
-	Stderr string
-
-	Err  error
-	Code int
-}
-
-// KubernetesAPI should be used instead of Conn within probes to allow mocking during testing
-type KubernetesAPI interface {
+// Connection should be used instead of Conn within probes to allow mocking during testing
+type Connection interface {
 	ClusterIsDeployed() error
 	CreatePodFromObject(*apiv1.Pod, string) (*apiv1.Pod, error)
 	DeletePodIfExists(string, string, string) error
@@ -56,7 +43,7 @@ type KubernetesAPI interface {
 var instance *Conn
 var once sync.Once
 
-// Get ...
+// Get retrieves the connection object. Instantiates the connection if necessary
 func Get() *Conn {
 	once.Do(func() {
 		instance = &Conn{}
@@ -67,7 +54,7 @@ func Get() *Conn {
 	return instance
 }
 
-// ClusterIsDeployed verifies a cluster using the privided kubernetes config and context.
+// ClusterIsDeployed verifies that the connection instantiation did not report a failure at any point
 func (connection *Conn) ClusterIsDeployed() error {
 	return connection.clusterIsDeployed
 }
@@ -77,50 +64,6 @@ func (connection *Conn) setClientSet() {
 	connection.clientSet, err = kubernetes.NewForConfig(connection.clientConfig)
 	if err != nil {
 		connection.clusterIsDeployed = utils.ReformatError("Failed to create Kubernetes client set: %v", err)
-	}
-}
-
-func (connection *Conn) setClientConfig() {
-	// Adapted from clientcmd.BuildConfigFromFlags:
-	// https://github.com/kubernetes/client-go/blob/5ab99756f65dbf324e5adf9bd020a20a024bad85/tools/clientcmd/client_config.go#L606
-	var err error
-	vars := &config.Vars.ServicePacks.Kubernetes
-
-	configLoader := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-
-		&clientcmd.ClientConfigLoadingRules{ExplicitPath: vars.KubeConfigPath},
-		&clientcmd.ConfigOverrides{ClusterInfo: clientcmdapi.Cluster{Server: ""}})
-	rawConfig, _ := configLoader.RawConfig()
-
-	if vars.KubeContext == "" {
-		log.Printf("[INFO] Initializing client with default context")
-	} else {
-		log.Printf("[INFO] Initializing client with context specified in config vars: %v", vars.KubeContext)
-		connection.modifyContext(rawConfig, vars.KubeContext)
-	}
-
-	connection.clientConfig, err = configLoader.ClientConfig()
-	if err != nil {
-		connection.clusterIsDeployed = utils.ReformatError("Failed to retrieve rest client config to validate cluster: %v", err)
-	}
-}
-
-func (connection *Conn) bootstrapDefaultNamespace() {
-	_, err := connection.GetOrCreateNamespace(config.Vars.ServicePacks.Kubernetes.ProbeNamespace)
-	if err != nil {
-		connection.clusterIsDeployed = utils.ReformatError("Failed to retrieve or create default Probr namespace: %v", err)
-	}
-}
-
-func (connection *Conn) modifyContext(rawConfig clientcmdapi.Config, context string) {
-	log.Printf("[DEBUG] Modifying Kubernetes context based on Probr config vars")
-	if rawConfig.Contexts[context] == nil {
-		connection.clusterIsDeployed = utils.ReformatError("Required context does not exist in provided kubeconfig: %v", context)
-	}
-	rawConfig.CurrentContext = context
-	err := clientcmd.ModifyConfig(clientcmd.NewDefaultPathOptions(), rawConfig, true)
-	if err != nil {
-		connection.clusterIsDeployed = utils.ReformatError("Failed to modify context in kubeconfig: %v", context)
 	}
 }
 
@@ -202,14 +145,6 @@ func (connection *Conn) DeletePodIfExists(podName, namespace, probeName string) 
 	return nil
 }
 
-func (connection *Conn) podStatus(podName, namespace string) (err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	_, err = connection.clientSet.CoreV1().Pods(namespace).Get(ctx, podName, metav1.GetOptions{})
-	return
-}
-
 // ExecCommand executes the supplied command on the given pod name in the specified namespace.
 func (connection *Conn) ExecCommand(cmd string, namespace string, podName string) (status int, err error) {
 	if cmd == "" {
@@ -231,10 +166,10 @@ func (connection *Conn) ExecCommand(cmd string, namespace string, podName string
 	parameterCodec := runtime.NewParameterCodec(scheme)
 	options := apiv1.PodExecOptions{
 		Command: strings.Fields(cmd),
-		// Container: containerName, //specify if more than one container
-		Stdout: true,
-		Stderr: true,
-		TTY:    false,
+		Stdout:  true,
+		Stderr:  true,
+		TTY:     false,
+		// 'Container:' is required if more than one container exists
 	}
 
 	request.VersionedParams(&options, parameterCodec)
@@ -268,7 +203,59 @@ func (connection *Conn) ExecCommand(cmd string, namespace string, podName string
 	return
 }
 
-// WaitForPod ensures pod has entered a running state, or returns any error encountered
+func (connection *Conn) setClientConfig() {
+	// Adapted from clientcmd.BuildConfigFromFlags:
+	// https://github.com/kubernetes/client-go/blob/5ab99756f65dbf324e5adf9bd020a20a024bad85/tools/clientcmd/client_config.go#L606
+	var err error
+	vars := &config.Vars.ServicePacks.Kubernetes
+
+	configLoader := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: vars.KubeConfigPath},
+		&clientcmd.ConfigOverrides{ClusterInfo: clientcmdapi.Cluster{Server: ""}})
+	rawConfig, _ := configLoader.RawConfig()
+
+	if vars.KubeContext == "" {
+		log.Printf("[INFO] Initializing client with default context")
+	} else {
+		log.Printf("[INFO] Initializing client with context specified in config vars: %v", vars.KubeContext)
+		connection.modifyContext(rawConfig, vars.KubeContext)
+	}
+
+	connection.clientConfig, err = configLoader.ClientConfig()
+	if err != nil {
+		connection.clusterIsDeployed = utils.ReformatError("Failed to retrieve rest client config to validate cluster: %v", err)
+	}
+}
+
+func (connection *Conn) bootstrapDefaultNamespace() {
+	_, err := connection.GetOrCreateNamespace(config.Vars.ServicePacks.Kubernetes.ProbeNamespace)
+	if err != nil {
+		connection.clusterIsDeployed = utils.ReformatError("Failed to retrieve or create default Probr namespace: %v", err)
+	}
+}
+
+func (connection *Conn) modifyContext(rawConfig clientcmdapi.Config, context string) {
+	log.Printf("[DEBUG] Modifying Kubernetes context based on Probr config vars")
+	if rawConfig.Contexts[context] == nil {
+		connection.clusterIsDeployed = utils.ReformatError("Required context does not exist in provided kubeconfig: %v", context)
+	}
+	rawConfig.CurrentContext = context
+	err := clientcmd.ModifyConfig(clientcmd.NewDefaultPathOptions(), rawConfig, true)
+	if err != nil {
+		connection.clusterIsDeployed = utils.ReformatError("Failed to modify context in kubeconfig: %v", context)
+	}
+}
+
+func (connection *Conn) podStatus(podName, namespace string) (err error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err = connection.clientSet.CoreV1().Pods(namespace).Get(ctx, podName, metav1.GetOptions{})
+	return
+}
+
+// waitForPod ensures pod has entered a running state, or returns any error encountered
 func (connection *Conn) waitForPod(namespace string, podName string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
