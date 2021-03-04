@@ -26,28 +26,17 @@ var conn connection.Connection
 
 // scenarioState holds the steps and state for any scenario in this probe
 type scenarioState struct {
-	name             string
-	namespace        string
-	audit            *audit.ScenarioAudit
-	probe            *audit.Probe
-	podState         kubernetes.PodState // TODO: Remove?
-	pods             []string
-	podCreationError error
+	name        string
+	currentStep string
+	namespace   string
+	audit       *audit.ScenarioAudit
+	probe       *audit.Probe
+	pods        []string
 }
 
 // Probe meets the service pack interface for adding the logic from this file
 var Probe probeStruct
 var scenario scenarioState
-
-// ContainerRegistryAccess is the section of the kubernetes package which provides the kubernetes interactions required to support
-// container registry scenarios.
-var cra ContainerRegistryAccess //TODO: Remove?
-
-//TODO: Remove?
-// SetContainerRegistryAccess allows injection of ContainerRegistryAccess helper.
-func SetContainerRegistryAccess(c ContainerRegistryAccess) {
-	cra = c
-}
 
 func (scenario *scenarioState) aKubernetesClusterIsDeployed() error {
 	// Standard auditing logic to ensures panics are also audited
@@ -69,34 +58,14 @@ func (scenario *scenarioState) aKubernetesClusterIsDeployed() error {
 	return err
 }
 
-// // CIS-6.1.3
-// // Minimize cluster access to read-only
-// func (s *scenarioState) iAmAuthorisedToPullFromAContainerRegistry() error {
-// 	// Standard auditing logic to ensures panics are also audited
-// 	stepTrace, payload, err := utils.AuditPlaceholders()
-// 	defer func() {
-// 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
-// 	}()
+func (scenario *scenarioState) podCreationXWithContainerImageFromYRegistry(expectedResult, registryAccess string) error {
+	// Supported values for 'expectedResult':
+	//	'succeeds'
+	//	'is denied'
 
-// 	// TODO: We are assuming too much here- if the image successfully pulls but fails to build, this will still fail
-// 	pod, podAudit, err := cra.SetupContainerAccessProbePod(config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry, s.probe)
-// 	err = kubernetes.ProcessPodCreationResult(&s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
-
-// 	stepTrace.WriteString("Attempted to create a new pod using an image pulled from authorized registry; ")
-// 	payload = struct {
-// 		AuthorizedRegistry string
-// 		PodAudit           *kubernetes.PodAudit
-// 	}{
-// 		AuthorizedRegistry: config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry,
-// 		PodAudit:           podAudit,
-// 	}
-// 	return err
-// }
-
-func (scenario *scenarioState) aUserAttemptsToDeployAContainerFromAn_X_Registry(accessLevel string) error {
-	// Supported values for 'accessLevel':
-	//    'authorized'
-	//    'unauthorized'
+	// Supported values for 'registryAccess':
+	//	'authorized'
+	//  'unauthorized'
 
 	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
@@ -104,20 +73,31 @@ func (scenario *scenarioState) aUserAttemptsToDeployAContainerFromAn_X_Registry(
 		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
 	}()
 
-	var isRegistryAuthorized bool
-
+	var shouldCreatePod bool
 	// Validate input values
-	switch accessLevel {
+	switch expectedResult {
+	case "succeeds":
+		shouldCreatePod = true
+	case "is denied":
+		shouldCreatePod = false
+	default:
+		err = utils.ReformatError("Unexpected value provided for expectedResult: '%s' Expected values: ['succeeds', 'is denied']", expectedResult)
+		return err
+	}
+
+	var isRegistryAuthorized bool
+	// Validate input values
+	switch registryAccess {
 	case "authorized":
 		isRegistryAuthorized = true
 	case "unauthorized":
 		isRegistryAuthorized = false
 	default:
-		err = utils.ReformatError("Unexpected value provided for accessLevel: '%s' Expected values: ['authorized', 'unauthorized']", accessLevel) // No payload is necessary if an invalid value was provided
+		err = utils.ReformatError("Unexpected value provided for registryAccess: '%s' Expected values: ['authorized', 'unauthorized']", registryAccess)
 		return err
 	}
 
-	stepTrace.WriteString(fmt.Sprintf("Get appropriate container image from an '%s' registry ; ", accessLevel))
+	stepTrace.WriteString(fmt.Sprintf("Get appropriate container image from an '%s' registry; ", registryAccess))
 	imageRegistry := getImageFromConfig(isRegistryAuthorized)
 
 	stepTrace.WriteString(fmt.Sprintf("Build a pod spec with default values; "))
@@ -127,167 +107,65 @@ func (scenario *scenarioState) aUserAttemptsToDeployAContainerFromAn_X_Registry(
 	stepTrace.WriteString(fmt.Sprintf("Set container image registry to appropriate value in pod spec; "))
 	podObject.Spec.Containers[0].Image = imageRegistry
 
+	// TODO: We are assuming too much here- if the image successfully pulls but fails to build, this will still fail
 	stepTrace.WriteString(fmt.Sprintf("Create pod from spec; "))
 	createdPodObject, creationErr := scenario.createPodfromObject(podObject) // Pod name is saved to scenario state if successful
 
-	payload = struct {
-		AccessLevel   string
-		ImageRegistry string
-		RequestedPod  *apiv1.Pod
-		CreatedPod    *apiv1.Pod
-		CreationError error
-	}{
-		AccessLevel:   accessLevel,
-		ImageRegistry: imageRegistry,
-		RequestedPod:  podObject,
-		CreatedPod:    createdPodObject,
-		CreationError: creationErr,
-	}
-
-	return err
-}
-
-// func (s *scenarioState) theDeploymentAttemptIsAllowed() error {
-// 	// Standard auditing logic to ensures panics are also audited
-// 	stepTrace, payload, err := utils.AuditPlaceholders()
-// 	defer func() {
-// 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
-// 	}()
-
-// 	// TODO: Extending the comment in iAmAuthorisedToPullFromAContainerRegistry...
-// 	//       This step doesn't validate the attempt being allowed, it validates the success of the deployment
-// 	err = kubernetes.AssertResult(&s.podState, "allowed", "")
-// 	stepTrace.WriteString("Asserts pod creation result in scenario state is successful; ")
-// 	payload = struct {
-// 		PodState kubernetes.PodState
-// 	}{s.podState}
-
-// 	return err
-// }
-
-func (s *scenarioState) theDeploymentAttemptIs_X(permission string) error {
-
-	// Supported values for 'permission':
-	//    'allowed'
-	//    'denied'
-
-	// Standard auditing logic to ensures panics are also audited
-	stepTrace, payload, err := utils.AuditPlaceholders()
-	defer func() {
-		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
-	}()
-
-	var isDeploymentAllowed bool
-
-	stepTrace.WriteString(fmt.Sprintf("Check that pod creation was '%s' in previous step; ", permission))
-
-	// Validate input values
-	switch permission {
-	case "allowed":
-		isDeploymentAllowed = true
-	case "denied":
-		isDeploymentAllowed = false
-	default:
-		err = utils.ReformatError("Unexpected value provided for permission: '%s' Expected values: ['allowed', 'denied']", permission) // No payload is necessary if an invalid value was provided
-		return err
-	}
-
-	switch isDeploymentAllowed {
+	stepTrace.WriteString(fmt.Sprintf("Validate pod creation %s; ", expectedResult))
+	switch shouldCreatePod {
 	case true:
-		if !(len(scenario.pods) > 0) { // Check that at least one pod was created in previous step
-			err = utils.ReformatError("Pod creation did not succeed in previous step")
+		if creationErr != nil {
+			err = utils.ReformatError("Pod creation did not succeed: %v", creationErr)
 		}
 	case false:
-		// Check that no pods were created in previous step
-		if scenario.podCreationError == nil {
-			err = utils.ReformatError("Pod creation succeeded, but should have failed")
+		if creationErr == nil {
+			err = utils.ReformatError("Pod creation succeeded, but should have been denied")
 		} else {
 			stepTrace.WriteString(fmt.Sprintf("Check that pod creation failed due to expected reason (403 Forbidden); "))
-			if !errors.IsStatusCode(403, scenario.podCreationError) {
-				err = utils.ReformatError("Unexpected error during Pod creation: %v", scenario.podCreationError)
+			if !errors.IsStatusCode(403, creationErr) {
+				err = utils.ReformatError("Unexpected error during Pod creation : %v", creationErr)
 			}
 		}
 	}
 
 	payload = struct {
-		CreatedPods   []string
-		CreationError error
+		ExpectedResult string
+		RegistryAccess string
+		ImageRegistry  string
+		RequestedPod   *apiv1.Pod
+		CreatedPod     *apiv1.Pod
+		CreationError  error
 	}{
-		CreatedPods:   scenario.pods,
-		CreationError: scenario.podCreationError,
+		ExpectedResult: expectedResult,
+		RegistryAccess: registryAccess,
+		ImageRegistry:  imageRegistry,
+		RequestedPod:   podObject,
+		CreatedPod:     createdPodObject,
+		CreationError:  creationErr,
 	}
 
 	return err
 }
 
-// // CIS-6.1.5
-// // Ensure deployment from authorised container registries is allowed
-// func (s *scenarioState) aUserAttemptsToDeployUnauthorisedContainer() error {
-// 	// Standard auditing logic to ensures panics are also audited
-// 	stepTrace, payload, err := utils.AuditPlaceholders()
-// 	defer func() {
-// 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
-// 	}()
-
-// 	pod, podAudit, err := cra.SetupContainerAccessProbePod(config.Vars.ServicePacks.Kubernetes.UnauthorisedContainerRegistry, s.probe)
-
-// 	err = kubernetes.ProcessPodCreationResult(&s.podState, pod, kubernetes.PSPContainerAllowedImages, err)
-
-// 	stepTrace.WriteString(fmt.Sprintf(
-// 		"Attempts to deploy a container from %s. Retains pod creation result in scenario state; ",
-// 		config.Vars.ServicePacks.Kubernetes.UnauthorisedContainerRegistry))
-// 	payload = struct {
-// 		UnauthorizedRegistry string
-// 		PodAudit             *kubernetes.PodAudit
-// 	}{
-// 		UnauthorizedRegistry: config.Vars.ServicePacks.Kubernetes.UnauthorisedContainerRegistry,
-// 		PodAudit:             podAudit,
-// 	}
-// 	return err
-// }
-
-// func (s *scenarioState) theDeploymentAttemptIsDenied() error {
-// 	// Standard auditing logic to ensures panics are also audited
-// 	stepTrace, payload, err := utils.AuditPlaceholders()
-// 	defer func() {
-// 		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
-// 	}()
-
-// 	err = kubernetes.AssertResult(&s.podState, "denied", "")
-// 	stepTrace.WriteString("Asserts pod creation result in scenario state is denied; ")
-// 	payload = struct {
-// 		PodState kubernetes.PodState
-// 	}{s.podState}
-
-// 	return err
-// }
-
 // Name presents the name of this probe for external reference
-func (p probeStruct) Name() string {
+func (probe probeStruct) Name() string {
 	return "container_registry_access"
 }
 
 // Path presents the path of these feature files for external reference
-func (p probeStruct) Path() string {
-	return coreengine.GetFeaturePath("service_packs", "kubernetes", p.Name())
+func (probe probeStruct) Path() string {
+	return coreengine.GetFeaturePath("service_packs", "kubernetes", probe.Name())
 }
 
 // ProbeInitialize handles any overall Test Suite initialisation steps.  This is registered with the
 // test handler as part of the init() function.
-func (p probeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
+func (probe probeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	ctx.BeforeSuite(func() {
 		conn = connection.Get()
 	})
 
 	ctx.AfterSuite(func() {
 	})
-
-	// TODO: Remove this?
-	//check dependencies ...
-	if cra == nil {
-		// not been given one so set default
-		cra = NewDefaultCRA()
-	}
 }
 
 // ScenarioInitialize initialises the specific test steps.  This is essentially the creation of the test
@@ -301,27 +179,22 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 		beforeScenario(&scenario, probe.Name(), s)
 	})
 
-	// //common
-	// ctx.Step(`^a Kubernetes cluster is deployed$`, ps.aKubernetesClusterIsDeployed)
-
 	// Background
 	ctx.Step(`^a Kubernetes cluster exists which we can deploy into$`, scenario.aKubernetesClusterIsDeployed)
 
 	// Steps
-	ctx.Step(`^a user attempts to deploy a container from an "([^"]*)" registry$`, scenario.aUserAttemptsToDeployAContainerFromAn_X_Registry)
-	ctx.Step(`^the deployment attempt is "([^"]*)"$`, scenario.theDeploymentAttemptIs_X)
-
-	// TODO: Clean up
-
-	//CIS-6.1.4
-	//ctx.Step(`^a user attempts to deploy a container from an authorised registry$`, scenario.iAmAuthorisedToPullFromAContainerRegistry) // TODO: This step should be modified in the feature file, or a unique function should be written for it
-
-	//CIS-6.1.5
-	// ctx.Step(`^a user attempts to deploy a container from an unauthorised registry$`, scenario.aUserAttemptsToDeployUnauthorisedContainer)
-	// ctx.Step(`^the deployment attempt is denied$`, scenario.theDeploymentAttemptIsDenied)
+	ctx.Step(`^pod creation "([^"]*)" with container image from "([^"]*)" registry$`, scenario.podCreationXWithContainerImageFromYRegistry)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		afterScenario(scenario, probe, s, err)
+	})
+
+	ctx.BeforeStep(func(st *godog.Step) {
+		scenario.currentStep = st.Text
+	})
+
+	ctx.AfterStep(func(st *godog.Step, err error) {
+		scenario.currentStep = ""
 	})
 }
 
@@ -335,8 +208,6 @@ func beforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
 }
 
 func afterScenario(scenario scenarioState, probe probeStruct, gs *godog.Scenario, err error) {
-	cra.TeardownContainerAccessProbePod(scenario.podState.PodName, probe.Name()) // TODO: Refactor
-
 	if kubernetes.GetKeepPodsFromConfig() == false { // TODO: Replace kubernetes ?
 		for _, podName := range scenario.pods {
 			err = conn.DeletePodIfExists(podName, scenario.namespace, probe.Name())
@@ -365,8 +236,6 @@ func (scenario *scenarioState) createPodfromObject(podObject *apiv1.Pod) (create
 	createdPodObject, err = conn.CreatePodFromObject(podObject, Probe.Name())
 	if err == nil {
 		scenario.pods = append(scenario.pods, createdPodObject.ObjectMeta.Name)
-	} else {
-		scenario.podCreationError = err
 	}
 	return
 }
