@@ -173,7 +173,6 @@ func (probe probeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 // each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
 // a step / function defined.  See: https://github.com/cucumber/godog#example.
 func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
-	//ps := scenarioState{}
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
 		beforeScenario(&scenario, probe.Name(), s)
