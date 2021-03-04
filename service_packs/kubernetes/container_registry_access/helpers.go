@@ -5,9 +5,7 @@ import (
 
 	"github.com/citihub/probr/audit"
 	"github.com/citihub/probr/config"
-	"github.com/citihub/probr/service_packs/coreengine"
 	"github.com/citihub/probr/service_packs/kubernetes"
-	"github.com/cucumber/godog"
 	apiv1 "k8s.io/api/core/v1"
 )
 
@@ -26,13 +24,6 @@ type ContainerRegistryAccess interface {
 // CRA implements the ContainerRegistryAccess interface.
 type CRA struct {
 	k kubernetes.Kubernetes
-}
-
-type scenarioState struct {
-	name     string
-	audit    *audit.ScenarioAudit
-	probe    *audit.Probe
-	podState kubernetes.PodState
 }
 
 // NewCRA creates a new CRA with the supplied kubernetes instance.
@@ -70,11 +61,4 @@ func (c *CRA) SetupContainerAccessProbePod(r string, probe *audit.Probe) (*apiv1
 func (c *CRA) TeardownContainerAccessProbePod(p string, e string) error {
 	err := c.k.DeletePod(p, kubernetes.Namespace, e) //don't worry about waiting
 	return err
-}
-
-func beforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
-	s.name = gs.Name
-	s.probe = audit.State.GetProbeLog(probeName)
-	s.audit = audit.State.GetProbeLog(probeName).InitializeAuditor(gs.Name, gs.Tags)
-	coreengine.LogScenarioStart(gs)
 }
