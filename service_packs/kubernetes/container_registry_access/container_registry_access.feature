@@ -5,7 +5,8 @@ Feature: Protect image container registries
     I want to ensure that containers image registries are secured in my organisation's Kubernetes clusters
     So that only approved software can be run in our cluster in order to prevent malicious attacks on my organization
 
-    #Rule: CHC2-APPDEV135 - Ensure software release and deployment is managed through a formal, controlled process
+    Security Standard References:
+        CHC2-APPDEV135 - Ensure software release and deployment is managed through a formal, controlled process
 
     Background:
         Given a Kubernetes cluster exists which we can deploy into

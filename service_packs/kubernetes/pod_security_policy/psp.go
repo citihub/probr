@@ -26,12 +26,13 @@ var conn connection.Connection
 
 // scenarioState holds the steps and state for any scenario in this probe
 type scenarioState struct {
-	name       string
-	namespace  string
-	probeAudit *audit.Probe
-	audit      *audit.ScenarioAudit
-	pods       []string
-	given      bool
+	name        string
+	currentStep string
+	namespace   string
+	probeAudit  *audit.Probe
+	audit       *audit.ScenarioAudit
+	pods        []string
+	given       bool
 }
 
 // Probe meets the service pack interface for adding the logic from this file
@@ -50,7 +51,7 @@ func (scenario *scenarioState) aKubernetesClusterIsDeployed() error {
 	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
 	}()
 	stepTrace.WriteString(fmt.Sprintf("Validate that a cluster can be reached using the specified kube config and context; "))
 
@@ -82,7 +83,7 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
 	}()
 	var boolValue, useValue, shouldCreate bool
 
@@ -163,7 +164,7 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	// Guard clause
@@ -179,7 +180,8 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 	case "privileged":
 		cmd = "sudo ls"
 	default:
-		return utils.ReformatError("Unexpected value provided for command permission type: %s", permission) // No payload is necessary if an invalid value was provided
+		err = utils.ReformatError("Unexpected value provided for command permission type: %s", permission) // No payload is necessary if an invalid value was provided
+		return err
 	}
 
 	var expectedExitCode int
@@ -190,7 +192,8 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 		expectedExitCode = 126 // If a command is found but is not executable, the return status is 126
 		// Known issue: we can't guarantee that the 126 recieved by kubectl isn't a masked 127
 	default:
-		return utils.ReformatError("Unexpected value provided for expected command result: %s", result) // No payload is necessary if an invalid value was provided
+		err = utils.ReformatError("Unexpected value provided for expected command result: %s", result) // No payload is necessary if an invalid value was provided
+		return err
 
 	}
 	stepTrace.WriteString("Attempt to run a command in the pod that was created by the previous step; ")
@@ -253,6 +256,14 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		afterScenario(scenario, probe, s, err)
+	})
+
+	ctx.BeforeStep(func(st *godog.Step) {
+		scenario.currentStep = st.Text
+	})
+
+	ctx.AfterStep(func(st *godog.Step, err error) {
+		scenario.currentStep = ""
 	})
 }
 

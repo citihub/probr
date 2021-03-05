@@ -1,5 +1,4 @@
-// Package cra provides the implementation required to execute the
-// feature based test cases described in the the 'events' directory. //TODO: Clarify what 'events' directory is
+// Package cra provides the implementation required to execute the BDD tests described in container_registry_access.feature file
 package cra
 
 import (
@@ -42,7 +41,7 @@ func (scenario *scenarioState) aKubernetesClusterIsDeployed() error {
 	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
 	}()
 	stepTrace.WriteString(fmt.Sprintf("Validate that a cluster can be reached using the specified kube config and context; "))
 
@@ -65,12 +64,12 @@ func (scenario *scenarioState) podCreationXWithContainerImageFromYRegistry(expec
 
 	// Supported values for 'registryAccess':
 	//	'authorized'
-	//  'unauthorized'
+	//	'unauthorized'
 
 	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
-		scenario.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	var shouldCreatePod bool
@@ -107,7 +106,6 @@ func (scenario *scenarioState) podCreationXWithContainerImageFromYRegistry(expec
 	stepTrace.WriteString(fmt.Sprintf("Set container image registry to appropriate value in pod spec; "))
 	podObject.Spec.Containers[0].Image = imageRegistry
 
-	// TODO: We are assuming too much here- if the image successfully pulls but fails to build, this will still fail
 	stepTrace.WriteString(fmt.Sprintf("Create pod from spec; "))
 	createdPodObject, creationErr := scenario.createPodfromObject(podObject) // Pod name is saved to scenario state if successful
 
@@ -168,10 +166,7 @@ func (probe probeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	})
 }
 
-// ScenarioInitialize initialises the specific test steps.  This is essentially the creation of the test
-// which reflects the tests described in the events directory.  There must be a test step registered for
-// each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
-// a step / function defined.  See: https://github.com/cucumber/godog#example.
+// ScenarioInitialize provides initialization logic before each scenario is executed
 func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
