@@ -202,7 +202,7 @@ func beforeScenario(s *scenarioState, probeName string, gs *godog.Scenario) {
 }
 
 func afterScenario(scenario scenarioState, probe probeStruct, gs *godog.Scenario, err error) {
-	if kubernetes.GetKeepPodsFromConfig() == false { // TODO: Replace kubernetes ?
+	if kubernetes.GetKeepPodsFromConfig() == false { // TODO: Reconsider refactoring this out of pod_hander. We may be able to query config var directly, if type is switched to bool
 		for _, podName := range scenario.pods {
 			err = conn.DeletePodIfExists(podName, scenario.namespace, probe.Name())
 			if err != nil {
