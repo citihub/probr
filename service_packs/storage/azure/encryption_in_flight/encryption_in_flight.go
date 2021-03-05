@@ -72,7 +72,7 @@ func (state *scenarioState) anAzureResourceGroupExists() error {
 		AzureResourceGroup:  azureutil.ResourceGroup(),
 	}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	stepTrace.WriteString("Check if value for Azure resource group is set in config vars;")
@@ -97,7 +97,7 @@ func (state *scenarioState) weProvisionAnObjectStorageBucket() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -113,7 +113,7 @@ func (state *scenarioState) httpAccessIs(arg1 string) error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	stepTrace.WriteString(fmt.Sprintf(
@@ -133,7 +133,7 @@ func (state *scenarioState) httpsAccessIs(arg1 string) error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	stepTrace.WriteString(fmt.Sprintf(
@@ -157,7 +157,7 @@ func (state *scenarioState) creationWillWithAnErrorMatching(expectation, errDesc
 		HTTPSOption    bool
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	stepTrace.WriteString("Generating random value for account name;")
@@ -241,7 +241,7 @@ func (state *scenarioState) detectObjectStorageUnencryptedTransferAvailable() er
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -256,7 +256,7 @@ func (state *scenarioState) detectObjectStorageUnencryptedTransferEnabled() erro
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -271,7 +271,7 @@ func (state *scenarioState) createUnencryptedTransferObjectStorage() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -286,7 +286,7 @@ func (state *scenarioState) detectsTheObjectStorage() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -301,7 +301,7 @@ func (state *scenarioState) encryptedDataTrafficIsEnforced() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")

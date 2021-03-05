@@ -38,7 +38,7 @@ func (state *scenarioState) securityControlsThatRestrictDataFromBeingUnencrypted
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -57,7 +57,7 @@ func (state *scenarioState) weProvisionAnObjectStorageBucket() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -73,7 +73,7 @@ func (state *scenarioState) encryptionAtRestIs(encryptionOption string) error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -89,7 +89,7 @@ func (state *scenarioState) creationWillWithAnErrorMatching(result string) error
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -105,7 +105,7 @@ func (state *scenarioState) createContainerWithoutEncryption() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -121,7 +121,7 @@ func (state *scenarioState) detectiveDetectsNonCompliant() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -137,7 +137,7 @@ func (state *scenarioState) containerIsRemediated() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -161,7 +161,7 @@ func (state *scenarioState) policyOrRuleAvailable() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -179,7 +179,7 @@ func (state *scenarioState) checkPolicyOrRuleAssignment() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -195,7 +195,7 @@ func (state *scenarioState) policyOrRuleAssigned() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")

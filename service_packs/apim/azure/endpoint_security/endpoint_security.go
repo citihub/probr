@@ -62,7 +62,7 @@ func (s *scenarioState) anAPIIsDeployedToAPIM() error {
 	payload := struct {
 	}{}
 	defer func() {
-		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		s.audit.AuditScenarioStep(s.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -79,7 +79,7 @@ func (s *scenarioState) eachEndpointHasMTLSEmabled() error {
 	payload := struct {
 	}{}
 	defer func() {
-		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		s.audit.AuditScenarioStep(s.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")
@@ -96,7 +96,7 @@ func (s *scenarioState) allEndpointsAreRetrievedFromAPIM() error {
 	payload := struct {
 	}{}
 	defer func() {
-		s.audit.AuditScenarioStep(stepTrace.String(), payload, err)
+		s.audit.AuditScenarioStep(s.currentStep, stepTrace.String(), payload, err)
 	}()
 	err = fmt.Errorf("Not Implemented")
 	stepTrace.WriteString("TODO: Pending implementation;")

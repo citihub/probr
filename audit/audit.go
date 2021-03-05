@@ -50,21 +50,7 @@ func (e *ProbeAudit) Write() {
 
 // AuditScenarioStep sets description, payload, and pass/fail based on err parameter.
 // This function should be deferred to catch panic behavior, otherwise the audit will not be logged on panic
-func (p *ScenarioAudit) AuditScenarioStep(description string, payload interface{}, err error) {
-	stepName := utils.CallerName(2) // returns name if deferred and not panicking
-	switch stepName {
-	case "call":
-		stepName = utils.CallerName(1) // returns name if this function was not deferred in the caller
-	case "gopanic":
-		stepName = utils.CallerName(3) // returns name if caller panicked and this function was deferred
-	}
-	p.audit(stepName, description, payload, err)
-}
-
-// AuditScenarioStep2 sets description, payload, and pass/fail based on err parameter.
-// This function should be deferred to catch panic behavior, otherwise the audit will not be logged on panic
-func (p *ScenarioAudit) AuditScenarioStep2(stepName, description string, payload interface{}, err error) {
-	// TODO: This function should replace AuditScenarioStep. Added here to avoid breaking existing probes.
+func (p *ScenarioAudit) AuditScenarioStep(stepName, description string, payload interface{}, err error) {
 	stepFunctionName := utils.CallerName(2) // returns name if deferred and not panicking
 	switch stepFunctionName {
 	case "call":
@@ -73,30 +59,10 @@ func (p *ScenarioAudit) AuditScenarioStep2(stepName, description string, payload
 		stepFunctionName = utils.CallerName(3) // returns name if caller panicked and this function was deferred
 	}
 
-	p.audit2(stepFunctionName, stepName, description, payload, err)
+	p.audit(stepFunctionName, stepName, description, payload, err)
 }
 
-func (p *ScenarioAudit) audit(stepName string, description string, payload interface{}, err error) {
-	stepNumber := len(p.Steps) + 1
-	p.Steps[stepNumber] = &stepAudit{
-		Name:        stepName,
-		Description: description,
-		Payload:     payload,
-	}
-	if err == nil {
-		p.Steps[stepNumber].Result = "Passed"
-		p.Result = "Passed"
-	} else {
-		p.Steps[stepNumber].Result = "Failed"
-		p.Steps[stepNumber].Error = strings.Replace(err.Error(), "[ERROR] ", "", -1)
-		if stepNumber == 1 {
-			p.Result = "Given Not Met" // First entry is always a 'given'; failures should be ignored
-		} else {
-			p.Result = "Failed" // First 'given' was met, but a subsequent step failed
-		}
-	}
-}
-func (p *ScenarioAudit) audit2(functionName string, stepName string, description string, payload interface{}, err error) {
+func (p *ScenarioAudit) audit(functionName string, stepName string, description string, payload interface{}, err error) {
 	// TODO: This function should replace audit. Added here to avoid breaking existing probes.
 	stepNumber := len(p.Steps) + 1
 	p.Steps[stepNumber] = &stepAudit{

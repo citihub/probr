@@ -72,7 +72,7 @@ func (state *scenarioState) anAzureResourceGroupExists() error {
 		AzureResourceGroup:  azureutil.ResourceGroup(),
 	}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	stepTrace.WriteString("Check if value for Azure resource group is set in config vars;")
@@ -102,7 +102,7 @@ func (state *scenarioState) checkPolicyAssigned() error {
 		PolicyAssignment     azurePolicy.Assignment
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	var a azurePolicy.Assignment
@@ -140,7 +140,7 @@ func (state *scenarioState) provisionStorageContainer() error {
 		BucketName string
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	stepTrace.WriteString("A bucket name is defined using a random string, storage account is not yet provisioned;")
@@ -166,7 +166,7 @@ func (state *scenarioState) createWithWhitelist(ipRange string) error {
 		StorageAccount azureStorage.Account
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	stepTrace.WriteString(fmt.Sprintf(
@@ -217,7 +217,7 @@ func (state *scenarioState) creationWill(expectation string) error {
 		CreationError    string
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	stepTrace.WriteString(fmt.Sprintf(
@@ -252,7 +252,7 @@ func (state *scenarioState) cspSupportsWhitelisting() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	err = fmt.Errorf("Not Implemented")
@@ -273,7 +273,7 @@ func (state *scenarioState) examineStorageContainer(containerNameEnvVar string) 
 		NetworkRuleSet     azureStorage.NetworkRuleSet
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	stepTrace.WriteString(fmt.Sprintf(
@@ -343,7 +343,7 @@ func (state *scenarioState) whitelistingIsConfigured() error {
 	payload := struct {
 	}{}
 	defer func() {
-		state.audit.AuditScenarioStep2(state.currentStep, stepTrace.String(), payload, err)
+		state.audit.AuditScenarioStep(state.currentStep, stepTrace.String(), payload, err)
 	}()
 
 	err = fmt.Errorf("Not Implemented")
