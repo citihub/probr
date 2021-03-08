@@ -61,6 +61,7 @@ Feature: Maximise security through Pod Security Policies
         See https://kubernetes.io/docs/concepts/policy/pod-security-policy/#privileged
 
         When pod creation "succeeds" with "hostPID" set to "<VALUE>" in the pod spec
+        And the execution of a "non-privileged" command inside the Pod is "successful"
         Then the CMD value for PID 1 should match the entrypoint command
 
         Examples:
