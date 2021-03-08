@@ -62,7 +62,7 @@ Feature: Maximise security through Pod Security Policies
 
         When pod creation "succeeds" with "hostPID" set to "<VALUE>" in the pod spec
         And the execution of a "non-privileged" command inside the Pod is "successful"
-        Then the command "ps" should only show the container processes
+        Then a "process" inspection should only show the container processes
 
         Examples:
             | VALUE                     |
@@ -89,7 +89,7 @@ Feature: Maximise security through Pod Security Policies
 
         When pod creation "succeeds" with "hostIPC" set to "<VALUE>" in the pod spec
         And the execution of a "non-privileged" command inside the Pod is "successful"
-        Then the command "lsns -n" should only show the container processes
+        Then a "namespace" inspection should only show the container processes
 
         Examples:
             | VALUE                     |
