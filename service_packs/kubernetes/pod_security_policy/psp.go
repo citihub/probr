@@ -229,7 +229,7 @@ func (scenario *scenarioState) theCMDValueForPID1ShouldMatchTheEntrypointCommand
 	cmd := "ps"
 	exitCode, stdout, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
-	stepTrace.WriteString("Validating that hostPID was not used by searching for the container's entrypoint in the process tree; ")
+	stepTrace.WriteString("Validate that hostPID was not used by searching for the container's entrypoint in the process tree; ")
 	entrypoint := strings.Join(constructors.DefaultEntrypoint(), " ")
 
 	// NOTE: This expectation depends on using DefaultPodSecurityContext during the previous step
