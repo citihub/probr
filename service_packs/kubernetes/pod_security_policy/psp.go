@@ -262,14 +262,14 @@ func (scenario *scenarioState) aXInspectionShouldOnlyShowTheContainerProcesses(i
 
 	switch command {
 	case "ps":
-		stepTrace.WriteString("Validating that the container's entrypoint is PID 1 in the process tree; ")
+		stepTrace.WriteString("Validate that the container's entrypoint is PID 1 in the process tree; ")
 		// NOTE: This particular expectation depends on using DefaultPodSecurityContext during the previous step
 		expected := fmt.Sprintf("1 1000      0:00 %s", entrypoint)
 		if !strings.Contains(stdout, expected) {
 			err = utils.ReformatError("An entrypoint different from the container's was found for PID 1, suggesting hostPID was used")
 		}
 	case "lsns -n":
-		stepTrace.WriteString("Validating that no namespace has an entrypoint different from the container's entrypoint; ")
+		stepTrace.WriteString("Validate that no namespace has an entrypoint different from the container's entrypoint; ")
 		stdoutLines := strings.Split(stdout, "\n")
 		for _, entry := range stdoutLines {
 			if entry != "" && !strings.Contains(entry, entrypoint) {
