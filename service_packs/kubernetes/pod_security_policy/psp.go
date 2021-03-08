@@ -256,7 +256,7 @@ func (scenario *scenarioState) theCommandXShouldOnlyShowTheContainerProcesses(co
 		stepTrace.WriteString("Validating that the container's entrypoint is PID 1 in the process tree; ")
 		expected := fmt.Sprintf("1 1000      0:00 %s", entrypoint)
 		if !strings.Contains(stdout, expected) {
-			err = utils.ReformatError("An entrypoint different from the container's was found for PID 1; suggesting hostPID was used")
+			err = utils.ReformatError("An entrypoint different from the container's was found for PID 1, suggesting hostPID was used")
 		}
 	case "lsns -n":
 		stepTrace.WriteString("Validating that no namespace has an entrypoint different from the container's entrypoint; ")
