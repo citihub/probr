@@ -265,6 +265,7 @@ func (scenario *scenarioState) aXInspectionShouldOnlyShowTheContainerProcesses(i
 		case "ps":
 			stepTrace.WriteString("Validate that the container's entrypoint is PID 1 in the process tree; ")
 			// NOTE: This particular expectation depends on using DefaultPodSecurityContext during the previous step
+			//       Also, this explicitly assumes that we're using the alpine distro 'ps' (output is different for ubuntu, for example)
 			expected := fmt.Sprintf("1 1000      0:00 %s", entrypoint)
 			if !strings.Contains(stdout, expected) {
 				err = utils.ReformatError("An entrypoint different from the container's was found for PID 1, suggesting hostPID was used")
