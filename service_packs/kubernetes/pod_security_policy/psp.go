@@ -254,31 +254,32 @@ func (scenario *scenarioState) aXInspectionShouldOnlyShowTheContainerProcesses(i
 		command = "lsns -n"
 	default:
 		err = utils.ReformatError("Unsupported value provided for inspection type")
+		return
 	}
-
+	entrypoint := strings.Join(constructors.DefaultEntrypoint(), " ")
 	exitCode, stdout, err := conn.ExecCommand(command, scenario.namespace, scenario.pods[0])
 
-	entrypoint := strings.Join(constructors.DefaultEntrypoint(), " ")
-
-	switch command {
-	case "ps":
-		stepTrace.WriteString("Validate that the container's entrypoint is PID 1 in the process tree; ")
-		// NOTE: This particular expectation depends on using DefaultPodSecurityContext during the previous step
-		expected := fmt.Sprintf("1 1000      0:00 %s", entrypoint)
-		if !strings.Contains(stdout, expected) {
-			err = utils.ReformatError("An entrypoint different from the container's was found for PID 1, suggesting hostPID was used")
-		}
-	case "lsns -n":
-		stepTrace.WriteString("Validate that no namespace has an entrypoint different from the container's entrypoint; ")
-		stdoutLines := strings.Split(stdout, "\n")
-		for _, entry := range stdoutLines {
-			if entry != "" && !strings.Contains(entry, entrypoint) {
-				err = utils.ReformatError("A namespace is visible that uses a different entrypoint from the container, suggesting that hostIPC was used")
+	if err != nil {
+		// TODO: Validate that this fails as expected
+		switch command {
+		case "ps":
+			stepTrace.WriteString("Validate that the container's entrypoint is PID 1 in the process tree; ")
+			// NOTE: This particular expectation depends on using DefaultPodSecurityContext during the previous step
+			expected := fmt.Sprintf("1 1000      0:00 %s", entrypoint)
+			if !strings.Contains(stdout, expected) {
+				err = utils.ReformatError("An entrypoint different from the container's was found for PID 1, suggesting hostPID was used")
+			}
+		case "lsns -n":
+			stepTrace.WriteString("Validate that no namespace has an entrypoint different from the container's entrypoint; ")
+			stdoutLines := strings.Split(stdout, "\n")
+			for _, entry := range stdoutLines {
+				if entry != "" && !strings.Contains(entry, entrypoint) {
+					err = utils.ReformatError("A namespace is visible that uses a different entrypoint from the container, suggesting that hostIPC was used")
+				}
 			}
 		}
 	}
 
-	// TODO: Validate that this fails as expected
 	payload = struct {
 		Command    string
 		ExitCode   int
