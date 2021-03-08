@@ -68,6 +68,18 @@ func (scenario *scenarioState) aKubernetesClusterIsDeployed() error {
 	return err
 }
 
+func (scenario *scenarioState) toDo(todo string) error {
+	stepTrace, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
+	}()
+	stepTrace.WriteString(fmt.Sprintf("This step was included to inform developers that a scenario is incomplete; "))
+	payload = struct {
+		TODO string
+	}{TODO: todo}
+	return godog.ErrPending
+}
+
 // Attempt to deploy a pod from a default pod spec, with specified modification
 func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result, key, value string) error {
 	// Supported results:
@@ -76,6 +88,8 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 	//
 	// Supported keys:
 	//    'allowPrivilegeEscalation'
+	//    'hostPID'
+	//    'hostIPC'
 	//
 	// Supported values:
 	//    'true'
@@ -119,6 +133,8 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 			podObject.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = &boolValue
 		case "hostPID":
 			podObject.Spec.HostPID = boolValue
+		case "hostIPC":
+			podObject.Spec.HostIPC = boolValue
 		default:
 			err = utils.ReformatError("Unsupported key provided: %s", key) // No payload is necessary if an invalid key was provided
 			return err
@@ -286,6 +302,9 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	// Background
 	ctx.Step(`^a Kubernetes cluster exists which we can deploy into$`, scenario.aKubernetesClusterIsDeployed)
+
+	// Use for steps that have yet to be written
+	ctx.Step(`^TODO: "([^"]*)"$`, scenario.toDo)
 
 	// Scenarios
 	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)

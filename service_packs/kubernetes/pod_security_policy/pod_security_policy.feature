@@ -61,9 +61,33 @@ Feature: Maximise security through Pod Security Policies
         See https://kubernetes.io/docs/concepts/policy/pod-security-policy/#privileged
 
         When pod creation "succeeds" with "hostPID" set to "<VALUE>" in the pod spec
+        And the execution of a "non-privileged" command inside the Pod is "successful"
         Then the CMD value for PID 1 should match the entrypoint command
 
         Examples:
             | VALUE                     |
             | not have a value provided |
             | false                     |
+
+    @k-psp-005
+    Scenario: Prevent a deployment from running with access to the shared host IPC namespace
+
+        HostIPC controls whether a Pod's containers can share the host IPC namespace, 
+        allowing container processes to communicate with other processes on the host.
+
+        See https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces.
+
+        When pod creation "succeeds" with "hostIPC" set to "false" in the pod spec
+        Then pod creation "fails" with "hostIPC" set to "true" in the pod spec
+
+    @k-psp-006
+    Scenario: Prevent a deployment from running with access to the shared host IPC namespace
+
+        By default Pods that don't specify whether Host IPC namespace mode is set should not be able to access the shared host IPC namespace.
+
+        See https://kubernetes.io/docs/concepts/policy/pod-security-policy/#privileged
+
+        When pod creation "succeeds" with "hostIPC" set to "<VALUE>" in the pod spec
+        And TODO "the execution of a 'regular' command inside the Pod is successful"
+        When a user attempts to execute a command inside the Pod that provides access to the shared host IPC namespace
+        Then the command execution is unsuccessful due to shared host IPC namespace access restrictions
