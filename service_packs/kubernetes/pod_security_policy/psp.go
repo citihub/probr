@@ -237,23 +237,33 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 	return err
 }
 
-func (scenario *scenarioState) theCommandXShouldOnlyShowTheContainerProcesses(command string) (err error) {
-	// Supported commands:
-	//     'ps'
-	//     'lsns -n'
+func (scenario *scenarioState) aXInspectionShouldOnlyShowTheContainerProcesses(inspectionType string) (err error) {
+	// Supported inspection types:
+	//     'process'
+	//     'namespace'
 
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
 		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
 	}()
+	var command string
+	switch inspectionType {
+	case "process":
+		command = "ps"
+	case "namespace":
+		command = "lsns -n"
+	default:
+		err = utils.ReformatError("Unsupported value provided for inspection type")
+	}
+
 	exitCode, stdout, err := conn.ExecCommand(command, scenario.namespace, scenario.pods[0])
 
 	entrypoint := strings.Join(constructors.DefaultEntrypoint(), " ")
 
-	// NOTE: This expectation depends on using DefaultPodSecurityContext during the previous step
 	switch command {
 	case "ps":
 		stepTrace.WriteString("Validating that the container's entrypoint is PID 1 in the process tree; ")
+		// NOTE: This particular expectation depends on using DefaultPodSecurityContext during the previous step
 		expected := fmt.Sprintf("1 1000      0:00 %s", entrypoint)
 		if !strings.Contains(stdout, expected) {
 			err = utils.ReformatError("An entrypoint different from the container's was found for PID 1, suggesting hostPID was used")
@@ -266,8 +276,6 @@ func (scenario *scenarioState) theCommandXShouldOnlyShowTheContainerProcesses(co
 				err = utils.ReformatError("A namespace is visible that uses a different entrypoint from the container, suggesting that hostIPC was used")
 			}
 		}
-	default:
-		err = utils.ReformatError("Unsupported value provided for command")
 	}
 
 	// TODO: Validate that this fails as expected
@@ -326,10 +334,7 @@ func (probe probeStruct) ProbeInitialize(ctx *godog.TestSuiteContext) {
 	})
 }
 
-// ScenarioInitialize initialises the specific test steps.  This is essentially the creation of the test
-// which reflects the tests described in the events directory.  There must be a test step registered for
-// each line in the feature files. Note: Godog will output stub steps and implementations if it doesn't find
-// a step / function defined.  See: https://github.com/cucumber/godog#example.
+// ScenarioInitialize initializes the specific test steps
 func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 
 	ctx.BeforeScenario(func(s *godog.Scenario) {
@@ -346,7 +351,7 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
 	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
 	ctx.Step(`^the execution of a "([^"]*)" command inside the Pod is "([^"]*)"$`, scenario.theExecutionOfAXCommandInsideThePodIsY)
-	ctx.Step(`^the command "([^"]*)" should only show the container processes$`, scenario.theCommandXShouldOnlyShowTheContainerProcesses)
+	ctx.Step(`^a "([^"]*)" inspection should only show the container processes$`, scenario.aXInspectionShouldOnlyShowTheContainerProcesses)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		afterScenario(scenario, probe, s, err)
