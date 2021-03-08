@@ -294,26 +294,6 @@ func (scenario *scenarioState) aXInspectionShouldOnlyShowTheContainerProcesses(i
 	return
 }
 
-func (scenario *scenarioState) theHostNamespaceShouldNotBeVisible() (err error) {
-	stepTrace, payload, err := utils.AuditPlaceholders()
-	defer func() {
-		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
-	}()
-
-	cmd := "lsns -l"
-	exitCode, stdout, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
-	payload = struct {
-		Command  string
-		ExitCode int
-		Stdout   string
-	}{
-		Command:  cmd,
-		ExitCode: exitCode,
-		Stdout:   stdout,
-	}
-	return
-}
-
 // Name presents the name of this probe for external reference
 func (probe probeStruct) Name() string {
 	return "pod_security_policy"
