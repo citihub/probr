@@ -41,3 +41,16 @@ Feature: Maximise security through Pod Security Policies
             | VALUE                     |
             | not have a value provided |
             | false                     |
+
+    @k-psp-003
+    Scenario Outline: Prevent a deployment from running in the host's process tree namespace
+
+        HostPID controls whether a Pod's containers can share the host process ID namespace. 
+        If paired with ptrace, this can be used to escalate privileges outside of the container.
+        By default Pods that don't specify a value for hostPID should not have the ability
+        to gain access to processes outside of the Pod's process tree
+
+        See https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces.
+
+        When pod creation "succeeds" with "hostPID" set to "false" in the pod spec
+        Then pod creation "fails" with "hostPID" set to "true" in the pod spec

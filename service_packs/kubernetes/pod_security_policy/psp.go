@@ -93,14 +93,16 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 	case "fails":
 		shouldCreate = false
 	default:
-		return utils.ReformatError("Unexpected value provided for expected pod creation result: %s", result) // No payload is necessary if an invalid value was provided
+		err = utils.ReformatError("Unexpected value provided for expected pod creation result: %s", result) // No payload is necessary if an invalid value was provided
+		return err
 	}
 
 	if value != "not have a value provided" {
 		useValue = true
 		boolValue, err = strconv.ParseBool(value)
 		if err != nil {
-			return utils.ReformatError("Expected 'true' or 'false' but found '%s'", value) // No payload is necessary if an invalid value was provided
+			err = utils.ReformatError("Expected 'true' or 'false' but found '%s'", value) // No payload is necessary if an invalid value was provided
+			return err
 		}
 	}
 
@@ -114,8 +116,11 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 		switch key {
 		case "allowPrivilegeEscalation":
 			podObject.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = &boolValue
+		case "hostPID":
+			podObject.Spec.HostPID = boolValue
 		default:
-			return utils.ReformatError("Unsupported key provided: %s", key) // No payload is necessary if an invalid key was provided
+			err = utils.ReformatError("Unsupported key provided: %s", key) // No payload is necessary if an invalid key was provided
+			return err
 		}
 	}
 
