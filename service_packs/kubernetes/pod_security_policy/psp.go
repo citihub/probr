@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/cucumber/godog"
 
@@ -225,16 +226,29 @@ func (scenario *scenarioState) theCMDValueForPID1ShouldMatchTheEntrypointCommand
 	defer func() {
 		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
 	}()
-	cmd := "ps -p 1"
+	cmd := "ps"
 	exitCode, stdout, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
+
+	stepTrace.WriteString("Validating that hostPID was not used by searching for the container's entrypoint in the process tree; ")
+	entrypoint := strings.Join(constructors.DefaultEntrypoint(), " ")
+
+	// NOTE: This expectation depends on using DefaultPodSecurityContext during the previous step
+	expected := fmt.Sprintf("1 1000      0:00 %s", entrypoint)
+
+	// TODO: Validate that this fails as expected
+	if !strings.Contains(stdout, expected) {
+		err = utils.ReformatError("Expected to find container entrypoint '%s' as PID 1, but did not.", entrypoint)
+	}
 	payload = struct {
-		Command  string
-		ExitCode int
-		Stdout   string
+		Command    string
+		ExitCode   int
+		Stdout     string
+		Entrypoint string
 	}{
-		Command:  cmd,
-		ExitCode: exitCode,
-		Stdout:   stdout,
+		Command:    cmd,
+		ExitCode:   exitCode,
+		Stdout:     stdout,
+		Entrypoint: entrypoint,
 	}
 	return
 }
