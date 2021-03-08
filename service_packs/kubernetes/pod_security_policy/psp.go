@@ -240,6 +240,7 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 func (scenario *scenarioState) theCommandXShouldOnlyShowTheContainerProcesses(command string) (err error) {
 	// Supported commands:
 	//     'ps'
+	//     'lsns -n'
 
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
