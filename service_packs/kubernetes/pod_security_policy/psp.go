@@ -202,7 +202,7 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 
 	}
 	stepTrace.WriteString("Attempt to run a command in the pod that was created by the previous step; ")
-	exitCode, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
+	exitCode, _, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
 	payload = struct {
 		Command          string
@@ -218,6 +218,25 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 		err = nil
 	}
 	return err
+}
+
+func (scenario *scenarioState) theCMDValueForPID1ShouldMatchTheEntrypointCommand() (err error) {
+	stepTrace, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
+	}()
+	cmd := "ps -p 1"
+	exitCode, stdout, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
+	payload = struct {
+		Command  string
+		ExitCode int
+		Stdout   string
+	}{
+		Command:  cmd,
+		ExitCode: exitCode,
+		Stdout:   stdout,
+	}
+	return
 }
 
 // Name presents the name of this probe for external reference
@@ -258,6 +277,7 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
 	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
 	ctx.Step(`^the execution of a "([^"]*)" command inside the Pod is "([^"]*)"$`, scenario.theExecutionOfAXCommandInsideThePodIsY)
+	ctx.Step(`^the CMD value for PID 1 should match the entrypoint command$`, scenario.theCMDValueForPID1ShouldMatchTheEntrypointCommand)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		afterScenario(scenario, probe, s, err)
