@@ -90,7 +90,8 @@ Feature: Maximise security through Pod Security Policies
     @k-psp-006
     Scenario: Prevent a deployment from running with access to the shared host IPC namespace
 
-        By default Pods that don't specify whether Host IPC namespace mode is set should not be able to access the shared host IPC namespace.
+        By default Pods that don't specify whether Host IPC namespace mode is set should not
+        be able to access the shared host IPC namespace.
 
         Security Standard References:
             - https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
