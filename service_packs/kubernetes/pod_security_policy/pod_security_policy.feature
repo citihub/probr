@@ -48,7 +48,9 @@ Feature: Maximise security through Pod Security Policies
         HostPID controls whether a Pod's containers can share the host process ID namespace.
         If paired with ptrace, this can be used to escalate privileges outside of the container.
 
-        See https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces.
+        Security Standard References:
+            - https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
+            - CIS Kubernetes Benchmark v1.6.0 - 5.2.2
 
         When pod creation "succeeds" with "hostPID" set to "false" in the pod spec
         Then pod creation "fails" with "hostPID" set to "true" in the pod spec
@@ -56,9 +58,12 @@ Feature: Maximise security through Pod Security Policies
     @k-psp-004
     Scenario: Prevent execution of commands that allow privileged access by default
 
-        By default Pods that don't specify a value for hostPID should not have the ability to gain access to processes outside of the Pod's process tree
+        By default Pods that don't specify a value for hostPID should not have the ability to
+        gain access to processes outside of the Pod's process tree.
 
-        See https://kubernetes.io/docs/concepts/policy/pod-security-policy/#privileged
+        Security Standard References:
+            - https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
+            - CIS Kubernetes Benchmark v1.6.0 - 5.2.2
 
         When pod creation "succeeds" with "hostPID" set to "<VALUE>" in the pod spec
         And the execution of a "non-privileged" command inside the Pod is "successful"
@@ -75,7 +80,9 @@ Feature: Maximise security through Pod Security Policies
         HostIPC controls whether a Pod's containers can share the host IPC namespace, 
         allowing container processes to communicate with other processes on the host.
 
-        See https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces.
+        Security Standard References:
+            - https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
+            - CIS Kubernetes Benchmark v1.6.0 - 5.2.3
 
         When pod creation "succeeds" with "hostIPC" set to "false" in the pod spec
         Then pod creation "fails" with "hostIPC" set to "true" in the pod spec
@@ -85,7 +92,9 @@ Feature: Maximise security through Pod Security Policies
 
         By default Pods that don't specify whether Host IPC namespace mode is set should not be able to access the shared host IPC namespace.
 
-        See https://kubernetes.io/docs/concepts/policy/pod-security-policy/#privileged
+        Security Standard References:
+            - https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
+            - CIS Kubernetes Benchmark v1.6.0 - 5.2.3
 
         When pod creation "succeeds" with "hostIPC" set to "<VALUE>" in the pod spec
         And the execution of a "non-privileged" command inside the Pod is "successful"
