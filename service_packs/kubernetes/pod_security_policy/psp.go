@@ -237,34 +237,69 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 	return err
 }
 
-func (scenario *scenarioState) theCMDValueForPID1ShouldMatchTheEntrypointCommand() (err error) {
+func (scenario *scenarioState) theCommandXShouldOnlyShowTheContainerProcesses(command string) (err error) {
+	// Supported commands:
+	//     'ps'
+
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
 		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
 	}()
-	cmd := "ps"
-	exitCode, stdout, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
+	exitCode, stdout, err := conn.ExecCommand(command, scenario.namespace, scenario.pods[0])
 
-	stepTrace.WriteString("Validating that hostPID was not used by searching for the container's entrypoint in the process tree; ")
 	entrypoint := strings.Join(constructors.DefaultEntrypoint(), " ")
 
 	// NOTE: This expectation depends on using DefaultPodSecurityContext during the previous step
-	expected := fmt.Sprintf("1 1000      0:00 %s", entrypoint)
+	switch command {
+	case "ps":
+		stepTrace.WriteString("Validating that the container's entrypoint is PID 1 in the process tree; ")
+		expected := fmt.Sprintf("1 1000      0:00 %s", entrypoint)
+		if !strings.Contains(stdout, expected) {
+			err = utils.ReformatError("Expected to find container entrypoint, but did not")
+		}
+	case "lsns -n":
+		stepTrace.WriteString("Validating that no namespace has an entrypoint different from the container's entrypoint; ")
+		stdoutLines := strings.Split(stdout, "\n")
+		for _, entry := range stdoutLines {
+			if entry != "" && !strings.Contains(entry, entrypoint) {
+				err = utils.ReformatError("A namespace is visible that uses a different entrypoint from the container, suggesting that hostIPC was used")
+			}
+		}
+	default:
+		err = utils.ReformatError("Unsupported value provided for command")
+	}
 
 	// TODO: Validate that this fails as expected
-	if !strings.Contains(stdout, expected) {
-		err = utils.ReformatError("Expected to find container entrypoint '%s' as PID 1, but did not.", entrypoint)
-	}
 	payload = struct {
 		Command    string
 		ExitCode   int
 		Stdout     string
 		Entrypoint string
 	}{
-		Command:    cmd,
+		Command:    command,
 		ExitCode:   exitCode,
 		Stdout:     stdout,
 		Entrypoint: entrypoint,
+	}
+	return
+}
+
+func (scenario *scenarioState) theHostNamespaceShouldNotBeVisible() (err error) {
+	stepTrace, payload, err := utils.AuditPlaceholders()
+	defer func() {
+		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
+	}()
+
+	cmd := "lsns -l"
+	exitCode, stdout, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
+	payload = struct {
+		Command  string
+		ExitCode int
+		Stdout   string
+	}{
+		Command:  cmd,
+		ExitCode: exitCode,
+		Stdout:   stdout,
 	}
 	return
 }
@@ -306,11 +341,11 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	// Use for steps that have yet to be written
 	ctx.Step(`^TODO: "([^"]*)"$`, scenario.toDo)
 
-	// Scenarios
+	// Parameterized Scenarios
 	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
 	ctx.Step(`^pod creation "([^"]*)" with "([^"]*)" set to "([^"]*)" in the pod spec$`, scenario.podCreationResultsWithXSetToYInThePodSpec)
 	ctx.Step(`^the execution of a "([^"]*)" command inside the Pod is "([^"]*)"$`, scenario.theExecutionOfAXCommandInsideThePodIsY)
-	ctx.Step(`^the CMD value for PID 1 should match the entrypoint command$`, scenario.theCMDValueForPID1ShouldMatchTheEntrypointCommand)
+	ctx.Step(`^the command "([^"]*)" should only show the container processes$`, scenario.theCommandXShouldOnlyShowTheContainerProcesses)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		afterScenario(scenario, probe, s, err)

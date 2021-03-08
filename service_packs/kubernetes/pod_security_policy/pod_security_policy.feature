@@ -62,7 +62,7 @@ Feature: Maximise security through Pod Security Policies
 
         When pod creation "succeeds" with "hostPID" set to "<VALUE>" in the pod spec
         And the execution of a "non-privileged" command inside the Pod is "successful"
-        Then the CMD value for PID 1 should match the entrypoint command
+        Then the command "ps" should only show the container processes
 
         Examples:
             | VALUE                     |
@@ -88,6 +88,10 @@ Feature: Maximise security through Pod Security Policies
         See https://kubernetes.io/docs/concepts/policy/pod-security-policy/#privileged
 
         When pod creation "succeeds" with "hostIPC" set to "<VALUE>" in the pod spec
-        And TODO "the execution of a 'regular' command inside the Pod is successful"
-        When a user attempts to execute a command inside the Pod that provides access to the shared host IPC namespace
-        Then the command execution is unsuccessful due to shared host IPC namespace access restrictions
+        And the execution of a "non-privileged" command inside the Pod is "successful"
+        Then the command "lsns -n" should only show the container processes
+
+        Examples:
+            | VALUE                     |
+            | not have a value provided |
+            | false                     |
