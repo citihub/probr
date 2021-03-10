@@ -56,7 +56,7 @@ Feature: Maximise security through Pod Security Policies
         Then pod creation "fails" with "hostPID" set to "true" in the pod spec
 
     @k-psp-004
-    Scenario: Prevent execution of commands that allow privileged access by default
+    Scenario: Prevent execution of commands that allow privileged access
 
         By default Pods that don't specify a value for hostPID should not have the ability to
         gain access to processes outside of the Pod's process tree.
@@ -145,6 +145,7 @@ Feature: Maximise security through Pod Security Policies
 
         Security Standard References:
             https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
+            - CIS Kubernetes Benchmark v1.6.0 - 5.2.6
 
         When pod creation "succeeds" with "user" set to "1000" in the pod spec
         Then pod creation "fails" with "user" set to "0" in the pod spec
@@ -156,6 +157,7 @@ Feature: Maximise security through Pod Security Policies
 
         Security Standard References:
             https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
+            - CIS Kubernetes Benchmark v1.6.0 - 5.2.6
 
         When pod creation "succeeds" with "user" set to "1000" in the pod spec
         But the execution of a "root" command inside the Pod is "unsuccessful"
