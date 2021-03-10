@@ -82,6 +82,8 @@ func (scenario *scenarioState) toDo(todo string) error {
 
 // Attempt to deploy a pod from a default pod spec, with specified modification
 func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result, key, value string) error {
+	// TODO: Refactor for readability. Organize similar keys together, such as those accepting similar values
+	//
 	// Supported results:
 	//     'succeeds'
 	//     'fails'
