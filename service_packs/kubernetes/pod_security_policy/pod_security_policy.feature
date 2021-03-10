@@ -144,7 +144,7 @@ Feature: Maximise security through Pod Security Policies
         The root user (0) should be avoided in order to ensure least privilege.
 
         Security Standard References:
-            https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
+            - https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
             - CIS Kubernetes Benchmark v1.6.0 - 5.2.6
 
         When pod creation "succeeds" with "user" set to "1000" in the pod spec
@@ -156,7 +156,7 @@ Feature: Maximise security through Pod Security Policies
         By default Pods that don't specify which user to run as should not allow execution of commands as root user
 
         Security Standard References:
-            https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
+            - https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
             - CIS Kubernetes Benchmark v1.6.0 - 5.2.6
 
         When pod creation "succeeds" with "user" set to "1000" in the pod spec
