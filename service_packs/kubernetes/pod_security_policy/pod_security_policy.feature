@@ -161,3 +161,18 @@ Feature: Maximise security through Pod Security Policies
 
         When pod creation "succeeds" with "user" set to "1000" in the pod spec
         But the execution of a "root" command inside the Pod is "unsuccessful"
+
+    @k-psp-011
+    Scenario: Ensure that the seccomp profile is set to docker/default in all pod definitions
+    
+        Seccomp (secure computing mode) is used to restrict the set of system calls applications can make,
+        allowing cluster administrators greater control over the security of workloadsrunning in the cluster.
+        Kubernetes disables seccomp profiles by default for historical reasons. You should enable it
+        to ensure that the workloads have restricted actions available within the container.
+
+        Security Standard References:
+            - CIS Kubernetes Benchmark v1.6.0 - 5.7.2
+        
+        When pod creation "succeeds" with "annotations" set to "include seccomp profile" in the pod spec
+        Then pod creation "fails" with "annotations" set to "not include seccomp profile" in the pod spec
+
