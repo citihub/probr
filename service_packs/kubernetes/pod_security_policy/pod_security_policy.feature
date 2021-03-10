@@ -1,5 +1,5 @@
-@k-psp
-@probes/kubernetes/psp
+@k-TBD
+@probes/kubernetes/TBD
 Feature: NAME TBD
 
     As a Cloud Security Administrator
@@ -9,7 +9,7 @@ Feature: NAME TBD
     Background:
         Given a Kubernetes cluster exists which we can deploy into
 
-    @k-psp-001
+    @k-TBD-001
     Scenario: Prevent a deployment from running with privileged access
 
         Pods that request Privileged mode (using the security context of the container spec)
@@ -23,7 +23,7 @@ Feature: NAME TBD
         Then pod creation "succeeds" with "allowPrivilegeEscalation" set to "false" in the pod spec
         And pod creation "fails" with "allowPrivilegeEscalation" set to "true" in the pod spec
 
-    @k-psp-002
+    @k-TBD-002
     Scenario Outline: Prevent execution of commands that require privileged access
 
         By default Pods that don't specify whether Privileged mode is set within the security context
@@ -42,7 +42,7 @@ Feature: NAME TBD
             | not have a value provided |
             | false                     |
 
-    @k-psp-003
+    @k-TBD-003
     Scenario Outline: Prevent a deployment from running in the host's process tree namespace
 
         HostPID controls whether a Pod's containers can share the host process ID namespace.
@@ -55,7 +55,7 @@ Feature: NAME TBD
         When pod creation "succeeds" with "hostPID" set to "false" in the pod spec
         Then pod creation "fails" with "hostPID" set to "true" in the pod spec
 
-    @k-psp-004
+    @k-TBD-004
     Scenario: Prevent execution of commands that allow privileged access
 
         By default Pods that don't specify a value for hostPID should not have the ability to
@@ -74,7 +74,7 @@ Feature: NAME TBD
             | not have a value provided |
             | false                     |
 
-    @k-psp-005
+    @k-TBD-005
     Scenario: Prevent a deployment from running with access to the shared host IPC namespace
 
         HostIPC controls whether a Pod's containers can share the host IPC namespace, 
@@ -87,7 +87,7 @@ Feature: NAME TBD
         When pod creation "succeeds" with "hostIPC" set to "false" in the pod spec
         Then pod creation "fails" with "hostIPC" set to "true" in the pod spec
 
-    @k-psp-006
+    @k-TBD-006
     Scenario: Prevent a deployment from running with access to the shared host IPC namespace
 
         By default Pods that don't specify whether Host IPC namespace mode is set should not
@@ -106,7 +106,7 @@ Feature: NAME TBD
             | not have a value provided |
             | false                     |
 
-    @k-psp-007
+    @k-TBD-007
     Scenario: Prevent a deployment from running with access to the host's network namespace
 
         The HostNetwork flag controls whether the pod may use the node network namespace. Doing so gives the pod access
@@ -120,7 +120,7 @@ Feature: NAME TBD
         When pod creation "succeeds" with "hostNetwork" set to "false" in the pod spec
         Then pod creation "fails" with "hostNetwork" set to "true" in the pod spec
 
-    @k-psp-008
+    @k-TBD-008
     Scenario: Prevent execution of commands that allow access to the host's network namespace access
 
         By default Pods that don't specify whether access to host's network namespace is required should not be able to access the host's network namespace.
@@ -138,7 +138,7 @@ Feature: NAME TBD
             | not have a value provided |
             | false                     |
 
-    @k-psp-009
+    @k-TBD-009
     Scenario: Prevent a deployment from running as the root user
 
         The root user (0) should be avoided in order to ensure least privilege.
@@ -150,7 +150,7 @@ Feature: NAME TBD
         When pod creation "succeeds" with "user" set to "1000" in the pod spec
         Then pod creation "fails" with "user" set to "0" in the pod spec
 
-    @k-psp-010
+    @k-TBD-010
     Scenario: Prevent usage of commands that require root permissions
 
         By default Pods that don't specify which user to run as should not allow execution of commands as root user
@@ -162,7 +162,7 @@ Feature: NAME TBD
         When pod creation "succeeds" with "user" set to "1000" in the pod spec
         But the execution of a "root" command inside the Pod is "unsuccessful"
 
-    @k-psp-011
+    @k-TBD-011
     Scenario: Ensure that the seccomp profile is set to docker/default in all pod definitions
     
         Seccomp (secure computing mode) is used to restrict the set of system calls applications can make,
