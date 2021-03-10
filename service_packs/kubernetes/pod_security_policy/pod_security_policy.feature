@@ -1,10 +1,10 @@
 @k-psp
 @probes/kubernetes/psp
-Feature: Maximise security through Pod Security Policies
+Feature: NAME TBD
 
     As a Cloud Security Administrator
-    I want to ensure that a stringent set of Pod Security Policies are present
-    So that a policy of least privilege can be enforced in order to prevent malicious attacks on my organization
+    I want to ensure that controls are present to enforce a policy of least privilege
+    In order to prevent malicious attacks on my organization
 
     Background:
         Given a Kubernetes cluster exists which we can deploy into
