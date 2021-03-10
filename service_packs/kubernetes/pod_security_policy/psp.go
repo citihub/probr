@@ -80,6 +80,23 @@ func (scenario *scenarioState) toDo(todo string) error {
 	return godog.ErrPending
 }
 
+func boolPodSpecModifier(pod *apiv1.Pod, key, value string) error {
+	boolValue, _ := strconv.ParseBool(value)
+	switch key {
+	case "allowPrivilegeEscalation":
+		pod.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = &boolValue
+	case "hostPID":
+		pod.Spec.HostPID = boolValue
+	case "hostIPC":
+		pod.Spec.HostIPC = boolValue
+	case "hostNetwork":
+		pod.Spec.HostNetwork = boolValue
+	default:
+		return utils.ReformatError("Unsupported key provided: %s", key) // No payload is necessary if an invalid key was provided
+	}
+	return nil
+}
+
 // Attempt to deploy a pod from a default pod spec, with specified modification
 func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result, key, value string) error {
 	// TODO: Refactor for readability. Organize similar keys together, such as those accepting similar values
@@ -106,7 +123,7 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 	defer func() {
 		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
 	}()
-	var boolValue, shouldCreate bool
+	var shouldCreate bool
 	var intValue int64
 
 	stepTrace.WriteString(fmt.Sprintf("Build a pod spec with default values; "))
@@ -143,19 +160,8 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 		}
 	default:
 		if value == "true" || value == "false" {
-			boolValue, err = strconv.ParseBool(value)
-			stepTrace.WriteString(fmt.Sprintf("Set '%v' to '%v' in pod spec; ", key, value))
-			switch key {
-			case "allowPrivilegeEscalation":
-				podObject.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = &boolValue
-			case "hostPID":
-				podObject.Spec.HostPID = boolValue
-			case "hostIPC":
-				podObject.Spec.HostIPC = boolValue
-			case "hostNetwork":
-				podObject.Spec.HostNetwork = boolValue
-			default:
-				err = utils.ReformatError("Unsupported key provided: %s", key) // No payload is necessary if an invalid key was provided
+			err = boolPodSpecModifier(podObject, key, value)
+			if err != nil {
 				return err
 			}
 		} else if value != "not have a value provided" {
