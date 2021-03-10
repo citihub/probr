@@ -1132,7 +1132,7 @@ func (s *scenarioState) iShouldNotBeAbleToPerformASystemCallThatIsBlockedByTheSe
 
 // Name presents the name of this probe for external reference
 func (p probeStruct) Name() string {
-	return "pod_security"
+	return "pod_security_policy"
 }
 
 // Path presents the path of these feature files for external reference
