@@ -138,7 +138,7 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 		case "not include seccomp profile":
 			podObject.ObjectMeta.Annotations = nil
 		default:
-			err = utils.ReformatError("Expected 'include seccomp profile' or 'not include seccomp profile, but found '%s'", value) // No payload is necessary if an invalid value was provided
+			err = utils.ReformatError("Expected 'include seccomp profile' or 'not include seccomp profile', but found '%s'", value) // No payload is necessary if an invalid value was provided
 			return err
 		}
 	default:
