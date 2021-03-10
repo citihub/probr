@@ -1,18 +1,18 @@
-@k-TBD
-@probes/kubernetes/TBD
-Feature: NAME TBD
+@k-psp
+@probes/kubernetes/psp
+Feature: Pod Security
 
     As a Cloud Security Administrator
-    I want to ensure that controls are present to enforce a policy of least privilege
+    I want to ensure that controls are present to enforce pod security
     In order to prevent malicious attacks on my organization
 
     Background:
         Given a Kubernetes cluster exists which we can deploy into
 
-    @k-TBD-001
+    @k-psp-001
     Scenario: Prevent a deployment from running with privileged access
 
-        Pods that request Privileged mode (using the security context of the container spec)
+        pods that request Privileged mode (using the security context of the container spec)
         will get operating system administrative capabilities - almost the same privileges that are
         accessible outside of a container.
         
@@ -23,10 +23,10 @@ Feature: NAME TBD
         Then pod creation "succeeds" with "allowPrivilegeEscalation" set to "false" in the pod spec
         And pod creation "fails" with "allowPrivilegeEscalation" set to "true" in the pod spec
 
-    @k-TBD-002
+    @k-psp-002
     Scenario Outline: Prevent execution of commands that require privileged access
 
-        By default Pods that don't specify whether Privileged mode is set within the security context
+        By default pods that don't specify whether Privileged mode is set within the security context
         of the container spec should not have the ability to perform privileged commands.
 
         Security Standard References:
@@ -34,18 +34,18 @@ Feature: NAME TBD
             - CIS Kubernetes Benchmark v1.6.0 - 5.2.5
 
         When pod creation "succeeds" with "allowPrivilegeEscalation" set to "<VALUE>" in the pod spec
-        Then the execution of a "non-privileged" command inside the Pod is "successful"
-        But the execution of a "sudo" command inside the Pod is "not executable"
+        Then the execution of a "non-privileged" command inside the pod is "successful"
+        But the execution of a "sudo" command inside the pod is "not executable"
 
         Examples:
             | VALUE                     |
             | not have a value provided |
             | false                     |
 
-    @k-TBD-003
+    @k-psp-003
     Scenario Outline: Prevent a deployment from running in the host's process tree namespace
 
-        HostPID controls whether a Pod's containers can share the host process ID namespace.
+        HostPID controls whether a pod's containers can share the host process ID namespace.
         If paired with ptrace, this can be used to escalate privileges outside of the container.
 
         Security Standard References:
@@ -55,18 +55,18 @@ Feature: NAME TBD
         When pod creation "succeeds" with "hostPID" set to "false" in the pod spec
         Then pod creation "fails" with "hostPID" set to "true" in the pod spec
 
-    @k-TBD-004
+    @k-psp-004
     Scenario: Prevent execution of commands that allow privileged access
 
-        By default Pods that don't specify a value for hostPID should not have the ability to
-        gain access to processes outside of the Pod's process tree.
+        By default pods that don't specify a value for hostPID should not have the ability to
+        gain access to processes outside of the pod's process tree.
 
         Security Standard References:
             - https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
             - CIS Kubernetes Benchmark v1.6.0 - 5.2.2
 
         When pod creation "succeeds" with "hostPID" set to "<VALUE>" in the pod spec
-        And the execution of a "non-privileged" command inside the Pod is "successful"
+        And the execution of a "non-privileged" command inside the pod is "successful"
         Then a "process" inspection should only show the container processes
 
         Examples:
@@ -74,10 +74,10 @@ Feature: NAME TBD
             | not have a value provided |
             | false                     |
 
-    @k-TBD-005
+    @k-psp-005
     Scenario: Prevent a deployment from running with access to the shared host IPC namespace
 
-        HostIPC controls whether a Pod's containers can share the host IPC namespace, 
+        HostIPC controls whether a pod's containers can share the host IPC namespace, 
         allowing container processes to communicate with other processes on the host.
 
         Security Standard References:
@@ -87,10 +87,10 @@ Feature: NAME TBD
         When pod creation "succeeds" with "hostIPC" set to "false" in the pod spec
         Then pod creation "fails" with "hostIPC" set to "true" in the pod spec
 
-    @k-TBD-006
+    @k-psp-006
     Scenario: Prevent a deployment from running with access to the shared host IPC namespace
 
-        By default Pods that don't specify whether Host IPC namespace mode is set should not
+        By default pods that don't specify whether Host IPC namespace mode is set should not
         be able to access the shared host IPC namespace.
 
         Security Standard References:
@@ -98,7 +98,7 @@ Feature: NAME TBD
             - CIS Kubernetes Benchmark v1.6.0 - 5.2.3
 
         When pod creation "succeeds" with "hostIPC" set to "<VALUE>" in the pod spec
-        And the execution of a "non-privileged" command inside the Pod is "successful"
+        And the execution of a "non-privileged" command inside the pod is "successful"
         Then a "namespace" inspection should only show the container processes
 
         Examples:
@@ -106,7 +106,7 @@ Feature: NAME TBD
             | not have a value provided |
             | false                     |
 
-    @k-TBD-007
+    @k-psp-007
     Scenario: Prevent a deployment from running with access to the host's network namespace
 
         The HostNetwork flag controls whether the pod may use the node network namespace. Doing so gives the pod access
@@ -120,10 +120,10 @@ Feature: NAME TBD
         When pod creation "succeeds" with "hostNetwork" set to "false" in the pod spec
         Then pod creation "fails" with "hostNetwork" set to "true" in the pod spec
 
-    @k-TBD-008
+    @k-psp-008
     Scenario: Prevent execution of commands that allow access to the host's network namespace access
 
-        By default Pods that don't specify whether access to host's network namespace is required should not be able to access the host's network namespace.
+        By default pods that don't specify whether access to host's network namespace is required should not be able to access the host's network namespace.
 
         Security Standard References:
             - https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
@@ -131,14 +131,14 @@ Feature: NAME TBD
 
 
         When pod creation "succeeds" with "hostNetwork" set to "<VALUE>" in the pod spec
-        Then the PodIP and HostIP have different values
+        Then the podIP and HostIP have different values
 
         Examples:
             | VALUE                     |
             | not have a value provided |
             | false                     |
 
-    @k-TBD-009
+    @k-psp-009
     Scenario: Prevent a deployment from running as the root user
 
         The root user (0) should be avoided in order to ensure least privilege.
@@ -150,19 +150,19 @@ Feature: NAME TBD
         When pod creation "succeeds" with "user" set to "1000" in the pod spec
         Then pod creation "fails" with "user" set to "0" in the pod spec
 
-    @k-TBD-010
+    @k-psp-010
     Scenario: Prevent usage of commands that require root permissions
 
-        By default Pods that don't specify which user to run as should not allow execution of commands as root user
+        By default pods that don't specify which user to run as should not allow execution of commands as root user
 
         Security Standard References:
             - https://kubernetes.io/docs/concepts/policy/pod-security-policy/#host-namespaces
             - CIS Kubernetes Benchmark v1.6.0 - 5.2.6
 
         When pod creation "succeeds" with "user" set to "1000" in the pod spec
-        But the execution of a "root" command inside the Pod is "unsuccessful"
+        But the execution of a "root" command inside the pod is "unsuccessful"
 
-    @k-TBD-011
+    @k-psp-011
     Scenario: Ensure that the seccomp profile is set to docker/default in all pod definitions
     
         Seccomp (secure computing mode) is used to restrict the set of system calls applications can make,
@@ -175,4 +175,3 @@ Feature: NAME TBD
         
         When pod creation "succeeds" with "annotations" set to "include seccomp profile" in the pod spec
         Then pod creation "fails" with "annotations" set to "not include seccomp profile" in the pod spec
-
