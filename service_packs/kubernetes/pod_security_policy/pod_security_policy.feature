@@ -12,7 +12,7 @@ Feature: Pod Security
     @k-psp-001
     Scenario: Prevent a deployment from running with privileged access
 
-        pods that request Privileged mode (using the security context of the container spec)
+        Pods that request Privileged mode (using the security context of the container spec)
         will get operating system administrative capabilities - almost the same privileges that are
         accessible outside of a container.
         
@@ -131,7 +131,7 @@ Feature: Pod Security
 
 
         When pod creation "succeeds" with "hostNetwork" set to "<VALUE>" in the pod spec
-        Then the podIP and HostIP have different values
+        Then the PodIP and HostIP have different values
 
         Examples:
             | VALUE                     |
