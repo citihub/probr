@@ -82,25 +82,14 @@ func (scenario *scenarioState) toDo(todo string) error {
 
 // Attempt to deploy a pod from a default pod spec, with specified modification
 func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result, key, value string) (err error) {
-	// TODO: Refactor for readability. Organize similar keys together, such as those accepting similar values
-	//
-	// Supported results:
-	//     'succeeds'
-	//     'fails'
-	//
-	// Supported keys:
-	//    'allowPrivilegeEscalation'
-	//    'hostPID'
-	//    'hostIPC'
-	//    'hostNetwork'
-	//    'user'
-	//    'annotations'
-	//
-	// Supported values:
-	//    'true'
-	//    'false'
-	//    'not have a value provided'
-	//    Any whole number such as '0' or '1000'
+	// Supported key/values:
+	// | Key                        | Value                                                     |
+	// | 'allowPrivilegeEscalation' | 'true', 'false', 'not have a value provided'              |
+	// | 'hostPID'                  | 'true', 'false', 'not have a value provided'              |
+	// | 'hostIPC'                  | 'true', 'false', 'not have a value provided'              |
+	// | 'hostNetwork'              | 'true', 'false', 'not have a value provided'              |
+	// | 'user'                     | Any whole number (such as '0' or '1000')                  |
+	// | 'annotations'              | 'include seccomp profile', 'not include seccomp profile'  |
 
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
@@ -390,6 +379,15 @@ func afterScenario(scenario scenarioState, probe probeStruct, gs *godog.Scenario
 }
 
 func boolPodSpecModifier(pod *apiv1.Pod, key, value string) (err error) {
+	// Supported keys:
+	//     'allowPrivilegeEscalation'
+	//     'hostPID'
+	//     'hostIPC'
+	//     'hostNetwork'
+	// Supported values:
+	//     'true'
+	//     'false'
+
 	boolValue, _ := strconv.ParseBool(value)
 	switch key {
 	case "allowPrivilegeEscalation":
