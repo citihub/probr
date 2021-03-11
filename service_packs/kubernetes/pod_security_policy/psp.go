@@ -80,25 +80,8 @@ func (scenario *scenarioState) toDo(todo string) error {
 	return godog.ErrPending
 }
 
-func boolPodSpecModifier(pod *apiv1.Pod, key, value string) error {
-	boolValue, _ := strconv.ParseBool(value)
-	switch key {
-	case "allowPrivilegeEscalation":
-		pod.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = &boolValue
-	case "hostPID":
-		pod.Spec.HostPID = boolValue
-	case "hostIPC":
-		pod.Spec.HostIPC = boolValue
-	case "hostNetwork":
-		pod.Spec.HostNetwork = boolValue
-	default:
-		return utils.ReformatError("Unsupported key provided: %s", key) // No payload is necessary if an invalid key was provided
-	}
-	return nil
-}
-
 // Attempt to deploy a pod from a default pod spec, with specified modification
-func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result, key, value string) error {
+func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result, key, value string) (err error) {
 	// TODO: Refactor for readability. Organize similar keys together, such as those accepting similar values
 	//
 	// Supported results:
@@ -123,60 +106,37 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 	defer func() {
 		scenario.audit.AuditScenarioStep(scenario.currentStep, stepTrace.String(), payload, err)
 	}()
-	var shouldCreate bool
-	var intValue int64
 
-	stepTrace.WriteString(fmt.Sprintf("Build a pod spec with default values; "))
-	securityContext := constructors.DefaultContainerSecurityContext()
-	podObject := constructors.PodSpec(Probe.Name(), config.Vars.ServicePacks.Kubernetes.ProbeNamespace, securityContext)
-
-	switch result {
-	case "succeeds":
-		shouldCreate = true
-	case "fails":
-		shouldCreate = false
-	default:
-		err = utils.ReformatError("Unexpected value provided for expected pod creation result: %s", result) // No payload is necessary if an invalid value was provided
-		return err
+	podShouldCreate, err := shouldPodCreate(result)
+	if err != nil {
+		return
 	}
 
+	stepTrace.WriteString(fmt.Sprintf("Build a pod spec with default values; "))
+	pod := constructors.PodSpec(Probe.Name(), config.Vars.ServicePacks.Kubernetes.ProbeNamespace)
+
+	// Any key that expects a non-bool value should have it's own case here to handle the pod modification
 	switch key {
 	case "user":
-		intValue, err = strconv.ParseInt(value, 10, 64)
-		if err != nil {
-			err = utils.ReformatError("Expected value to be a whole number, but found '%s' (%s)", value, err) // No payload is necessary if an invalid value was provided
-			return err
-		}
-		podObject.Spec.SecurityContext.RunAsUser = &intValue
+		err = userPodSpecModifier(pod, value)
 	case "annotations":
-		switch value {
-		case "include seccomp profile":
-			// continue with default pod spec
-		case "not include seccomp profile":
-			podObject.ObjectMeta.Annotations = nil
-		default:
-			err = utils.ReformatError("Expected 'include seccomp profile' or 'not include seccomp profile', but found '%s'", value) // No payload is necessary if an invalid value was provided
-			return err
-		}
+		err = annotationsPodSpecModifier(pod, value)
 	default:
 		if value == "true" || value == "false" {
-			err = boolPodSpecModifier(podObject, key, value)
-			if err != nil {
-				return err
-			}
+			err = boolPodSpecModifier(pod, key, value)
 		} else if value != "not have a value provided" {
-			err = utils.ReformatError("Expected 'true', 'false', or 'not have a value provided', but found '%s'", value) // No payload is necessary if an invalid value was provided
-			return err
+			err = utils.ReformatError("Expected 'true', 'false', or 'not have a value provided', but found '%s'", value)
 		}
+	}
+	if err != nil {
+		return
 	}
 
 	stepTrace.WriteString(fmt.Sprintf("Create pod from spec; "))
-	createdPodObject, creationErr := scenario.createPodfromObject(podObject)
+	createdPod, creationErr := scenario.createPodfromObject(pod)
 
 	stepTrace.WriteString(fmt.Sprintf("Validate pod creation %s; ", result))
-
-	// Leaving these checks verbose for clarity
-	switch shouldCreate {
+	switch podShouldCreate {
 	case true:
 		if creationErr != nil {
 			err = utils.ReformatError("Pod creation did not succeed: %v", creationErr)
@@ -190,17 +150,17 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 			}
 		}
 	}
+
 	payload = struct {
 		RequestedPod  *apiv1.Pod
 		CreatedPod    *apiv1.Pod
 		CreationError error
 	}{
-		RequestedPod:  podObject,
-		CreatedPod:    createdPodObject,
+		RequestedPod:  pod,
+		CreatedPod:    createdPod,
 		CreationError: creationErr,
 	}
-
-	return err
+	return
 }
 
 func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission, result string) error {
@@ -427,4 +387,55 @@ func afterScenario(scenario scenarioState, probe probeStruct, gs *godog.Scenario
 		}
 	}
 	coreengine.LogScenarioEnd(gs)
+}
+
+func boolPodSpecModifier(pod *apiv1.Pod, key, value string) (err error) {
+	boolValue, _ := strconv.ParseBool(value)
+	switch key {
+	case "allowPrivilegeEscalation":
+		pod.Spec.Containers[0].SecurityContext.AllowPrivilegeEscalation = &boolValue
+	case "hostPID":
+		pod.Spec.HostPID = boolValue
+	case "hostIPC":
+		pod.Spec.HostIPC = boolValue
+	case "hostNetwork":
+		pod.Spec.HostNetwork = boolValue
+	default:
+		err = utils.ReformatError("Unsupported key provided: %s", key) // No payload is necessary if an invalid key was provided
+	}
+	return
+}
+
+func annotationsPodSpecModifier(pod *apiv1.Pod, value string) (err error) {
+	switch value {
+	case "include seccomp profile":
+		return
+	case "not include seccomp profile":
+		pod.ObjectMeta.Annotations = nil
+	default:
+		err = utils.ReformatError("Expected 'include seccomp profile' or 'not include seccomp profile', but found '%s'", value) // No payload is necessary if an invalid value was provided
+	}
+	return
+}
+
+func userPodSpecModifier(pod *apiv1.Pod, value string) (err error) {
+	intValue, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		err = utils.ReformatError("Expected value to be a whole number, but found '%s' (%s)", value, err) // No payload is necessary if an invalid value was provided
+		return err
+	}
+	pod.Spec.SecurityContext.RunAsUser = &intValue
+	return
+}
+
+func shouldPodCreate(result string) (shouldCreate bool, err error) {
+	switch result {
+	case "succeeds":
+		shouldCreate = true
+	case "fails":
+		shouldCreate = false
+	default:
+		err = utils.ReformatError("Unexpected value provided for expected pod creation result: %s", result) // No payload is necessary if an invalid value was provided
+	}
+	return
 }
