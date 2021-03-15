@@ -1,4 +1,4 @@
-package kubernetespack
+package kubernetes
 
 import (
 	"github.com/citihub/probr/config"
