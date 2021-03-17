@@ -202,16 +202,18 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 
 	}
 	stepTrace.WriteString("Attempt to run a command in the pod that was created by the previous step; ")
-	exitCode, stdout, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
+	exitCode, stdout, stderr, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
 	payload = struct {
 		Command          string
 		StdOut           string
+		StdErr           string
 		ExitCode         int
 		ExpectedExitCode int
 	}{
 		Command:          cmd,
 		StdOut:           stdout,
+		StdErr:           stderr,
 		ExitCode:         exitCode,
 		ExpectedExitCode: expectedExitCode,
 	}
@@ -242,7 +244,7 @@ func (scenario *scenarioState) aXInspectionShouldOnlyShowTheContainerProcesses(i
 		return
 	}
 	entrypoint := strings.Join(constructors.DefaultEntrypoint(), " ")
-	exitCode, stdout, err := conn.ExecCommand(command, scenario.namespace, scenario.pods[0])
+	exitCode, stdout, _, err := conn.ExecCommand(command, scenario.namespace, scenario.pods[0])
 
 	if err != nil {
 		// TODO: Validate that this fails as expected
