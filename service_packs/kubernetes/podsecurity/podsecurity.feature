@@ -35,7 +35,7 @@ Feature: Pod Security
 
         When pod creation "succeeds" with "allowPrivilegeEscalation" set to "<VALUE>" in the pod spec
         Then the execution of a "non-privileged" command inside the pod is "successful"
-        But the execution of a "privileged" command inside the pod is "not executable"
+        But the execution of a "privileged" command inside the pod is "prevented by restricted permissions"
 
         Examples:
             | VALUE                     |
