@@ -175,16 +175,3 @@ Feature: Pod Security
 
         When pod creation "succeeds" with "annotations" set to "include seccomp profile" in the pod spec
         Then pod creation "fails" with "annotations" set to "not include seccomp profile" in the pod spec
-
-    # @k-pod-012
-    # Scenario: Ensure that pods cannot use the NET_RAW capability
-
-    #     The NET_RAW capability is assigned by default if Docker is the container runtime,
-    #     but it introduces vulnerabilities that may be exploited by malicious containers.
-
-    #     Security Standard References:
-    #         - CIS Kubernetes Benchmark v1.6.0 - 5.2.7
-
-    #     When pod creation "fails" with "capabilities" set to "include NET_RAW" in the pod spec
-    #     Then pod creation "succeeds" with "capabilities" set to "not include NET_RAW" in the pod spec
-    #     And the execution of a "root" command inside the pod is "unsuccessful"
