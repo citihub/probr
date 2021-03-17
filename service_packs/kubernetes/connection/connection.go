@@ -202,7 +202,7 @@ func (connection *Conn) ExecCommand(cmd, namespace, podName string) (status int,
 		if exit, ok := err.(executil.CodeExitError); ok {
 			//the command has been executed on the container, but the underlying command raised an error
 			//this is an 'external' error and represents a successful communication with the cluster
-			err = utils.ReformatError(fmt.Sprintf("err: %s ; stdout: %s ; stderr: %s", err, stdout, stderrBuffer.String()))
+			err = utils.ReformatError(fmt.Sprintf("err: %s ; stderr: %s", err, stderrBuffer.String()))
 			status = exit.Code
 			return
 		}

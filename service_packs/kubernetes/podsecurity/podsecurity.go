@@ -109,6 +109,8 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 		err = userPodSpecModifier(pod, value)
 	case "annotations":
 		err = annotationsPodSpecModifier(pod, value)
+	case "capabilities":
+		err = capabilitiesPodSpecModifier(pod, value)
 	default:
 		if value == "true" || value == "false" {
 			err = boolPodSpecModifier(pod, key, value)
@@ -177,6 +179,8 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 		cmd = "ls"
 	case "sudo":
 		cmd = "sudo ls"
+	case "privileged":
+		cmd = "mount /fake /fake"
 	case "root":
 		cmd = "touch /dev/probr"
 	default:
@@ -190,24 +194,24 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 		expectedExitCode = 0
 	case "unsuccessful":
 		expectedExitCode = 1
-	case "not executable":
-		// If a command is found but is not executable, the return status is 126
-		// Known issue: we can't guarantee that the 126 recieved by kubectl isn't a masked 127
-		expectedExitCode = 126
+	case "prevented by restricted permissions":
+		expectedExitCode = 32
 	default:
 		err = utils.ReformatError("Unexpected value provided for expected command result: %s", result) // No payload is necessary if an invalid value was provided
 		return err
 
 	}
 	stepTrace.WriteString("Attempt to run a command in the pod that was created by the previous step; ")
-	exitCode, _, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
+	exitCode, stdout, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
 	payload = struct {
 		Command          string
+		StdOut           string
 		ExitCode         int
 		ExpectedExitCode int
 	}{
 		Command:          cmd,
+		StdOut:           stdout,
 		ExitCode:         exitCode,
 		ExpectedExitCode: expectedExitCode,
 	}
@@ -411,6 +415,17 @@ func annotationsPodSpecModifier(pod *apiv1.Pod, value string) (err error) {
 		pod.ObjectMeta.Annotations = nil
 	default:
 		err = utils.ReformatError("Expected 'include seccomp profile' or 'not include seccomp profile', but found '%s'", value) // No payload is necessary if an invalid value was provided
+	}
+	return
+}
+
+func capabilitiesPodSpecModifier(pod *apiv1.Pod, value string) (err error) {
+	switch value {
+	case "include NET_RAW":
+
+	case "not include NET_RAW":
+	default:
+		err = utils.ReformatError("Expected 'include NET_RAW' or 'not include NET_RAW', but found '%s'", value) // No payload is necessary if an invalid value was provided
 	}
 	return
 }
