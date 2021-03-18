@@ -176,16 +176,16 @@ Feature: Pod Security
         When pod creation "succeeds" with "annotations" set to "include seccomp profile" in the pod spec
         Then pod creation "fails" with "annotations" set to "not include seccomp profile" in the pod spec
 
-    @k-pod-011
-    Scenario: Ensure that containers cannot deploy with the NET_RAW ability
+    @k-pod-012
+    Scenario Outline: Ensure that containers cannot deploy with the NET_RAW ability
 
         Security Standard References:
             - CIS Kubernetes Benchmark v1.6.0 - 5.7.?
 
-        When pod creation "succeeds" with "capabilities" set to "drop NET_RAW" in the pod spec
-        Then pod creation "fails" with "capabilities" set to "<VALUE>" in the pod spec
+        Then pod creation "<RESULT>" with "capabilities" set to "<VALUE>" in the pod spec
 
         Examples:
-            | VALUE                     |
-            | not have a value provided |
-            | add NET_RAW               |
+            | RESULT   | VALUE                     |
+            | fails    | not have a value provided |
+            | fails    | add NET_RAW               |
+            | succeeds | drop NET_RAW              |
