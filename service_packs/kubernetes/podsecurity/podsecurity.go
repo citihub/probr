@@ -177,8 +177,6 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 	switch permission {
 	case "non-privileged":
 		cmd = "ls"
-	case "sudo":
-		cmd = "sudo ls"
 	case "privileged":
 		cmd = "mount /fake /fake"
 	case "root":
