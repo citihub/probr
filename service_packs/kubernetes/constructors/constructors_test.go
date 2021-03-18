@@ -178,7 +178,7 @@ func TestDefaultContainerSecurityContext(t *testing.T) {
 				Privileged:               utils.BoolPtr(false),
 				AllowPrivilegeEscalation: utils.BoolPtr(false),
 				Capabilities: &apiv1.Capabilities{
-					Drop: GetContainerDropCapabilitiesFromConfig(),
+					Drop: CapabilityObjectList([]string{"NET_RAW"}),
 				},
 			},
 		},
