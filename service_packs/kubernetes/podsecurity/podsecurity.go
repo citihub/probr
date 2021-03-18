@@ -424,8 +424,9 @@ func annotationsPodSpecModifier(pod *apiv1.Pod, value string) (err error) {
 func capabilitiesPodSpecModifier(pod *apiv1.Pod, value string) (err error) {
 	switch value {
 	case "drop NET_RAW":
-
+		// default probe pod does this already
 	case "add NET_RAW":
+		pod.Spec.Containers[0].SecurityContext.Capabilities.Drop = []apiv1.Capability{} // clear default cap drop
 		pod.Spec.Containers[0].SecurityContext.Capabilities.Add = append(pod.Spec.Containers[0].SecurityContext.Capabilities.Add, "NET_RAW")
 	case "not have a value provided":
 		pod.Spec.Containers[0].SecurityContext.Capabilities.Drop = []apiv1.Capability{}
