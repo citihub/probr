@@ -214,6 +214,8 @@ func (connection *Conn) ExecCommand(cmd, namespace, podName string) (status int,
 		}
 		// Internal error
 		err = utils.ReformatError("Issue in Stream: %v", err)
+	} else if stderr != "" {
+		err = utils.ReformatError("Unexpected error: %s [stdout: %s]", stderr, stdout)
 	}
 
 	return
