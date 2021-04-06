@@ -103,6 +103,7 @@ func (scenario *scenarioState) podCreationXWithContainerImageFromYRegistry(expec
 
 	stepTrace.WriteString(fmt.Sprintf("Set container image registry to appropriate value in pod spec; "))
 	podObject.Spec.Containers[0].Image = imageRegistry
+	podObject.Spec.Containers[0].ImagePullPolicy = "Always"
 
 	stepTrace.WriteString(fmt.Sprintf("Create pod from spec; "))
 	createdPodObject, creationErr := scenario.createPodfromObject(podObject) // Pod name is saved to scenario state if successful

@@ -11,7 +11,7 @@ Feature: Protect image container registries
     Background:
         Given a Kubernetes cluster exists which we can deploy into
 
-    @k-cra-003
+    @k-cra-001
     Scenario: Ensure deployment from an unauthorised container registry is denied
         Then pod creation "succeeds" with container image from "authorized" registry
         And pod creation "is denied" with container image from "unauthorized" registry
