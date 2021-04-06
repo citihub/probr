@@ -435,8 +435,8 @@ func (connection *Conn) podInErrorState(p *apiv1.Pod) error {
 			podName := p.GetObjectMeta().GetName()
 			waitReason := p.Status.ContainerStatuses[0].State.Waiting.Reason
 			log.Printf("[DEBUG] Pod: %v Waiting reason: %v", podName, waitReason)
-
-			if strings.Contains(waitReason, "error") {
+			// TODO: revisit this list of known error states
+			if strings.Contains(waitReason, "error") || strings.Contains(waitReason, "ErrImagePull") {
 				return utils.ReformatError("Pod '%s' is in an error state: %v", podName, waitReason)
 			}
 		}
