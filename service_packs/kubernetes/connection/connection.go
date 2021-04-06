@@ -44,6 +44,7 @@ type Connection interface {
 	GetPodIPs(namespace, podName string) (string, string, error)
 	GetRawResourceByName(apiEndPoint, namespace, resourceType, resourceName string) (resource APIResource, err error)
 	PostRawResource(apiEndPoint string, namespace string, resourceName string, resourceBody interface{}) (resource APIResource, err error)
+	WaitForPod(namespace string, podName string) (err error)
 }
 
 // APIResource encapsulates the response from a raw/rest call to the Kubernetes API when getting a resource by name
@@ -161,7 +162,7 @@ func (connection *Conn) ExecCommand(cmd, namespace, podName string) (status int,
 		err = utils.ReformatError("Command string not provided to ExecCommand")
 		return
 	}
-	connection.waitForPod(namespace, podName)
+	connection.WaitForPod(namespace, podName)
 
 	log.Printf("[DEBUG] Executing command: \"%s\" on POD '%s' in namespace '%s'", cmd, podName, namespace)
 	request := connection.clientSet.CoreV1().RESTClient().Post().Resource("pods").
@@ -244,7 +245,7 @@ func (connection *Conn) GetPodsByNamespace(namespace string) (*apiv1.PodList, er
 
 // GetPodIPs will retrieve a pod by name and return its IP and its host's IP
 func (connection *Conn) GetPodIPs(namespace, podName string) (podIP string, hostIP string, err error) {
-	connection.waitForPod(namespace, podName)
+	connection.WaitForPod(namespace, podName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -378,9 +379,10 @@ func (connection *Conn) modifyContext(rawConfig clientcmdapi.Config, context str
 	}
 }
 
-// waitForPod ensures pod has entered a running state, or returns any error encountered
-func (connection *Conn) waitForPod(namespace string, podName string) (err error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+// WaitForPod ensures pod has entered a running state, or returns any error encountered
+func (connection *Conn) WaitForPod(namespace string, podName string) (err error) {
+	duration := time.Minute / 2
+	ctx, cancel := context.WithTimeout(context.Background(), duration)
 	defer cancel()
 
 	ps := connection.clientSet.CoreV1().Pods(namespace)
