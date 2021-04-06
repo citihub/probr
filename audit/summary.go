@@ -129,6 +129,8 @@ func (s *summaryState) completeProbe(e *Probe) {
 		s.ProbesFailed = s.ProbesFailed + 1
 	}
 	if len(s.Meta["names of pods created"].([]string)) == 0 {
-		s.Meta["pod creation error"] = "An error has occurred while creating pods. This may be due to a configuration error in the cluster, or in the config that was passed in to Probr"
+		s.Meta["pod creation error"] = "An error appears to have occurred while creating pods. Please ensure that proper config vars were set for this Probr execution."
+	} else {
+		delete(s.Meta, "pod creation error")
 	}
 }
