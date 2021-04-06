@@ -224,7 +224,6 @@ func getImageFromConfig(accessLevel bool) string {
 
 func (scenario *scenarioState) createPodfromObject(podObject *apiv1.Pod) (createdPodObject *apiv1.Pod, err error) {
 	createdPodObject, err = conn.CreatePodFromObject(podObject, Probe.Name())
-	conn.WaitForPod(createdPodObject.ObjectMeta.Namespace, createdPodObject.ObjectMeta.Name)
 	if err == nil {
 		scenario.pods = append(scenario.pods, createdPodObject.ObjectMeta.Name)
 	}

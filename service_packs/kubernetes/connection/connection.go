@@ -128,6 +128,9 @@ func (connection *Conn) CreatePodFromObject(pod *apiv1.Pod, probeName string) (*
 	defer cancel()
 
 	res, err := podsClient.Create(ctx, pod, metav1.CreateOptions{})
+	if err == nil {
+		err = connection.WaitForPod(namespace, podName)
+	}
 	if err != nil {
 		log.Printf("[INFO] Attempt to create pod '%v' failed with error: '%v'", podName, err)
 	} else {
