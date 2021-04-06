@@ -211,17 +211,14 @@ func afterScenario(scenario scenarioState, probe probeStruct, gs *godog.Scenario
 	coreengine.LogScenarioEnd(gs)
 }
 
-func getContainerRegistryFromConfig(accessLevel bool) string {
-	if accessLevel {
-		return config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry
-	}
-	return config.Vars.ServicePacks.Kubernetes.UnauthorisedContainerRegistry
-}
-
 func getImageFromConfig(accessLevel bool) string {
-	registry := getContainerRegistryFromConfig(accessLevel)
-	//full image is the repository + the configured image
-	return registry + "/" + config.Vars.ServicePacks.Kubernetes.ProbeImage
+	if accessLevel {
+		// full image is the repository + image
+		return fmt.Sprintf("%s/%s",
+			config.Vars.ServicePacks.Kubernetes.AuthorisedContainerRegistry,
+			config.Vars.ServicePacks.Kubernetes.ProbeImage)
+	}
+	return config.Vars.ServicePacks.Kubernetes.UnauthorisedContainerImage
 }
 
 func (scenario *scenarioState) createPodfromObject(podObject *apiv1.Pod) (createdPodObject *apiv1.Pod, err error) {

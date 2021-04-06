@@ -96,7 +96,7 @@ func TestK8sIsExcluded(t *testing.T) {
 	assertIsExcluded(config.ServicePacks.Kubernetes, t)
 
 	// All required vars set
-	config.ServicePacks.Kubernetes.UnauthorisedContainerRegistry = "not-empty"
+	config.ServicePacks.Kubernetes.UnauthorisedContainerImage = "not-empty"
 	assertIsNotExcluded(config.ServicePacks.Kubernetes, t)
 }
 

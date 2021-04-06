@@ -41,7 +41,7 @@ type Kubernetes struct {
 	KubeContext                       string   `yaml:"KubeContext"`
 	SystemClusterRoles                []string `yaml:"SystemClusterRoles"`
 	AuthorisedContainerRegistry       string   `yaml:"AuthorisedContainerRegistry"`
-	UnauthorisedContainerRegistry     string   `yaml:"UnauthorisedContainerRegistry"`
+	UnauthorisedContainerImage        string   `yaml:"UnauthorisedContainerImage"`
 	ProbeImage                        string   `yaml:"ProbeImage"`
 	ContainerRequiredDropCapabilities []string `yaml:"ContainerRequiredDropCapabilities"`
 	ContainerAllowedAddCapabilities   []string `yaml:"ContainerAllowedAddCapabilities"`

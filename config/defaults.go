@@ -24,7 +24,7 @@ func setFromEnvOrDefaults(e *VarOptions) {
 	e.set(&e.ServicePacks.Kubernetes.KubeContext, "KUBE_CONTEXT", "")
 	e.set(&e.ServicePacks.Kubernetes.SystemClusterRoles, "", []string{"system:", "aks", "cluster-admin", "policy-agent"})
 	e.set(&e.ServicePacks.Kubernetes.AuthorisedContainerRegistry, "PROBR_AUTHORISED_REGISTRY", "")
-	e.set(&e.ServicePacks.Kubernetes.UnauthorisedContainerRegistry, "PROBR_UNAUTHORISED_REGISTRY", "")
+	e.set(&e.ServicePacks.Kubernetes.UnauthorisedContainerImage, "PROBR_UNAUTHORISED_REGISTRY", "")
 	e.set(&e.ServicePacks.Kubernetes.ProbeImage, "PROBR_PROBE_IMAGE", "citihub/probr-probe")
 	e.set(&e.ServicePacks.Kubernetes.ContainerRequiredDropCapabilities, "PROBR_REQUIRED_DROP_CAPABILITIES", []string{"NET_RAW"})
 	e.set(&e.ServicePacks.Kubernetes.ContainerAllowedAddCapabilities, "PROBR_ALLOWED_ADD_CAPABILITIES", []string{""})
