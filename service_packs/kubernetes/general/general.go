@@ -178,7 +178,7 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 
 	stepTrace.WriteString("Check expected exit code was raised from curl command; ")
 	if exitCode != expectedCurlExitCode {
-		err = utils.ReformatError("Unexpected exit code: %d Error: %v", exitCode, cmdErr)
+		err = utils.ReformatError("Unexpected exit code: %d [Error: %v, StdOut: %s]", exitCode, cmdErr, stdOut)
 		return err
 	}
 

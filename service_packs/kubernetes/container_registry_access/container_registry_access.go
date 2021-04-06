@@ -4,6 +4,7 @@ package cra
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/cucumber/godog"
 	apiv1 "k8s.io/api/core/v1"
@@ -118,8 +119,8 @@ func (scenario *scenarioState) podCreationXWithContainerImageFromYRegistry(expec
 		if creationErr == nil {
 			err = utils.ReformatError("Pod creation succeeded, but should have been denied")
 		} else {
-			stepTrace.WriteString(fmt.Sprintf("Check that pod creation failed due to expected reason (403 Forbidden); "))
-			if !errors.IsStatusCode(403, creationErr) {
+			// TODO: Optimize how we're handling expected errors
+			if !errors.IsStatusCode(403, creationErr) && !strings.Contains(creationErr.Error(), "ErrImagePull") {
 				err = utils.ReformatError("Unexpected error during Pod creation : %v", creationErr)
 			}
 		}
