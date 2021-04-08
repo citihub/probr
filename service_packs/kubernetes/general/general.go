@@ -153,47 +153,47 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 	// Ref: https://everything.curl.dev/usingcurl/returns
 	// 6: Couldn't resolve host
 	// 28: command timed out
-	expectedCurlExitCodes := []int{6, 28}
+	expectedExitCodes := []int{6, 28}
 	cmd := fmt.Sprintf("curl -m 10 %s", urlAddress) // 10 second timeout should be enough
 
 	stepTrace.WriteString("Attempt to run curl command in the pod; ")
-	exitCode, stdOut, _, cmdErr := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
+	exitCode, stdOut, stdErr, _ := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
 	// Validate that no internal error occurred during execution of curl command
-	if cmdErr != nil && exitCode == -1 {
-		err = utils.ReformatError("Unknown error raised when attempting to execute '%s' inside container: %v", cmd, cmdErr)
-		return err
-	}
-
-	// TODO: Confirm this implementation:
-	// Expected Exit Code from Curl command is:	6
-
-	stepTrace.WriteString("Check expected exit code was raised from curl command; ")
-	var exitKnown bool
-	for expectedCode := range expectedCurlExitCodes {
-		if exitCode == expectedCode {
-			exitKnown = true
-		}
-	}
-	if !exitKnown {
-		err = utils.ReformatError("Unexpected exit code: %d [Error: %v, StdOut: %s]", exitCode, cmdErr, stdOut)
+	if stdErr != "" && exitCode == -1 {
+		err = utils.ReformatError("Unknown error raised when attempting to execute '%s' inside container.", cmd, stdErr)
 		return err
 	}
 
 	payload = struct {
-		PodName               string
-		Namespace             string
-		Command               string
-		ExpectedCurlExitCodes []int
-		CurlExitCode          int
-		StdOut                string
+		PodName           string
+		Namespace         string
+		Command           string
+		ExpectedExitCodes []int
+		ExitCode          int
+		StdOut            string
+		StdErr            string
 	}{
-		PodName:               scenario.pods[0],
-		Namespace:             scenario.namespace,
-		Command:               cmd,
-		ExpectedCurlExitCodes: expectedCurlExitCodes,
-		CurlExitCode:          exitCode,
-		StdOut:                stdOut,
+		PodName:           scenario.pods[0],
+		Namespace:         scenario.namespace,
+		Command:           cmd,
+		ExpectedExitCodes: expectedExitCodes,
+		ExitCode:          exitCode,
+		StdOut:            stdOut,
+		StdErr:            stdErr,
+	}
+
+	stepTrace.WriteString("Check expected exit code was raised from curl command; ")
+	var exitKnown bool
+	for _, expectedCode := range expectedExitCodes {
+		log.Printf(fmt.Sprintf("[ERROR] A: %d; B: %d", exitCode, expectedCode))
+		if int(exitCode) == int(expectedCode) {
+			exitKnown = true
+		}
+	}
+	if !exitKnown {
+		err = utils.ReformatError("Unexpected exit code: %d. Please review audit output for more information.", exitCode)
+		return err
 	}
 
 	return err

@@ -190,14 +190,14 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 		return err
 	}
 
-	var expectedExitCode int
+	var expectedExitCodes []int
 	switch result {
 	case "successful":
-		expectedExitCode = 0
+		expectedExitCodes = []int{0}
 	case "unsuccessful":
-		expectedExitCode = 1
+		expectedExitCodes = []int{1}
 	case "prevented by restricted permissions":
-		expectedExitCode = 32
+		expectedExitCodes = []int{1, 32}
 	default:
 		err = utils.ReformatError("Unexpected value provided for expected command result: %s", result) // No payload is necessary if an invalid value was provided
 		return err
@@ -207,22 +207,29 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 	exitCode, stdout, stderr, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
 	payload = struct {
-		Command          string
-		StdOut           string
-		StdErr           string
-		ExitCode         int
-		ExpectedExitCode int
+		Command           string
+		StdOut            string
+		StdErr            string
+		ExitCode          int
+		ExpectedExitCodes []int
 	}{
-		Command:          cmd,
-		StdOut:           stdout,
-		StdErr:           stderr,
-		ExitCode:         exitCode,
-		ExpectedExitCode: expectedExitCode,
+		Command:           cmd,
+		StdOut:            stdout,
+		StdErr:            stderr,
+		ExitCode:          exitCode,
+		ExpectedExitCodes: expectedExitCodes,
+	}
+	var exitKnown bool
+	for expectedCode := range expectedExitCodes {
+		if exitCode == expectedCode {
+			exitKnown = true
+		}
+	}
+	if !exitKnown {
+		err = utils.ReformatError("Unexpected exit code: %d [Error: %v, StdOut: %s]", exitCode, err, stdout)
+		return err
 	}
 
-	if exitCode == expectedExitCode {
-		err = nil
-	}
 	return err
 }
 
