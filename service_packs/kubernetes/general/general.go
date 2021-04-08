@@ -187,7 +187,7 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 	var exitKnown bool
 	for _, expectedCode := range expectedExitCodes {
 		log.Printf(fmt.Sprintf("[ERROR] A: %d; B: %d", exitCode, expectedCode))
-		if int(exitCode) == int(expectedCode) {
+		if exitCode == expectedCode {
 			exitKnown = true
 		}
 	}
