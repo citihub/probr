@@ -190,6 +190,7 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 	for _, expectedCode := range expectedExitCodes {
 		if exitCode == expectedCode {
 			exitKnown = true
+			err = nil
 		}
 	}
 	if !exitKnown {
