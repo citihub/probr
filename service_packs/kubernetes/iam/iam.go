@@ -396,13 +396,7 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideTheMICPodIsY(command
 	identityPodsNamespace := config.Vars.ServicePacks.Kubernetes.Azure.IdentityNamespace
 	stepTrace.WriteString(fmt.Sprintf(
 		"Attempt to execute command '%s' in MIC pod '%s'; ", cmd, scenario.micPodName))
-	exitCode, stdOut, _, cmdErr := conn.ExecCommand(cmd, identityPodsNamespace, scenario.micPodName)
-
-	// Validate that no internal error occurred during execution of curl command
-	if cmdErr != nil && exitCode == -1 {
-		err = utils.ReformatError("Error raised when attempting to execute command inside container: %v", cmdErr)
-		return err
-	}
+	exitCode, stdOut, _, err := conn.ExecCommand(cmd, identityPodsNamespace, scenario.micPodName)
 
 	payload = struct {
 		MICPodName       string
@@ -411,6 +405,7 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideTheMICPodIsY(command
 		ExpectedExitCode int
 		ExitCode         int
 		StdOut           string
+		ExecErr          string
 	}{
 		MICPodName:       scenario.micPodName,
 		Namespace:        identityPodsNamespace,
@@ -418,6 +413,7 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideTheMICPodIsY(command
 		ExpectedExitCode: expectedExitCode,
 		ExitCode:         exitCode,
 		StdOut:           stdOut,
+		ExecErr:          err.Error(),
 	}
 
 	// TODO: Review this
@@ -432,6 +428,12 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideTheMICPodIsY(command
 	// Ref:
 	//  https://hub.docker.com/_/microsoft-k8s-aad-pod-identity-mic?tab=description
 	//  https://github.com/GoogleContainerTools/distroless
+
+	// Validate that no internal error occurred during execution of curl command
+	if err != nil && exitCode == -1 {
+		err = utils.ReformatError("Error raised when attempting to execute command inside container: %v", err)
+		return err
+	}
 
 	stepTrace.WriteString("Check expected exit code from command execution; ")
 	if exitCode != expectedExitCode {

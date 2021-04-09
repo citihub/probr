@@ -157,7 +157,7 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 	cmd := fmt.Sprintf("curl -m 10 %s", urlAddress) // 10 second timeout should be enough
 
 	stepTrace.WriteString("Attempt to run curl command in the pod; ")
-	exitCode, stdOut, stdErr, _ := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
+	exitCode, stdOut, stdErr, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
 	payload = struct {
 		PodName           string
@@ -167,6 +167,7 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 		ExitCode          int
 		StdOut            string
 		StdErr            string
+		ExecErr           string
 	}{
 		PodName:           scenario.pods[0],
 		Namespace:         scenario.namespace,
@@ -175,11 +176,12 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 		ExitCode:          exitCode,
 		StdOut:            stdOut,
 		StdErr:            stdErr,
+		ExecErr:           err.Error(),
 	}
 
 	// Validate that no internal error occurred during execution of curl command
 	if stdErr != "" && exitCode == -1 {
-		err = utils.ReformatError("Unknown error raised when attempting to execute '%s' inside container. Please review audit output for more information.")
+		err = utils.ReformatError("Unknown error raised when attempting to execute '%s' inside container. Please review audit output for more information.", cmd)
 		return err
 	}
 
