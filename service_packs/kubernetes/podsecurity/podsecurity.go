@@ -210,14 +210,14 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 		Command           string
 		StdOut            string
 		StdErr            string
-		ExecErr           string
+		ExecErr           error
 		ExitCode          int
 		ExpectedExitCodes []int
 	}{
 		Command:           cmd,
 		StdOut:            stdout,
 		StdErr:            stderr,
-		ExecErr:           err.Error(),
+		ExecErr:           err,
 		ExitCode:          exitCode,
 		ExpectedExitCodes: expectedExitCodes,
 	}

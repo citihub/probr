@@ -167,7 +167,7 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 		ExitCode          int
 		StdOut            string
 		StdErr            string
-		ExecErr           string
+		ExecErr           error
 	}{
 		PodName:           scenario.pods[0],
 		Namespace:         scenario.namespace,
@@ -176,7 +176,7 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 		ExitCode:          exitCode,
 		StdOut:            stdOut,
 		StdErr:            stdErr,
-		ExecErr:           err.Error(),
+		ExecErr:           err,
 	}
 
 	// Validate that no internal error occurred during execution of curl command

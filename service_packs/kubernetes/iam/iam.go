@@ -405,7 +405,7 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideTheMICPodIsY(command
 		ExpectedExitCode int
 		ExitCode         int
 		StdOut           string
-		ExecErr          string
+		ExecErr          error
 	}{
 		MICPodName:       scenario.micPodName,
 		Namespace:        identityPodsNamespace,
@@ -413,7 +413,7 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideTheMICPodIsY(command
 		ExpectedExitCode: expectedExitCode,
 		ExitCode:         exitCode,
 		StdOut:           stdOut,
-		ExecErr:          err.Error(),
+		ExecErr:          err,
 	}
 
 	// TODO: Review this
