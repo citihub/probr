@@ -159,12 +159,6 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 	stepTrace.WriteString("Attempt to run curl command in the pod; ")
 	exitCode, stdOut, stdErr, _ := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
-	// Validate that no internal error occurred during execution of curl command
-	if stdErr != "" && exitCode == -1 {
-		err = utils.ReformatError("Unknown error raised when attempting to execute '%s' inside container.", cmd, stdErr)
-		return err
-	}
-
 	payload = struct {
 		PodName           string
 		Namespace         string
@@ -183,10 +177,15 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 		StdErr:            stdErr,
 	}
 
+	// Validate that no internal error occurred during execution of curl command
+	if stdErr != "" && exitCode == -1 {
+		err = utils.ReformatError("Unknown error raised when attempting to execute '%s' inside container. Please review audit output for more information.")
+		return err
+	}
+
 	stepTrace.WriteString("Check expected exit code was raised from curl command; ")
 	var exitKnown bool
 	for _, expectedCode := range expectedExitCodes {
-		log.Printf(fmt.Sprintf("[ERROR] A: %d; B: %d", exitCode, expectedCode))
 		if exitCode == expectedCode {
 			exitKnown = true
 		}

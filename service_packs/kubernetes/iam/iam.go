@@ -435,7 +435,7 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideTheMICPodIsY(command
 
 	stepTrace.WriteString("Check expected exit code from command execution; ")
 	if exitCode != expectedExitCode {
-		err = utils.ReformatError("Unexpected exit code: %d Error: %v", exitCode, cmdErr)
+		err = utils.ReformatError("Unexpected exit code: %d. Please review audit output for more information.", exitCode)
 		return err
 	}
 
