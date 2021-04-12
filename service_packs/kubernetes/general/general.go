@@ -154,29 +154,39 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 	// 6: Couldn't resolve host
 	// 28: command timed out
 	expectedExitCodes := []int{6, 28}
+	expectedExitMessage := "Action: Deny"
 	cmd := fmt.Sprintf("curl -m 10 %s", urlAddress) // 10 second timeout should be enough
 
 	stepTrace.WriteString("Attempt to run curl command in the pod; ")
 	exitCode, stdOut, stdErr, err := conn.ExecCommand(cmd, scenario.namespace, scenario.pods[0])
 
 	payload = struct {
-		PodName           string
-		Namespace         string
-		Command           string
-		ExpectedExitCodes []int
-		ExitCode          int
-		StdOut            string
-		StdErr            string
-		ExecErr           error
+		PodName             string
+		Namespace           string
+		Command             string
+		ExpectedExitCodes   []int
+		ExpectedExitMessage string
+		ExitCode            int
+		StdOut              string
+		StdErr              string
+		ExecErr             error
 	}{
-		PodName:           scenario.pods[0],
-		Namespace:         scenario.namespace,
-		Command:           cmd,
-		ExpectedExitCodes: expectedExitCodes,
-		ExitCode:          exitCode,
-		StdOut:            stdOut,
-		StdErr:            stdErr,
-		ExecErr:           err,
+		PodName:             scenario.pods[0],
+		Namespace:           scenario.namespace,
+		Command:             cmd,
+		ExpectedExitCodes:   expectedExitCodes,
+		ExpectedExitMessage: expectedExitMessage,
+		ExitCode:            exitCode,
+		StdOut:              stdOut,
+		StdErr:              stdErr,
+		ExecErr:             err,
+	}
+
+	stepTrace.WriteString("Validate that an expected exit occurred from curl command; ")
+
+	// Succeed if the expected message was found
+	if strings.Contains(stdOut, expectedExitMessage) {
+		return nil
 	}
 
 	// Validate that no internal error occurred during execution of curl command
@@ -185,7 +195,6 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 		return err
 	}
 
-	stepTrace.WriteString("Check expected exit code was raised from curl command; ")
 	var exitKnown bool
 	for _, expectedCode := range expectedExitCodes {
 		if exitCode == expectedCode {
