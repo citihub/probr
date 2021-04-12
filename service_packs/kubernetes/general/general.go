@@ -190,7 +190,7 @@ func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirec
 	}
 
 	// Validate that no internal error occurred during execution of curl command
-	if stdErr != "" && exitCode == -1 {
+	if stdErr != "" && exitCode == 0 {
 		err = utils.ReformatError("Unknown error raised when attempting to execute '%s' inside container. Please review audit output for more information.", cmd)
 		return err
 	}
