@@ -221,6 +221,13 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 		ExitCode:          exitCode,
 		ExpectedExitCodes: expectedExitCodes,
 	}
+
+	// Validate that no internal error occurred during execution of curl command
+	if stderr != "" && exitCode == 0 {
+		err = utils.ReformatError("Unknown error raised when attempting to execute '%s' inside container. Please review audit output for more information.", cmd)
+		return err
+	}
+
 	var exitKnown bool
 	for _, expectedCode := range expectedExitCodes {
 		if exitCode == expectedCode {

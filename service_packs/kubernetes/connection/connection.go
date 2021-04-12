@@ -160,7 +160,7 @@ func (connection *Conn) DeletePodIfExists(podName, namespace, probeName string) 
 
 // ExecCommand executes the supplied command on the given pod name in the specified namespace.
 func (connection *Conn) ExecCommand(cmd, namespace, podName string) (exitCode int, stdout string, stderr string, err error) {
-	exitCode = -1
+	exitCode = 0
 	if cmd == "" {
 		err = utils.ReformatError("Command string not provided to ExecCommand")
 		return
