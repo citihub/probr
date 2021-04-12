@@ -20,10 +20,13 @@ Feature: General Cluster Security Configurations
         So that Internet traffic can be inspected and controlled
 
         When a pod is deployed in the cluster
-        Then the result of a process inside the pod establishing a direct http(s) connection to "<URL>" is "<RESULT>"
+        Then the result of a process inside the pod establishing a direct connection to "<URL>" is blocked
         
         Examples:
-            | URL                       | RESULT  |
-            | http://www.google.com     | blocked |
-            | http://www.microsoft.com  | blocked |
-            | http://www.ubuntu.com     | blocked |
+            | URL                           |
+            | https://www.ubuntu.com        |
+            | https://www.google.com        |
+            | https://www.stackoverflow.com |
+            | http://www.ubuntu.com         |
+            | http://www.google.com         |
+            | http://www.stackoverflow.com  |

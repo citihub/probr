@@ -124,13 +124,9 @@ func (scenario *scenarioState) aPodIsDeployedInTheCluster() error {
 	return err
 }
 
-// TODO: This likely doesn't benefit from parameter Y
-func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirectHTTPConnectionToXIsY(urlAddress, result string) error {
+func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirectHTTPConnectionToXIsBlocked(urlAddress, result string) error {
 	// Supported values for urlAddress:
-	//	A valid absolute path URL with http(s) prefix
-	//
-	// Supported values for result:
-	//	'blocked'
+	//	A valid absolute path URL with http/s prefix
 
 	// Standard auditing logic to ensures panics are also audited
 	stepTrace, payload, err := utils.AuditPlaceholders()
@@ -245,7 +241,7 @@ func (probe probeStruct) ScenarioInitialize(ctx *godog.ScenarioContext) {
 	// Steps
 	ctx.Step(`^the Kubernetes Web UI is disabled$`, scenario.theKubernetesWebUIIsDisabled)
 	ctx.Step(`^a pod is deployed in the cluster$`, scenario.aPodIsDeployedInTheCluster)
-	ctx.Step(`^the result of a process inside the pod establishing a direct http\(s\) connection to "([^"]*)" is "([^"]*)"$`, scenario.theResultOfAProcessInsideThePodEstablishingADirectHTTPConnectionToXIsY)
+	ctx.Step(`^the result of a process inside the pod establishing a direct connection to "([^"]*)" is blocked$`, scenario.theResultOfAProcessInsideThePodEstablishingADirectHTTPConnectionToXIsBlocked)
 
 	ctx.AfterScenario(func(s *godog.Scenario, err error) {
 		afterScenario(scenario, probe, s, err)
