@@ -154,15 +154,16 @@ func (scenario *scenarioState) podCreationResultsWithXSetToYInThePodSpec(result,
 	return
 }
 
-func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission, result string) error {
-	// Supported permissions:
+func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(cmdType, result string) error {
+	// Supported cmdType:
 	//     'non-privileged'
 	//     'privileged'
 	//     'root'
+	//     'ping'
 	//
 	// Supported results:
 	//     'successful'
-	//     'rejected'
+	//     'prevented'
 
 	stepTrace, payload, err := utils.AuditPlaceholders()
 	defer func() {
@@ -174,30 +175,32 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 		err = utils.ReformatError("Pod failed to create in the previous step")
 		return err
 	}
+	var expectedExitCodes []int
+	var expectedFailureCodes []int
 
 	var cmd string
-	switch permission {
+	switch cmdType {
 	case "non-privileged":
 		cmd = "ls"
 	case "privileged":
 		cmd = "mount /fake /fake"
+		expectedFailureCodes = []int{1, 32}
 	case "root":
 		cmd = "touch /dev/probr"
+		expectedFailureCodes = []int{1}
 	case "ping":
 		cmd = "ping google.com"
+		expectedFailureCodes = []int{1, 2}
 	default:
-		err = utils.ReformatError("Unexpected value provided for command permission type: %s", permission) // No payload is necessary if an invalid value was provided
+		err = utils.ReformatError("Unexpected value provided for command type: %s", cmdType) // No payload is necessary if an invalid value was provided
 		return err
 	}
 
-	var expectedExitCodes []int
 	switch result {
 	case "successful":
 		expectedExitCodes = []int{0}
-	case "unsuccessful":
-		expectedExitCodes = []int{1}
-	case "prevented by restricted permissions":
-		expectedExitCodes = []int{1, 32}
+	case "prevented":
+		expectedExitCodes = expectedFailureCodes
 	default:
 		err = utils.ReformatError("Unexpected value provided for expected command result: %s", result) // No payload is necessary if an invalid value was provided
 		return err
