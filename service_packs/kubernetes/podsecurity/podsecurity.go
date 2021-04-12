@@ -222,7 +222,7 @@ func (scenario *scenarioState) theExecutionOfAXCommandInsideThePodIsY(permission
 		ExpectedExitCodes: expectedExitCodes,
 	}
 	var exitKnown bool
-	for expectedCode := range expectedExitCodes {
+	for _, expectedCode := range expectedExitCodes {
 		if exitCode == expectedCode {
 			exitKnown = true
 			err = nil
