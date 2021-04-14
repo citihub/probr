@@ -124,7 +124,7 @@ func (scenario *scenarioState) aPodIsDeployedInTheCluster() error {
 	return err
 }
 
-func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirectHTTPConnectionToXIsBlocked(urlAddress, result string) error {
+func (scenario *scenarioState) theResultOfAProcessInsideThePodEstablishingADirectHTTPConnectionToXIsBlocked(urlAddress string) error {
 	// Supported values for urlAddress:
 	//	A valid absolute path URL with http/s prefix
 
