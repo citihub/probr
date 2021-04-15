@@ -41,7 +41,7 @@ var scenario scenarioState
 
 func (scenario *scenarioState) createPodfromObject(podObject *apiv1.Pod) (createdPodObject *apiv1.Pod, err error) {
 	createdPodObject, err = conn.CreatePodFromObject(podObject, Probe.Name())
-	if err == nil {
+	if createdPodObject != nil && createdPodObject.ObjectMeta.Name != "" {
 		scenario.pods = append(scenario.pods, createdPodObject.ObjectMeta.Name)
 	}
 	return
