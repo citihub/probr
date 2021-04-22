@@ -28,7 +28,7 @@ Feature: General Cluster Security Configurations
             | http://www.google.com         |
             | http://www.stackoverflow.com  |
 
-    @k-gen-002
+    @k-gen-003
     Scenario Outline: Test HTTPS outgoing connectivity of a deployed pod
         Ensure that containers running inside Kubernetes clusters cannot directly access the Internet
         So that Internet traffic can be inspected and controlled
