@@ -24,9 +24,20 @@ Feature: General Cluster Security Configurations
         
         Examples:
             | URL                           |
-            | https://www.ubuntu.com        |
-            | https://www.google.com        |
-            | https://www.stackoverflow.com |
             | http://www.ubuntu.com         |
             | http://www.google.com         |
             | http://www.stackoverflow.com  |
+
+    @k-gen-003
+    Scenario Outline: Test HTTPS outgoing connectivity of a deployed pod
+        Ensure that containers running inside Kubernetes clusters cannot directly access the Internet
+        So that Internet traffic can be inspected and controlled
+
+        When a pod is deployed in the cluster
+        Then the result of a process inside the pod establishing a direct connection to "<URL>" is blocked
+        
+        Examples:
+            | URL                           |
+            | https://www.ubuntu.com        |
+            | https://www.google.com        |
+            | https://www.stackoverflow.com |
